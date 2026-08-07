@@ -1,0 +1,202 @@
+/**
+ * Employee profile — the full record in read view: personal + employment
+ * details, all five documents with expiry badges, assignment (managed by
+ * deployments from M6), emergency contact, notes. Edit/Delete role-gated.
+ */
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { getEmployee, deleteEmployee } from '../employees.api.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
+import { useToast } from '../../../components/ui/Toast.jsx';
+import {
+  EMPLOYEE_WRITE_ROLES,
+  EMPLOYEE_DELETE_ROLES,
+  ACCOUNT_PROVISION_ROLES,
+} from '../../../lib/constants.js';
+import { apiMessage, formatDate } from '../../../lib/utils.js';
+import PageHeader from '../../../components/shared/PageHeader.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import ExpiryBadge from '../../../components/shared/ExpiryBadge.jsx';
+import Card from '../../../components/ui/Card.jsx';
+import Badge from '../../../components/ui/Badge.jsx';
+import Button from '../../../components/ui/Button.jsx';
+import Skeleton from '../../../components/ui/Skeleton.jsx';
+import EmptyState from '../../../components/ui/EmptyState.jsx';
+import WorkerDeploymentPanel from '../../deployments/components/WorkerDeploymentPanel.jsx';
+import DocumentsPanel from '../../documents/components/DocumentsPanel.jsx';
+import WorkerLoginPanel from '../components/WorkerLoginPanel.jsx';
+
+const STATUS_VARIANT = { Active: 'success', 'On Leave': 'warning', Exited: 'default' };
+
+const DOCUMENTS = [
+  ['passport', 'Passport'],
+  ['visa', 'Visa'],
+  ['iqama', 'Iqama'],
+  ['medical', 'Medical'],
+  ['drivingLicense', 'Driving License'],
+];
+
+/** One label/value line in a detail card. */
+function Field({ label, children }) {
+  return (
+    <div>
+      <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
+      <dd className="mt-0.5 text-sm">{children || '—'}</dd>
+    </div>
+  );
+}
+
+export default function EmployeeProfilePage() {
+  const { id } = useParams();
+  const { user } = useAuth();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const canWrite = EMPLOYEE_WRITE_ROLES.includes(user.role);
+  const canDelete = EMPLOYEE_DELETE_ROLES.includes(user.role);
+  const canProvisionAccount = ACCOUNT_PROVISION_ROLES.includes(user.role);
+
+  const { data: employee, isPending, isError } = useQuery({
+    queryKey: ['employee', id],
+    queryFn: () => getEmployee(id),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteEmployee(id),
+    onSuccess: () => {
+      toast.success(`${employee.fullName} deleted.`);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      navigate('/employees', { replace: true });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  if (isPending) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-4">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-56 w-full" />
+      </div>
+    );
+  }
+  if (isError) {
+    return (
+      <EmptyState
+        title="Employee not found"
+        description="The record may have been deleted."
+        action={
+          <Link to="/employees">
+            <Button variant="secondary">Back to employees</Button>
+          </Link>
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      <PageHeader
+        title={employee.fullName}
+        description={`${employee.employeeId} · ${employee.designation}`}
+        actions={
+          <>
+            <Badge variant={STATUS_VARIANT[employee.status]} className="mr-1">
+              {employee.status}
+            </Badge>
+            {canWrite && (
+              <Button variant="secondary" onClick={() => navigate(`/employees/${id}/edit`)}>
+                Edit
+              </Button>
+            )}
+            {canDelete && (
+              <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
+                Delete
+              </Button>
+            )}
+          </>
+        }
+      />
+
+      <div className="space-y-6">
+        <Card>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Overview</h2>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="Nationality">{employee.nationality}</Field>
+            <Field label="Mobile">{employee.mobile}</Field>
+            <Field label="Email">{employee.email}</Field>
+            <Field label="Joining date">{formatDate(employee.joiningDate)}</Field>
+            <Field label="Department">{employee.department}</Field>
+            <Field label="Salary">SAR {employee.salary?.toLocaleString()}</Field>
+            <Field label="Accommodation">{employee.accommodation}</Field>
+          </dl>
+        </Card>
+
+        {/* Worker login (P2-M1) — Admin/HR only. Create/inspect this
+            employee's self-service account. */}
+        {canProvisionAccount && <WorkerLoginPanel employee={employee} />}
+
+        {/* Current deployment, actions (transfer/end/assign) and history —
+            owns its own data; populates from the M6 deployment workflow. */}
+        <WorkerDeploymentPanel employee={employee} />
+
+        <Card>
+          {/* Identity metadata (numbers + expiry) — distinct from uploaded
+              files, which live in the Documents panel below. */}
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+            Identity documents
+          </h2>
+          <div className="divide-y divide-border">
+            {DOCUMENTS.map(([key, label]) => {
+              const doc = employee[key];
+              return (
+                <div key={key} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted">
+                      {doc?.number || 'No number'} · expires {formatDate(doc?.expiry)}
+                    </p>
+                  </div>
+                  <ExpiryBadge date={doc?.expiry} />
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        {/* Uploaded files (scans, contracts, certificates) via the M8 center. */}
+        <DocumentsPanel ownerType="Employee" ownerId={employee._id} ownerName={employee.fullName} />
+
+        <Card>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+            Emergency contact
+          </h2>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Field label="Name">{employee.emergencyContact?.name}</Field>
+            <Field label="Phone">{employee.emergencyContact?.phone}</Field>
+            <Field label="Relation">{employee.emergencyContact?.relation}</Field>
+          </dl>
+        </Card>
+
+        {employee.notes && (
+          <Card>
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Notes</h2>
+            <p className="whitespace-pre-wrap text-sm">{employee.notes}</p>
+          </Card>
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Delete employee?"
+        message={`${employee.fullName} (${employee.employeeId}) will be permanently removed. For staff who left the company, set status to "Exited" instead.`}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => setConfirmingDelete(false)}
+      />
+    </div>
+  );
+}

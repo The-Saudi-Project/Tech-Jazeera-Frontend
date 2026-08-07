@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design token values. Components consume these ONLY through the Tailwind
+ * names defined in tailwind.config.js (bg-surface, text-muted, ...).
+ * The .dark block is the entire dark theme — add class="dark" to <html>
+ * and every screen flips. Kept current from day one so dark mode is a
+ * switch, not a rewrite.
+ */
+:root {
+  /* Neutrals are tinted toward the indigo brand hue (never pure #fff/#000) —
+     it reads as a single calm system rather than clinical grey. */
+  --color-bg: 246 247 252; /* indigo-tinted off-white */
+  --color-surface: 255 255 255; /* near-white cards; depth comes from shadow + the bg wash */
+  --color-border: 226 229 241; /* slate-200, warmed toward indigo */
+  --color-text: 20 22 43; /* near-slate-900 with indigo tint */
+  --color-muted: 100 108 140; /* slate-500, tinted */
+  --color-primary: 79 70 229; /* indigo-600 */
+  --color-primary-hover: 67 56 202; /* indigo-700 */
+  --color-danger: 220 38 38; /* red-600   */
+  --color-danger-hover: 185 28 28; /* red-700   */
+  --color-success: 22 163 74; /* green-600 */
+  --color-warning: 217 119 6; /* amber-600 */
+  /* Glass = a translucent border tint, applied only on the few frosted
+     surfaces (topbar, modal scrim, auth card). Not a default. */
+  --glass-border: 255 255 255;
+  /* The soft, fixed background wash — two faint indigo glows behind everything. */
+  --bg-wash: radial-gradient(1100px 620px at 100% -8%, rgb(99 102 241 / 0.07), transparent 60%),
+    radial-gradient(900px 520px at -6% 108%, rgb(79 70 229 / 0.06), transparent 55%);
+}
+
+.dark {
+  --color-bg: 4 7 22; /* near slate-950, indigo-tinted */
+  --color-surface: 17 22 44; /* slate-900 warmed toward indigo */
+  --color-border: 42 50 82; /* slate-700, tinted */
+  --color-text: 236 238 248;
+  --color-muted: 148 158 190;
+  --color-primary: 129 128 246; /* brighter indigo reads better on dark */
+  --color-primary-hover: 165 164 250;
+  --color-danger: 248 113 113;
+  --color-danger-hover: 252 165 165;
+  --color-success: 45 205 110;
+  --color-warning: 251 176 60;
+  --glass-border: 148 163 210;
+  --bg-wash: radial-gradient(1100px 620px at 100% -8%, rgb(99 102 241 / 0.14), transparent 60%),
+    radial-gradient(900px 520px at -6% 108%, rgb(79 70 229 / 0.12), transparent 55%);
+}
+
+@layer base {
+  html {
+    /* A capable system font stack — no webfont download, instant paint. */
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      Arial,
+      sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply text-text antialiased;
+    /* Wash sits behind the token background and stays put while content
+       scrolls, giving the app quiet depth without touching legibility. */
+    background: var(--bg-wash), rgb(var(--color-bg));
+    background-attachment: fixed;
+  }
+  /* One consistent, visible focus ring everywhere — keyboard accessibility. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-bg;
+  }
+  /* Honor users who ask for less motion — animations collapse to instant. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

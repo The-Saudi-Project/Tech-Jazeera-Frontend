@@ -1,0 +1,96 @@
+/**
+ * Route table + auth guard. Two worlds:
+ *   - AuthLayout wraps guest screens (/login)
+ *   - RequireAuth → DashboardLayout wraps everything signed-in
+ *
+ * RequireAuth is the guard: while the silent session-restore runs it shows a
+ * full-screen spinner (NOT a redirect — bouncing a logged-in user to /login
+ * for a half second on every reload is the classic mistake), then either
+ * renders the app or redirects to /login.
+ */
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../features/auth/AuthContext.jsx';
+import AuthLayout from './layouts/AuthLayout.jsx';
+import DashboardLayout from './layouts/DashboardLayout.jsx';
+import LoginPage from '../features/auth/pages/LoginPage.jsx';
+import DashboardPage from '../features/dashboard/pages/DashboardPage.jsx';
+import EmployeeListPage from '../features/employees/pages/EmployeeListPage.jsx';
+import EmployeeNewPage from '../features/employees/pages/EmployeeNewPage.jsx';
+import EmployeeProfilePage from '../features/employees/pages/EmployeeProfilePage.jsx';
+import EmployeeEditPage from '../features/employees/pages/EmployeeEditPage.jsx';
+import ClientListPage from '../features/clients/pages/ClientListPage.jsx';
+import ClientNewPage from '../features/clients/pages/ClientNewPage.jsx';
+import ClientProfilePage from '../features/clients/pages/ClientProfilePage.jsx';
+import ClientEditPage from '../features/clients/pages/ClientEditPage.jsx';
+import DeploymentListPage from '../features/deployments/pages/DeploymentListPage.jsx';
+import DeploymentNewPage from '../features/deployments/pages/DeploymentNewPage.jsx';
+import AttendancePage from '../features/attendance/pages/AttendancePage.jsx';
+import DocumentListPage from '../features/documents/pages/DocumentListPage.jsx';
+import QuotationListPage from '../features/quotations/pages/QuotationListPage.jsx';
+import QuotationNewPage from '../features/quotations/pages/QuotationNewPage.jsx';
+import QuotationViewPage from '../features/quotations/pages/QuotationViewPage.jsx';
+import QuotationEditPage from '../features/quotations/pages/QuotationEditPage.jsx';
+import TimesheetProcessorPage from '../features/timesheetProcessor/pages/TimesheetProcessorPage.jsx';
+import NfcCompanyListPage from '../features/nfc/pages/NfcCompanyListPage.jsx';
+import NfcCompanyProfilePage from '../features/nfc/pages/NfcCompanyProfilePage.jsx';
+import NfcCardListPage from '../features/nfc/pages/NfcCardListPage.jsx';
+import NfcCardDetailPage from '../features/nfc/pages/NfcCardDetailPage.jsx';
+import NfcAnalyticsPage from '../features/nfc/pages/NfcAnalyticsPage.jsx';
+import Spinner from '../components/ui/Spinner.jsx';
+
+function RequireAuth() {
+  const { status } = useAuth();
+
+  if (status === 'loading') {
+    return (
+      <div className="grid min-h-screen place-items-center bg-bg">
+        <Spinner className="h-8 w-8 text-primary" />
+      </div>
+    );
+  }
+  if (status === 'guest') return <Navigate to="/login" replace />;
+  return <Outlet />;
+}
+
+export const router = createBrowserRouter([
+  {
+    element: <AuthLayout />,
+    children: [{ path: '/login', element: <LoginPage /> }],
+  },
+  {
+    element: <RequireAuth />,
+    children: [
+      {
+        element: <DashboardLayout />,
+        children: [
+          { path: '/', element: <DashboardPage /> },
+          { path: '/employees', element: <EmployeeListPage /> },
+          { path: '/employees/new', element: <EmployeeNewPage /> },
+          { path: '/employees/:id', element: <EmployeeProfilePage /> },
+          { path: '/employees/:id/edit', element: <EmployeeEditPage /> },
+          { path: '/clients', element: <ClientListPage /> },
+          { path: '/clients/new', element: <ClientNewPage /> },
+          { path: '/clients/:id', element: <ClientProfilePage /> },
+          { path: '/clients/:id/edit', element: <ClientEditPage /> },
+          { path: '/deployments', element: <DeploymentListPage /> },
+          { path: '/deployments/new', element: <DeploymentNewPage /> },
+          { path: '/attendance', element: <AttendancePage /> },
+          { path: '/documents', element: <DocumentListPage /> },
+          { path: '/quotations', element: <QuotationListPage /> },
+          { path: '/quotations/new', element: <QuotationNewPage /> },
+          { path: '/quotations/:id', element: <QuotationViewPage /> },
+          { path: '/quotations/:id/edit', element: <QuotationEditPage /> },
+          { path: '/timesheet-processor', element: <TimesheetProcessorPage /> },
+          { path: '/nfc', element: <NfcCompanyListPage /> },
+          { path: '/nfc/cards', element: <NfcCardListPage /> },
+          { path: '/nfc/cards/:id', element: <NfcCardDetailPage /> },
+          // Before the /nfc/:id catch-all, or "analytics" is read as a company id.
+          { path: '/nfc/analytics', element: <NfcAnalyticsPage /> },
+          { path: '/nfc/:id', element: <NfcCompanyProfilePage /> },
+        ],
+      },
+    ],
+  },
+  // Unknown URL: send home — RequireAuth then sorts out login if needed.
+  { path: '*', element: <Navigate to="/" replace /> },
+]);

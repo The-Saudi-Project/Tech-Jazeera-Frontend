@@ -1,0 +1,113 @@
+/**
+ * DocumentActionsCell — the per-row actions for a document: preview, download,
+ * upload a new version, and delete. Centralised here so the reusable panel and
+ * the global page share identical behaviour instead of duplicating it.
+ *
+ * "New version" uses a hidden file input; picking a file uploads it as the
+ * next version. Delete goes through the standard confirm dialog.
+ */
+import { useRef, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { addVersion, deleteDocument, downloadDocumentFile } from '../documents.api.js';
+import { currentVersion } from '../documents.schema.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
+import { useToast } from '../../../components/ui/Toast.jsx';
+import { DOCUMENT_WRITE_ROLES, DOCUMENT_DELETE_ROLES, DOCUMENT_ACCEPT } from '../../../lib/constants.js';
+import { apiMessage } from '../../../lib/utils.js';
+import Button from '../../../components/ui/Button.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import DocumentPreviewModal from './DocumentPreviewModal.jsx';
+
+export default function DocumentActionsCell({ doc }) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const canWrite = DOCUMENT_WRITE_ROLES.includes(user.role);
+  const canDelete = DOCUMENT_DELETE_ROLES.includes(user.role);
+  const version = currentVersion(doc);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['documents'] });
+
+  const versionMutation = useMutation({
+    mutationFn: (file) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return addVersion(doc._id, fd);
+    },
+    onSuccess: () => {
+      toast.success('New version uploaded.');
+      invalidate();
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteDocument(doc._id),
+    onSuccess: () => {
+      toast.success('Document deleted.');
+      setConfirmingDelete(false);
+      invalidate();
+    },
+    onError: (error) => {
+      toast.error(apiMessage(error));
+      setConfirmingDelete(false);
+    },
+  });
+
+  return (
+    <span className="flex justify-end gap-1">
+      <Button size="sm" variant="secondary" onClick={() => setPreviewing(true)}>
+        View
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => downloadDocumentFile(doc._id, version.version, version.originalName)}
+      >
+        Download
+      </Button>
+      {canWrite && (
+        <>
+          <Button
+            size="sm"
+            variant="ghost"
+            isLoading={versionMutation.isPending}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            New version
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={DOCUMENT_ACCEPT}
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) versionMutation.mutate(f);
+              e.target.value = ''; // allow re-selecting the same file later
+            }}
+          />
+        </>
+      )}
+      {canDelete && (
+        <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirmingDelete(true)}>
+          Delete
+        </Button>
+      )}
+
+      <DocumentPreviewModal doc={doc} open={previewing} onClose={() => setPreviewing(false)} />
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Delete document?"
+        message={`"${doc.title}" and all ${doc.versions.length} version(s) will be permanently removed, including the stored files.`}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => setConfirmingDelete(false)}
+      />
+    </span>
+  );
+}
