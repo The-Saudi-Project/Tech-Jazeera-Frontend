@@ -8,7 +8,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { getNfcCard, cardAction, updateNfcCard, getCardQrObjectUrl, deleteNfcCard } from '../nfc.api.js';
 import { CARD_STATUS_META } from '../nfc.constants.js';
