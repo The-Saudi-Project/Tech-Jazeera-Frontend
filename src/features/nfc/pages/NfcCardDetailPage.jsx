@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { getNfcCard, cardAction, updateNfcCard, getCardQrObjectUrl } from '../nfc.api.js';
+import { getNfcCard, cardAction, updateNfcCard, getCardQrObjectUrl, deleteNfcCard } from '../nfc.api.js';
 import { CARD_STATUS_META } from '../nfc.constants.js';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
@@ -23,6 +23,7 @@ import Input from '../../../components/ui/Input.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import CardAnalyticsPanel from '../components/CardAnalyticsPanel.jsx';
+import AssignCompanyModal from '../components/AssignCompanyModal.jsx';
 
 export default function NfcCardDetailPage() {
   const { id } = useParams();
@@ -34,6 +35,9 @@ export default function NfcCardDetailPage() {
   const [qrUrl, setQrUrl] = useState(null);
   const [chip, setChip] = useState('');
   const [confirm, setConfirm] = useState(null); // { action, title, message, confirmLabel }
+  const [assignCompanyOpen, setAssignCompanyOpen] = useState(false);
+  
+  const navigate = useNavigate();
 
   const { data: card, isPending, isError } = useQuery({
     queryKey: ['nfc-card', id],
@@ -70,12 +74,16 @@ export default function NfcCardDetailPage() {
   };
 
   const actionMutation = useMutation({
-    mutationFn: (action) => cardAction(id, action),
+    mutationFn: (action) => {
+      if (action === 'delete') return deleteNfcCard(id);
+      return cardAction(id, action);
+    },
     onSuccess: (_data, action) => {
       toast.success('Done.');
       setConfirm(null);
       invalidate();
       if (action === 'rotate') queryClient.invalidateQueries({ queryKey: ['nfc-card', id] });
+      if (action === 'delete') navigate('/nfc/cards');
     },
     onError: (error) => {
       toast.error(apiMessage(error));
@@ -194,6 +202,11 @@ export default function NfcCardDetailPage() {
                 Unassign
               </Button>
             )}
+            {card.status === 'unassigned' && (
+              <Button size="sm" variant="secondary" onClick={() => setAssignCompanyOpen(true)}>
+                Assign to company
+              </Button>
+            )}
             {card.status !== 'lost' && (
               <Button
                 size="sm"
@@ -234,6 +247,20 @@ export default function NfcCardDetailPage() {
             >
               Rotate token
             </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() =>
+                setConfirm({
+                  action: 'delete',
+                  title: 'Delete card?',
+                  message: 'This will completely remove the card and its history from the database. This action cannot be undone.',
+                  confirmLabel: 'Delete',
+                })
+              }
+            >
+              Delete card
+            </Button>
           </div>
         </Card>
 
@@ -269,6 +296,12 @@ export default function NfcCardDetailPage() {
         loading={actionMutation.isPending}
         onConfirm={() => actionMutation.mutate(confirm.action)}
         onCancel={() => setConfirm(null)}
+      />
+      
+      <AssignCompanyModal
+        open={assignCompanyOpen}
+        onClose={() => setAssignCompanyOpen(false)}
+        cardId={id}
       />
     </div>
   );

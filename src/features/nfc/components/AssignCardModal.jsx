@@ -26,7 +26,12 @@ export default function AssignCardModal({ open, onClose, employee, companyId }) 
     queryKey: ['nfc-cards', 'assignable'],
     queryFn: async () => {
       const all = await listNfcCards({});
-      return all.filter((c) => c.status === 'unassigned' || c.status === 'returned');
+      return all.filter((c) => {
+        if (c.status !== 'unassigned' && c.status !== 'returned') return false;
+        // Either not owned by any company, or owned by THIS company
+        const cardCompanyId = c.company?._id || c.company;
+        return !cardCompanyId || cardCompanyId === companyId;
+      });
     },
     enabled: open,
   });

@@ -99,6 +99,13 @@ export async function assignNfcCard(id, employeeId) {
   const { data } = await api.post(`/nfc/cards/${id}/assign`, { employee: employeeId });
   return data.data;
 }
+export async function assignNfcCardToCompany(id, companyId) {
+  const { data } = await api.post(`/nfc/cards/${id}/assign-company`, { company: companyId });
+  return data.data;
+}
+export async function deleteNfcCard(id) {
+  await api.delete(`/nfc/cards/${id}`);
+}
 /** Lifecycle action: 'unassign' | 'lost' | 'return' | 'disable' | 'rotate'. */
 export async function cardAction(id, action) {
   const { data } = await api.post(`/nfc/cards/${id}/${action}`);

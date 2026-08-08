@@ -5,13 +5,14 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { generateNfcBatch, downloadBatchCsv } from '../nfc.api.js';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { generateNfcBatch, downloadBatchCsv, listNfcCompanies } from '../nfc.api.js';
 import { batchFormSchema } from '../nfc.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 import Input from '../../../components/ui/Input.jsx';
+import Select from '../../../components/ui/Select.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function BatchGenerateModal({ open, onClose }) {
@@ -24,11 +25,17 @@ export default function BatchGenerateModal({ open, onClose }) {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(batchFormSchema), defaultValues: { count: 10, label: '', note: '' } });
+  } = useForm({ resolver: zodResolver(batchFormSchema), defaultValues: { count: 10, label: '', note: '', company: '' } });
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ['nfc-companies', ''],
+    queryFn: () => listNfcCompanies({}),
+    enabled: open,
+  });
 
   useEffect(() => {
     if (open) {
-      reset({ count: 10, label: '', note: '' });
+      reset({ count: 10, label: '', note: '', company: '' });
       setResult(null);
     }
   }, [open, reset]);
@@ -73,6 +80,14 @@ export default function BatchGenerateModal({ open, onClose }) {
             {...register('count')}
           />
           <Input label="Batch label (optional)" placeholder="e.g. Trial 10" error={errors.label?.message} {...register('label')} />
+          <Select label="Assign to company (optional)" error={errors.company?.message} {...register('company')}>
+            <option value="">None (Blank inventory)</option>
+            {companies.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.companyName}
+              </option>
+            ))}
+          </Select>
           <Input label="Note (optional)" error={errors.note?.message} {...register('note')} />
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="secondary" onClick={onClose} disabled={mutation.isPending}>
