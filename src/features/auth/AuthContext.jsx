@@ -66,6 +66,35 @@ export function AuthProvider({ children }) {
     });
   }, [toast]);
 
+  // Auto-logout after 12 minutes of inactivity
+  useEffect(() => {
+    if (status !== 'authed') return;
+
+    let timeoutId;
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        // Trigger auto-logout but use the state directly to avoid cyclic dependencies in the hook
+        logoutRequest().catch(() => {});
+        setAccessToken(null);
+        setUser(null);
+        setStatus('guest');
+        toast.info('You have been logged out due to inactivity.');
+      }, 12 * 60 * 1000); // 12 minutes
+    };
+
+    // Events that indicate the user is active
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(event => document.addEventListener(event, resetTimer, { passive: true }));
+    
+    resetTimer(); // Start the timer
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => document.removeEventListener(event, resetTimer));
+    };
+  }, [status, toast]);
+
   const login = useCallback(async (credentials) => {
     const { user: loggedInUser, accessToken } = await loginRequest(credentials);
     if (loggedInUser.role === 'Worker') {
