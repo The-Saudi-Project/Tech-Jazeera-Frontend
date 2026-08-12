@@ -98,6 +98,7 @@ export default function NfcCompanyFormModal({ open, onClose, company, onSaved })
     <Modal open={open} onClose={onClose} title={isEdit ? 'Edit company' : 'Add company'} size="lg">
       <form onSubmit={handleSubmit((v) => mutation.mutate(v))} noValidate className="space-y-4">
         <Input label="Company name *" error={errors.companyName?.message} {...register('companyName')} />
+        <Input label="Company name (Arabic)" dir="rtl" placeholder="اسم الشركة بالعربي" error={errors.companyNameAr?.message} {...register('companyNameAr')} />
 
         {/* Logo */}
         <div className="flex items-center gap-4">

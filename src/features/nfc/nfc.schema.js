@@ -9,6 +9,7 @@ const email = z.union([z.literal(''), z.string().email('Enter a valid email addr
 
 export const companyFormSchema = z.object({
   companyName: z.string().trim().min(1, 'Company name is required.').max(120),
+  companyNameAr: z.string().trim().max(120).optional(),
   contactPerson: z.string().trim().max(100).optional(),
   phone: z.string().trim().max(30).optional(),
   email: email.optional(),
@@ -21,7 +22,7 @@ export const companyFormSchema = z.object({
 });
 
 export const emptyCompanyForm = {
-  companyName: '', contactPerson: '', phone: '', email: '', website: '',
+  companyName: '', companyNameAr: '', contactPerson: '', phone: '', email: '', website: '',
   address: '', mapLink: '', city: '', brandColour: '#4F46E5', notes: '',
 };
 
