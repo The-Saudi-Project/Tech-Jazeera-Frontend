@@ -37,6 +37,19 @@ export function formatDate(value) {
   });
 }
 
+/** Display format with time: "23 Jul 2026, 14:05". For logs where the exact
+ *  moment matters, not just the day. Em-dash for missing values. */
+export function formatDateTime(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 /** ISO date → the "YYYY-MM-DD" format <input type="date"> requires. */
 export function toDateInput(value) {
   return value ? new Date(value).toISOString().slice(0, 10) : '';

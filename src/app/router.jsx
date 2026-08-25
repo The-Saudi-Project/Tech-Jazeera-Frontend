@@ -39,6 +39,7 @@ import NfcCardDetailPage from '../features/nfc/pages/NfcCardDetailPage.jsx';
 import NfcAnalyticsPage from '../features/nfc/pages/NfcAnalyticsPage.jsx';
 import UserListPage from '../features/users/pages/UserListPage.jsx';
 import LeavePage from '../features/leave/pages/LeavePage.jsx';
+import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
@@ -107,6 +108,7 @@ export const router = createBrowserRouter([
               { path: '/timesheet-processor', element: <TimesheetProcessorPage /> },
               { path: '/team', element: <UserListPage /> },
               { path: '/leave', element: <LeavePage /> },
+              { path: '/security-log', element: <AuditLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },
               { path: '/nfc/cards', element: <NfcCardListPage /> },
               { path: '/nfc/cards/:id', element: <NfcCardDetailPage /> },
