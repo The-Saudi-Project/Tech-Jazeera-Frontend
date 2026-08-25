@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
 import { listStaffUsers } from '../../users/users.api.js';
 import { EMPLOYEE_STATUSES } from '../../../lib/constants.js';
+import { COUNTRIES } from '../../../lib/countries.js';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
@@ -68,10 +69,26 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+      {/* Backs the Nationality field's autocomplete — type "I" and the browser
+          filters to India, Indonesia, Iran, Iraq, Ireland, etc. Native
+          <datalist>, not a custom dropdown: free typing still works for a
+          nationality that isn't on the list. */}
+      <datalist id="country-list">
+        {COUNTRIES.map((country) => (
+          <option key={country} value={country} />
+        ))}
+      </datalist>
+
       <Section title="Personal details">
         <Input label="Employee ID *" placeholder="AJ-001" error={errors.employeeId?.message} {...register('employeeId')} />
         <Input label="Full name *" error={errors.fullName?.message} {...register('fullName')} />
-        <Input label="Nationality *" error={errors.nationality?.message} {...register('nationality')} />
+        <Input
+          label="Nationality *"
+          list="country-list"
+          autoComplete="off"
+          error={errors.nationality?.message}
+          {...register('nationality')}
+        />
         <Input label="Mobile *" placeholder="+966 5x xxx xxxx" error={errors.mobile?.message} {...register('mobile')} />
         <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
       </Section>
