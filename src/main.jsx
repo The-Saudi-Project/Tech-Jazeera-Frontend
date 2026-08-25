@@ -8,3 +8,12 @@ createRoot(document.getElementById('root')).render(
     <AppProviders />
   </StrictMode>
 );
+
+// PWA installability. Registration only succeeds on HTTPS (or localhost,
+// which counts as a secure context for dev) — silently no-ops elsewhere
+// rather than failing the app.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}

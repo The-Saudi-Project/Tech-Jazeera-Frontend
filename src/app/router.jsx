@@ -43,6 +43,7 @@ import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
+import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 function RequireAuth() {
@@ -127,6 +128,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/me', element: <MyProfilePage /> },
               { path: '/me/documents', element: <MyDocumentsPage /> },
+              { path: '/me/attendance', element: <MyAttendancePage /> },
               { path: '/me/leave', element: <MyLeavePage /> },
             ],
           },

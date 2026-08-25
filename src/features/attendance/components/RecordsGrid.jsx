@@ -38,10 +38,12 @@ export default function RecordsGrid() {
     queryFn: () => listAttendance({ from: range.from, to: range.to }),
   });
 
-  // Fast lookup: `${employeeId}|${dateKey}` → status.
+  // Fast lookup: `${employeeId}|${dateKey}` → { status, source }.
   const marks = useMemo(() => {
     const map = {};
-    for (const r of records ?? []) map[`${r.employee._id}|${r.date.slice(0, 10)}`] = r.status;
+    for (const r of records ?? []) {
+      map[`${r.employee._id}|${r.date.slice(0, 10)}`] = { status: r.status, source: r.source };
+    }
     return map;
   }, [records]);
 
@@ -89,6 +91,12 @@ export default function RecordsGrid() {
             {status}
           </span>
         ))}
+        <span className="inline-flex items-center gap-1.5">
+          <span className="relative inline-block h-3 w-3">
+            <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />
+          </span>
+          Self-marked by worker
+        </span>
       </div>
 
       {employeesLoading || recordsLoading ? (
@@ -122,16 +130,23 @@ export default function RecordsGrid() {
                     <span className="block text-xs text-muted">{w.employeeId}</span>
                   </td>
                   {range.days.map((d) => {
-                    const status = marks[`${w._id}|${d}`];
-                    const meta = status ? ATTENDANCE_STATUS_META[status] : null;
+                    const mark = marks[`${w._id}|${d}`];
+                    const meta = mark ? ATTENDANCE_STATUS_META[mark.status] : null;
                     return (
                       <td key={d} className={cn('px-2 py-2 text-center', isWeekend(d) && 'bg-bg/40')}>
                         {meta ? (
                           <span
-                            title={status}
-                            className={cn('inline-grid h-6 w-6 place-items-center rounded text-[11px] font-bold', meta.cell)}
+                            title={mark.source === 'self' ? `${mark.status} · self-marked` : mark.status}
+                            className={cn(
+                              'relative inline-grid h-6 w-6 place-items-center rounded text-[11px] font-bold',
+                              meta.cell
+                            )}
                           >
                             {meta.letter}
+                            {/* Self-marked (Worker GPS/office-network check-in, P2-M3) vs staff-marked. */}
+                            {mark.source === 'self' && (
+                              <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />
+                            )}
                           </span>
                         ) : (
                           <span className="text-muted/30">·</span>

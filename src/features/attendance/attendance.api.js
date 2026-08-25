@@ -23,6 +23,18 @@ export async function getSummary(params) {
   return data.data;
 }
 
+/** GET /attendance/office-location — the geofence Workers self-mark against (Admin). */
+export async function getOfficeLocation() {
+  const { data } = await api.get('/attendance/office-location');
+  return data.data; // null until first configured
+}
+
+/** PATCH /attendance/office-location (Admin). */
+export async function setOfficeLocation(payload) {
+  const { data } = await api.patch('/attendance/office-location', payload);
+  return data.data;
+}
+
 /** Download the export as a file. format: 'xlsx' | 'pdf'. */
 export async function downloadExport({ format, from, to }) {
   const res = await api.get('/attendance/export', {

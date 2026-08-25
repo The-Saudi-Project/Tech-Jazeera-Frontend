@@ -51,3 +51,14 @@ export async function cancelMyLeave(id) {
   const { data } = await api.patch(`/me/leave/${id}/cancel`);
   return data.data;
 }
+
+/** POST /me/attendance { lat?, lng?, accuracy? } — geofence/office-IP verified server-side. */
+export async function markMyAttendance(payload) {
+  const { data } = await api.post('/me/attendance', payload);
+  return data.data;
+}
+
+export async function listMyAttendance(params) {
+  const { data } = await api.get('/me/attendance', { params });
+  return data.data;
+}

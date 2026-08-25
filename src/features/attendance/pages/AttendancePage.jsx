@@ -11,15 +11,19 @@ import PageHeader from '../../../components/shared/PageHeader.jsx';
 import MarkTab from '../components/MarkTab.jsx';
 import RecordsGrid from '../components/RecordsGrid.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
+import OfficeLocationSettings from '../components/OfficeLocationSettings.jsx';
 
 export default function AttendancePage() {
   const { user } = useAuth();
   const canWrite = ATTENDANCE_WRITE_ROLES.includes(user.role);
+  const isAdmin = user.role === 'Admin';
 
   const tabs = [
     ...(canWrite ? [{ key: 'mark', label: 'Mark' }] : []),
     { key: 'records', label: 'Records' },
     { key: 'summary', label: 'Summary' },
+    // P2-M3: Worker self-mark geofence config — Admin-only, it's a security setting.
+    ...(isAdmin ? [{ key: 'office', label: 'Office Location' }] : []),
   ];
   const [tab, setTab] = useState(tabs[0].key);
 
@@ -45,6 +49,7 @@ export default function AttendancePage() {
       {tab === 'mark' && <MarkTab />}
       {tab === 'records' && <RecordsGrid />}
       {tab === 'summary' && <SummaryTab />}
+      {tab === 'office' && <OfficeLocationSettings />}
     </div>
   );
 }
