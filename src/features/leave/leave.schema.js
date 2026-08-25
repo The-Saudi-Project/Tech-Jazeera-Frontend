@@ -30,6 +30,22 @@ export const leaveTypeFormSchema = z
     if (data.recurrence === 'ContractCycle' && (!data.cycleYears || !data.daysPerCycle)) {
       ctx.addIssue({ code: 'custom', path: ['cycleYears'], message: 'Cycle length and days/cycle are required.' });
     }
+    // Mirrors the server's cross-field check: a tier with no day count (or a
+    // day count with no tier) is meaningless. Missing this on the client was
+    // the actual bug — the form let an incomplete tier through to a 400 with
+    // no visible reason why.
+    if (Boolean(data.tierYears) !== Boolean(data.tierDaysPerYear)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['tierYears'],
+        message: 'Tier years and tier days must be set together.',
+      });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['tierDaysPerYear'],
+        message: 'Tier years and tier days must be set together.',
+      });
+    }
   });
 
 export const emptyLeaveTypeForm = {
