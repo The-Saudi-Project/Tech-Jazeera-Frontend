@@ -18,7 +18,7 @@ import {
   todayKey,
 } from '../attendance.dates.js';
 import { ATTENDANCE_STATUS_META } from '../../../lib/constants.js';
-import { cn } from '../../../lib/utils.js';
+import { cn, formatHours } from '../../../lib/utils.js';
 import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
@@ -38,11 +38,11 @@ export default function RecordsGrid() {
     queryFn: () => listAttendance({ from: range.from, to: range.to }),
   });
 
-  // Fast lookup: `${employeeId}|${dateKey}` → { status, source }.
+  // Fast lookup: `${employeeId}|${dateKey}` → { status, source, hoursWorked }.
   const marks = useMemo(() => {
     const map = {};
     for (const r of records ?? []) {
-      map[`${r.employee._id}|${r.date.slice(0, 10)}`] = { status: r.status, source: r.source };
+      map[`${r.employee._id}|${r.date.slice(0, 10)}`] = { status: r.status, source: r.source, hoursWorked: r.hoursWorked };
     }
     return map;
   }, [records]);
@@ -95,7 +95,7 @@ export default function RecordsGrid() {
           <span className="relative inline-block h-3 w-3">
             <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />
           </span>
-          Self-marked by worker
+          Self-marked by worker (hours shown once signed out)
         </span>
       </div>
 
@@ -132,17 +132,27 @@ export default function RecordsGrid() {
                   {range.days.map((d) => {
                     const mark = marks[`${w._id}|${d}`];
                     const meta = mark ? ATTENDANCE_STATUS_META[mark.status] : null;
+                    // A completed self-marked shift has real hours to show —
+                    // that's more useful to a manager than a plain "P".
+                    const hasHours = mark?.hoursWorked != null;
+                    const cellText = hasHours ? formatHours(mark.hoursWorked) : meta?.letter;
+                    const cellTitle = mark
+                      ? [mark.status, hasHours && `${formatHours(mark.hoursWorked)} hrs`, mark.source === 'self' && 'self-marked']
+                          .filter(Boolean)
+                          .join(' · ')
+                      : undefined;
                     return (
                       <td key={d} className={cn('px-2 py-2 text-center', isWeekend(d) && 'bg-bg/40')}>
                         {meta ? (
                           <span
-                            title={mark.source === 'self' ? `${mark.status} · self-marked` : mark.status}
+                            title={cellTitle}
                             className={cn(
-                              'relative inline-grid h-6 w-6 place-items-center rounded text-[11px] font-bold',
+                              'relative inline-grid h-6 min-w-[1.6rem] place-items-center rounded px-1 font-bold',
+                              hasHours ? 'text-[9px]' : 'text-[11px]',
                               meta.cell
                             )}
                           >
-                            {meta.letter}
+                            {cellText}
                             {/* Self-marked (Worker GPS/office-network check-in, P2-M3) vs staff-marked. */}
                             {mark.source === 'self' && (
                               <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />

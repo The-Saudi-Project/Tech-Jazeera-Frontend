@@ -7,16 +7,26 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 import { loginSchema } from '../auth.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
 import Input from '../../../components/ui/Input.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
+/** Only an internal relative path — never let a `next` param send a visitor
+ *  off-site (an open-redirect would turn a login link into a phishing tool). */
+function safeNext(next) {
+  if (typeof next !== 'string' || !next) return null;
+  if (!next.startsWith('/') || next.startsWith('//') || next.includes('://')) return null;
+  return next;
+}
+
 export default function LoginPage() {
   const { status, login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = safeNext(searchParams.get('next')) ?? '/';
   const [serverError, setServerError] = useState(null);
 
   const {
@@ -25,14 +35,15 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
-  // Already logged in (e.g. typed /login by hand)? Straight to the app.
-  if (status === 'authed') return <Navigate to="/" replace />;
+  // Already logged in (e.g. typed /login by hand, or followed a tap-point
+  // link while still signed in)? Straight to where they were headed.
+  if (status === 'authed') return <Navigate to={next} replace />;
 
   async function onSubmit(values) {
     setServerError(null);
     try {
       await login(values);
-      navigate('/', { replace: true });
+      navigate(next, { replace: true });
     } catch (error) {
       // A client-side block (e.g. the P2-M1 worker web gate) carries a ready
       // message; otherwise fall back to the server's message.

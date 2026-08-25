@@ -50,6 +50,18 @@ export function formatDateTime(value) {
   });
 }
 
+/** Display format: time only, "14:05". Em-dash for missing values. */
+export function formatTime(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** Worked hours to 1 decimal for display: 8.4667 → "8.5". Em-dash for missing values. */
+export function formatHours(value) {
+  if (value == null) return '—';
+  return Number(value).toFixed(1);
+}
+
 /** ISO date → the "YYYY-MM-DD" format <input type="date"> requires. */
 export function toDateInput(value) {
   return value ? new Date(value).toISOString().slice(0, 10) : '';

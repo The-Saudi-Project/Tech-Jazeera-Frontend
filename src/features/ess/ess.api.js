@@ -52,10 +52,22 @@ export async function cancelMyLeave(id) {
   return data.data;
 }
 
-/** POST /me/attendance { lat?, lng?, accuracy? } — geofence/office-IP verified server-side. */
-export async function markMyAttendance(payload) {
-  const { data } = await api.post('/me/attendance', payload);
+/** POST /me/attendance/check-in { lat?, lng?, accuracy? } — geofence/office-IP verified server-side. */
+export async function checkInMyAttendance(payload) {
+  const { data } = await api.post('/me/attendance/check-in', payload);
   return data.data;
+}
+
+/** POST /me/attendance/check-out { lat?, lng?, accuracy? } — closes the open shift, returns hoursWorked. */
+export async function checkOutMyAttendance(payload) {
+  const { data } = await api.post('/me/attendance/check-out', payload);
+  return data.data;
+}
+
+/** POST /me/attendance/tap { token, lat?, lng?, accuracy? } — toggles check-in/out for a physical NFC tap point. */
+export async function tapMyAttendance(payload) {
+  const { data } = await api.post('/me/attendance/tap', payload);
+  return data.data; // { action: 'checked-in'|'checked-out', record, tapPoint }
 }
 
 export async function listMyAttendance(params) {

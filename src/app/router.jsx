@@ -8,7 +8,7 @@
  * for a half second on every reload is the classic mistake), then either
  * renders the app or redirects to /login.
  */
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
@@ -44,10 +44,12 @@ import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
 import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
+import TapPage from '../features/ess/pages/TapPage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 function RequireAuth() {
   const { status } = useAuth();
+  const location = useLocation();
 
   if (status === 'loading') {
     return (
@@ -56,7 +58,12 @@ function RequireAuth() {
       </div>
     );
   }
-  if (status === 'guest') return <Navigate to="/login" replace />;
+  if (status === 'guest') {
+    // Preserve where the visitor was headed (e.g. a physical NFC tap point's
+    // URL) so login can send them back instead of dumping them at "/".
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?next=${next}`} replace />;
+  }
   return <Outlet />;
 }
 
@@ -83,6 +90,10 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
+      // Outside the role split: both a Worker (the real audience) and a
+      // stray staff tap need a sane response, not a redirect to a shell
+      // that doesn't have this route.
+      { path: '/tap/:token', element: <TapPage /> },
       {
         element: <RoleRouter />,
         children: [
