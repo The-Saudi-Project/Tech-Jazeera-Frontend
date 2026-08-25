@@ -47,9 +47,9 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   } = useForm({ resolver: zodResolver(employeeFormSchema), defaultValues });
 
   // P2-M2: who this employee's day-to-day (leave, expiry follow-up) reports
-  // to. The list call itself is the access check — Viewer/Operations/Accounts
-  // can't reach it and never render this field meaningfully, but they also
-  // never render EmployeeForm (write-gated by the pages that use it).
+  // to. The list call itself is the access check — Accounts can't reach it
+  // and never renders this field meaningfully, but it also never renders
+  // EmployeeForm (write-gated by the pages that use it).
   const { data: coordinators } = useQuery({
     queryKey: ['users', { role: 'Coordinator' }],
     queryFn: () => listStaffUsers({ role: 'Coordinator' }),

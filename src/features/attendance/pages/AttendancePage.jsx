@@ -1,6 +1,6 @@
 /**
  * Attendance page — three tabs: Mark (daily marking, writers only), Records
- * (week/month grid), and Summary (counts + export). Non-writers (e.g. Viewer,
+ * (week/month grid), and Summary (counts + export). Non-writers (e.g.
  * Accounts) see only the read tabs.
  */
 import { useState } from 'react';

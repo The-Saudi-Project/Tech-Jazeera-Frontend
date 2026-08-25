@@ -1,7 +1,7 @@
 /**
  * MyDocumentsPage — a Worker's own uploaded documents (P2-M2), read-only.
- * Uploading stays an HR/Admin/Manager/Operations job (documents module) — a
- * worker views and downloads what's already on file for them.
+ * Uploading stays an HR/Admin/Manager job (documents module) — a worker
+ * views and downloads what's already on file for them.
  */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';

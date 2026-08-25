@@ -26,7 +26,7 @@ export const COORDINATOR_ROLE = 'Coordinator';
 export const STAFF_USER_MANAGE_ROLES = ['Admin'];
 export const STAFF_USER_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
 /** Every role a staff login can be provisioned with (Worker has its own path). */
-export const STAFF_ASSIGNABLE_ROLES = ['Admin', 'Manager', 'HR', 'Operations', 'Accounts', 'Viewer', 'Coordinator'];
+export const STAFF_ASSIGNABLE_ROLES = ['Admin', 'Manager', 'HR', 'Accounts', 'Coordinator'];
 /** Roles a Coordinator may report to (mirrors COORDINATOR_MANAGER_ROLES on the server). */
 export const COORDINATOR_MANAGER_ROLES = ['Admin', 'Manager'];
 
@@ -53,7 +53,7 @@ export const LEAVE_DECIDE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
 export const CLIENT_STATUSES = ['Active', 'Inactive'];
 
 /** Mirror of the client route guards (server enforces). */
-export const CLIENT_WRITE_ROLES = ['Admin', 'Manager', 'Operations'];
+export const CLIENT_WRITE_ROLES = ['Admin', 'Manager'];
 export const CLIENT_DELETE_ROLES = ['Admin', 'Manager'];
 
 /** Mirrors the Deployment model enums. */
@@ -61,7 +61,7 @@ export const DEPLOYMENT_SHIFTS = ['Day', 'Night', 'Rotating'];
 export const DEPLOYMENT_STATUSES = ['Active', 'Ended'];
 
 /** Mirror of the deployment route guards (server enforces). */
-export const DEPLOYMENT_WRITE_ROLES = ['Admin', 'Manager', 'Operations'];
+export const DEPLOYMENT_WRITE_ROLES = ['Admin', 'Manager'];
 
 /** Mirrors the Attendance model enum, with display metadata used by the
  *  marking grid and summary. `letter` labels grid cells; `variant` is the
@@ -76,7 +76,7 @@ export const ATTENDANCE_STATUS_META = {
 export const ATTENDANCE_STATUSES = Object.keys(ATTENDANCE_STATUS_META);
 
 /** Mirror of the attendance write guard (server enforces). */
-export const ATTENDANCE_WRITE_ROLES = ['Admin', 'Manager', 'HR', 'Operations'];
+export const ATTENDANCE_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
 
 /** Mirrors the Document model enums. */
 export const DOCUMENT_OWNER_TYPES = ['Employee', 'Client'];
@@ -96,7 +96,7 @@ export const DOCUMENT_CATEGORIES = [
 ];
 
 /** Mirror of the document route guards (server enforces). */
-export const DOCUMENT_WRITE_ROLES = ['Admin', 'Manager', 'HR', 'Operations'];
+export const DOCUMENT_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
 export const DOCUMENT_DELETE_ROLES = ['Admin', 'Manager', 'HR'];
 
 /** Upload limits, mirrored from server/src/middleware/upload.js. */

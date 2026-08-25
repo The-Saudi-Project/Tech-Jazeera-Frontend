@@ -1,24 +1,24 @@
 /**
- * UserListPage — staff account management (P2-M2). Admin creates logins for
- * every staff role including Coordinator (Worker logins stay on the employee
- * profile, linked to a workforce record — see WorkerLoginPanel). Same
- * one-time-password-reveal pattern as P2-M1: the temp password is shown once
- * and never stored in plaintext.
+ * UserListPage — account management (P2-M2). Admin creates logins for every
+ * staff role including Coordinator, AND for an Employee (a Worker login
+ * linked to a workforce record) from this same screen — picking "Employee"
+ * swaps the form to an employee picker and reuses employees.api.js's
+ * createEmployeeLogin under the hood, since that's the only way a Worker
+ * login can exist (it's meaningless without the Employee it's linked to).
+ * Same one-time-password-reveal pattern as P2-M1: the temp password is
+ * shown once and never stored in plaintext.
  */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listStaffUsers, createStaffUser, updateStaffUser } from '../users.api.js';
-import { createStaffUserSchema, emptyCreateStaffUserForm } from '../users.schema.js';
+import { createLoginFormSchema, emptyCreateLoginForm, CREATE_LOGIN_ROLES } from '../users.schema.js';
+import { listEmployees, createEmployeeLogin } from '../../employees/employees.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
-import {
-  STAFF_ASSIGNABLE_ROLES,
-  STAFF_USER_MANAGE_ROLES,
-  COORDINATOR_MANAGER_ROLES,
-} from '../../../lib/constants.js';
+import { STAFF_USER_MANAGE_ROLES, COORDINATOR_MANAGER_ROLES } from '../../../lib/constants.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Table from '../../../components/ui/Table.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -50,16 +50,33 @@ export default function UserListPage() {
     watch,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(createStaffUserSchema), defaultValues: emptyCreateStaffUserForm });
+  } = useForm({ resolver: zodResolver(createLoginFormSchema), defaultValues: emptyCreateLoginForm });
   const selectedRole = watch('role');
 
+  // Only fetched once "Employee" is actually picked — no point loading the
+  // whole workforce register for the common case of provisioning staff.
+  const { data: employeesData } = useQuery({
+    queryKey: ['employees', { forLogin: true }],
+    queryFn: () => listEmployees({ limit: 100, sortBy: 'fullName', sortOrder: 'asc' }),
+    enabled: selectedRole === 'Employee',
+  });
+
   const createMutation = useMutation({
-    mutationFn: createStaffUser,
+    mutationFn: (values) =>
+      values.role === 'Employee'
+        ? createEmployeeLogin(values.employeeId, values.email ? { email: values.email } : {})
+        : createStaffUser({
+            name: values.name,
+            email: values.email,
+            role: values.role,
+            managedBy: values.role === 'Coordinator' ? values.managedBy : undefined,
+          }),
     onSuccess: (data) => {
       setCreateOpen(false);
-      reset(emptyCreateStaffUserForm);
+      reset(emptyCreateLoginForm);
       setCreated(data);
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] }); // Employee.login summary changed
     },
     onError: (error) => toast.error(apiMessage(error)),
   });
@@ -134,8 +151,8 @@ export default function UserListPage() {
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Team"
-        description="Staff logins — Admin, Manager, HR, Operations, Accounts, Viewer, Coordinator. Worker logins are created from an employee profile instead."
-        actions={canManage && <Button onClick={() => setCreateOpen(true)}>Create staff login</Button>}
+        description="Staff logins (Admin, Manager, HR, Accounts, Coordinator) and Employee (Worker) logins, all from one place."
+        actions={canManage && <Button onClick={() => setCreateOpen(true)}>Create login</Button>}
       />
 
       {isError ? (
@@ -148,24 +165,42 @@ export default function UserListPage() {
         <Table columns={columns} rows={users ?? []} rowKey={(u) => u._id} loading={isPending} />
       )}
 
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create staff login">
-        <form
-          onSubmit={handleSubmit((values) =>
-            createMutation.mutate({ ...values, managedBy: values.role === 'Coordinator' ? values.managedBy : undefined })
-          )}
-          noValidate
-          className="space-y-4"
-        >
-          <Input label="Name *" error={errors.name?.message} {...register('name')} />
-          <Input label="Email *" type="email" error={errors.email?.message} {...register('email')} />
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create login">
+        <form onSubmit={handleSubmit((values) => createMutation.mutate(values))} noValidate className="space-y-4">
           <Select label="Role *" error={errors.role?.message} {...register('role')}>
             <option value="">Choose a role…</option>
-            {STAFF_ASSIGNABLE_ROLES.map((r) => (
+            {CREATE_LOGIN_ROLES.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
             ))}
           </Select>
+
+          {selectedRole === 'Employee' ? (
+            <>
+              <Select label="Employee *" error={errors.employeeId?.message} {...register('employeeId')}>
+                <option value="">Choose an employee…</option>
+                {(employeesData?.items ?? []).map((e) => (
+                  <option key={e._id} value={e._id}>
+                    {e.fullName} ({e.employeeId})
+                  </option>
+                ))}
+              </Select>
+              <Input
+                label="Email"
+                type="email"
+                placeholder="Defaults to the employee's own email if left blank"
+                error={errors.email?.message}
+                {...register('email')}
+              />
+            </>
+          ) : (
+            <>
+              <Input label="Name *" error={errors.name?.message} {...register('name')} />
+              <Input label="Email *" type="email" error={errors.email?.message} {...register('email')} />
+            </>
+          )}
+
           {selectedRole === 'Coordinator' && (
             <Select label="Reports to" error={errors.managedBy?.message} {...register('managedBy')}>
               <option value="">No manager set</option>
@@ -187,7 +222,7 @@ export default function UserListPage() {
         </form>
       </Modal>
 
-      <Modal open={!!created} onClose={() => setCreated(null)} title="Staff login created">
+      <Modal open={!!created} onClose={() => setCreated(null)} title="Login created">
         {created && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted">
