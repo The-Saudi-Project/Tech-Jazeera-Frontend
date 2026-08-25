@@ -44,9 +44,7 @@ function Sidebar({ onNavigate }) {
   return (
     <div className="flex h-full flex-col border-r border-border bg-surface">
       <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-        <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-hover text-sm font-bold text-white shadow-glow">
-          AJ
-        </div>
+        <img src="/logo.png" alt="Al Jazeera" className="h-9 w-9 rounded-xl shadow-glow" />
         <span className="font-semibold tracking-tight">My Workspace</span>
       </div>
       <nav className="flex-1 space-y-1 p-3">

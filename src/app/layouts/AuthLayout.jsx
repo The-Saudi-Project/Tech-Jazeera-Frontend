@@ -12,9 +12,7 @@ export default function AuthLayout() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
       <div className="flex items-center gap-2.5">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-hover text-base font-bold text-white shadow-glow">
-          AJ
-        </div>
+        <img src="/logo.png" alt="Al Jazeera" className="h-10 w-10 rounded-xl shadow-glow" />
         <span className="text-lg font-semibold tracking-tight">Al Jazeera ERP</span>
       </div>
       <div className="w-full max-w-sm rounded-2xl border border-white/60 bg-surface/70 p-6 shadow-xl backdrop-blur-xl animate-rise-in dark:border-white/10">
