@@ -18,20 +18,6 @@ import { useToast } from '../../components/ui/Toast.jsx';
 
 const AuthContext = createContext(null);
 
-/**
- * P2-M1: the web client is staff-only for now. A Worker's login authenticates
- * server-side (they get real tokens — that's how the ESS portal will work in
- * P2-M2), but this SPA has no worker screens yet, so we refuse the session
- * here rather than drop them onto admin pages that 403. Thrown at login and
- * enforced again on session-restore; LoginPage reads `.userMessage`.
- */
-export const WORKER_WEB_MESSAGE =
-  "Worker accounts don't have web access yet. Please contact your administrator.";
-
-function blockedWorkerError() {
-  return Object.assign(new Error('worker-web-blocked'), { userMessage: WORKER_WEB_MESSAGE });
-}
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'authed' | 'guest'
@@ -39,16 +25,11 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // One-shot session restore. A 401 here just means "not logged in".
+    // P2-M2: a Worker restores into the ESS portal exactly like staff restore
+    // into the admin shell — the router (not AuthContext) decides which shell
+    // to render based on user.role.
     refreshRequest()
       .then(({ user: restoredUser, accessToken }) => {
-        // A Worker may hold a valid refresh cookie but has no web portal yet
-        // (P2-M1). Don't restore the session — drop the server session too so
-        // a reload doesn't loop back here.
-        if (restoredUser.role === 'Worker') {
-          logoutRequest().catch(() => {});
-          setStatus('guest');
-          return;
-        }
         setAccessToken(accessToken);
         setUser(restoredUser);
         setStatus('authed');
@@ -97,11 +78,6 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     const { user: loggedInUser, accessToken } = await loginRequest(credentials);
-    if (loggedInUser.role === 'Worker') {
-      // Undo the server session we just created, then surface a clear message.
-      await logoutRequest().catch(() => {});
-      throw blockedWorkerError();
-    }
     setAccessToken(accessToken);
     setUser(loggedInUser);
     setStatus('authed');

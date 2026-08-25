@@ -4,10 +4,12 @@
  * alerts, recent activity, and role-aware quick actions. Replaces the M3
  * placeholder.
  */
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboard } from '../dashboard.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { formatMoney } from '../../../lib/utils.js';
+import { EXPIRY_WARNING_DAYS } from '../../../lib/constants.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
@@ -30,11 +32,23 @@ function FinanceItem({ label, value, hint, accent }) {
   );
 }
 
+const THRESHOLD_STORAGE_KEY = 'aj-erp:dashboard-alert-threshold';
+
 export default function DashboardPage() {
   const { user } = useAuth();
+  // P2-M2: a personal display preference — not worth a server round trip, so
+  // it lives in localStorage, per browser/device, like any other UI setting.
+  const [thresholdDays, setThresholdDays] = useState(
+    () => Number(localStorage.getItem(THRESHOLD_STORAGE_KEY)) || EXPIRY_WARNING_DAYS
+  );
+  function changeThreshold(days) {
+    setThresholdDays(days);
+    localStorage.setItem(THRESHOLD_STORAGE_KEY, String(days));
+  }
+
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: getDashboard,
+    queryKey: ['dashboard', thresholdDays],
+    queryFn: () => getDashboard(thresholdDays),
   });
 
   const firstName = user.name.split(' ')[0];
@@ -109,7 +123,12 @@ export default function DashboardPage() {
 
       {/* Alerts + activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ExpiringDocuments items={expiringDocuments} />
+        <ExpiringDocuments
+          items={expiringDocuments}
+          thresholdDays={thresholdDays}
+          onThresholdChange={changeThreshold}
+          scopedToTeam={user.role === 'Coordinator'}
+        />
         <RecentActivity items={recentActivity} />
       </div>
 

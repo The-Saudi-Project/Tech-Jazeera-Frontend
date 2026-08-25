@@ -4,10 +4,13 @@
  * owns fields + validation. That split means create/edit can never drift
  * apart in layout or rules.
  */
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
+import { listStaffUsers } from '../../users/users.api.js';
 import { EMPLOYEE_STATUSES } from '../../../lib/constants.js';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
@@ -39,8 +42,29 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({ resolver: zodResolver(employeeFormSchema), defaultValues });
+
+  // P2-M2: who this employee's day-to-day (leave, expiry follow-up) reports
+  // to. The list call itself is the access check — Viewer/Operations/Accounts
+  // can't reach it and never render this field meaningfully, but they also
+  // never render EmployeeForm (write-gated by the pages that use it).
+  const { data: coordinators } = useQuery({
+    queryKey: ['users', { role: 'Coordinator' }],
+    queryFn: () => listStaffUsers({ role: 'Coordinator' }),
+  });
+
+  // The <select> mounts (via register's ref) before this async list resolves,
+  // so setting its value to an id with no matching <option> yet silently
+  // fails — a native select doesn't retroactively select an option added
+  // later. Re-apply the default once the real options exist.
+  useEffect(() => {
+    if (coordinators && defaultValues.coordinator) {
+      setValue('coordinator', defaultValues.coordinator);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coordinators]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
@@ -62,6 +86,14 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           {EMPLOYEE_STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
+            </option>
+          ))}
+        </Select>
+        <Select label="Coordinator" error={errors.coordinator?.message} {...register('coordinator')}>
+          <option value="">Not assigned</option>
+          {(coordinators ?? []).map((c) => (
+            <option key={c._id} value={c._id}>
+              {c.name}
             </option>
           ))}
         </Select>

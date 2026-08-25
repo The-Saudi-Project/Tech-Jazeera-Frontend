@@ -4,7 +4,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getEmployee, updateEmployee } from '../employees.api.js';
-import { employeeToForm } from '../employees.schema.js';
+import { employeeToForm, formToEmployeePayload } from '../employees.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -58,7 +58,7 @@ export default function EmployeeEditPage() {
       <PageHeader title={`Edit ${employee.fullName}`} description={employee.employeeId} />
       <EmployeeForm
         defaultValues={employeeToForm(employee)}
-        onSubmit={(values) => mutation.mutate(values)}
+        onSubmit={(values) => mutation.mutate(formToEmployeePayload(values))}
         submitLabel="Save changes"
         submitting={mutation.isPending}
       />

@@ -12,6 +12,7 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
+import EssLayout from './layouts/EssLayout.jsx';
 import LoginPage from '../features/auth/pages/LoginPage.jsx';
 import DashboardPage from '../features/dashboard/pages/DashboardPage.jsx';
 import EmployeeListPage from '../features/employees/pages/EmployeeListPage.jsx';
@@ -36,6 +37,11 @@ import NfcCompanyProfilePage from '../features/nfc/pages/NfcCompanyProfilePage.j
 import NfcCardListPage from '../features/nfc/pages/NfcCardListPage.jsx';
 import NfcCardDetailPage from '../features/nfc/pages/NfcCardDetailPage.jsx';
 import NfcAnalyticsPage from '../features/nfc/pages/NfcAnalyticsPage.jsx';
+import UserListPage from '../features/users/pages/UserListPage.jsx';
+import LeavePage from '../features/leave/pages/LeavePage.jsx';
+import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
+import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
+import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 function RequireAuth() {
@@ -52,6 +58,21 @@ function RequireAuth() {
   return <Outlet />;
 }
 
+/**
+ * P2-M2: a Worker's whole world is the ESS portal; every other role keeps
+ * the full admin shell. Split here (not per-route guards) so a Worker never
+ * even mounts the 20-item admin sidebar before being redirected.
+ */
+function RoleRouter() {
+  const { user } = useAuth();
+  return user.role === 'Worker' ? <Navigate to="/me" replace /> : <Outlet />;
+}
+
+function WorkerRouter() {
+  const { user } = useAuth();
+  return user.role === 'Worker' ? <Outlet /> : <Navigate to="/" replace />;
+}
+
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
@@ -61,32 +82,52 @@ export const router = createBrowserRouter([
     element: <RequireAuth />,
     children: [
       {
-        element: <DashboardLayout />,
+        element: <RoleRouter />,
         children: [
-          { path: '/', element: <DashboardPage /> },
-          { path: '/employees', element: <EmployeeListPage /> },
-          { path: '/employees/new', element: <EmployeeNewPage /> },
-          { path: '/employees/:id', element: <EmployeeProfilePage /> },
-          { path: '/employees/:id/edit', element: <EmployeeEditPage /> },
-          { path: '/clients', element: <ClientListPage /> },
-          { path: '/clients/new', element: <ClientNewPage /> },
-          { path: '/clients/:id', element: <ClientProfilePage /> },
-          { path: '/clients/:id/edit', element: <ClientEditPage /> },
-          { path: '/deployments', element: <DeploymentListPage /> },
-          { path: '/deployments/new', element: <DeploymentNewPage /> },
-          { path: '/attendance', element: <AttendancePage /> },
-          { path: '/documents', element: <DocumentListPage /> },
-          { path: '/quotations', element: <QuotationListPage /> },
-          { path: '/quotations/new', element: <QuotationNewPage /> },
-          { path: '/quotations/:id', element: <QuotationViewPage /> },
-          { path: '/quotations/:id/edit', element: <QuotationEditPage /> },
-          { path: '/timesheet-processor', element: <TimesheetProcessorPage /> },
-          { path: '/nfc', element: <NfcCompanyListPage /> },
-          { path: '/nfc/cards', element: <NfcCardListPage /> },
-          { path: '/nfc/cards/:id', element: <NfcCardDetailPage /> },
-          // Before the /nfc/:id catch-all, or "analytics" is read as a company id.
-          { path: '/nfc/analytics', element: <NfcAnalyticsPage /> },
-          { path: '/nfc/:id', element: <NfcCompanyProfilePage /> },
+          {
+            element: <DashboardLayout />,
+            children: [
+              { path: '/', element: <DashboardPage /> },
+              { path: '/employees', element: <EmployeeListPage /> },
+              { path: '/employees/new', element: <EmployeeNewPage /> },
+              { path: '/employees/:id', element: <EmployeeProfilePage /> },
+              { path: '/employees/:id/edit', element: <EmployeeEditPage /> },
+              { path: '/clients', element: <ClientListPage /> },
+              { path: '/clients/new', element: <ClientNewPage /> },
+              { path: '/clients/:id', element: <ClientProfilePage /> },
+              { path: '/clients/:id/edit', element: <ClientEditPage /> },
+              { path: '/deployments', element: <DeploymentListPage /> },
+              { path: '/deployments/new', element: <DeploymentNewPage /> },
+              { path: '/attendance', element: <AttendancePage /> },
+              { path: '/documents', element: <DocumentListPage /> },
+              { path: '/quotations', element: <QuotationListPage /> },
+              { path: '/quotations/new', element: <QuotationNewPage /> },
+              { path: '/quotations/:id', element: <QuotationViewPage /> },
+              { path: '/quotations/:id/edit', element: <QuotationEditPage /> },
+              { path: '/timesheet-processor', element: <TimesheetProcessorPage /> },
+              { path: '/team', element: <UserListPage /> },
+              { path: '/leave', element: <LeavePage /> },
+              { path: '/nfc', element: <NfcCompanyListPage /> },
+              { path: '/nfc/cards', element: <NfcCardListPage /> },
+              { path: '/nfc/cards/:id', element: <NfcCardDetailPage /> },
+              // Before the /nfc/:id catch-all, or "analytics" is read as a company id.
+              { path: '/nfc/analytics', element: <NfcAnalyticsPage /> },
+              { path: '/nfc/:id', element: <NfcCompanyProfilePage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <WorkerRouter />,
+        children: [
+          {
+            element: <EssLayout />,
+            children: [
+              { path: '/me', element: <MyProfilePage /> },
+              { path: '/me/documents', element: <MyDocumentsPage /> },
+              { path: '/me/leave', element: <MyLeavePage /> },
+            ],
+          },
         ],
       },
     ],

@@ -62,6 +62,7 @@ export default function EmployeeListPage() {
     search: '',
     status: '',
     alerts: false,
+    team: false, // P2-M2: Manager-only "my coordinators' employees" filter
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
@@ -84,6 +85,7 @@ export default function EmployeeListPage() {
         ...(params.search && { search: params.search }),
         ...(params.status && { status: params.status }),
         ...(params.alerts && { alerts: 'true' }),
+        ...(params.team && { team: 'mine' }),
       }),
     placeholderData: keepPreviousData, // old page stays visible while the next loads
   });
@@ -169,7 +171,7 @@ export default function EmployeeListPage() {
     },
   ];
 
-  const noFilters = !params.search && !params.status && !params.alerts;
+  const noFilters = !params.search && !params.status && !params.alerts && !params.team;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -206,6 +208,14 @@ export default function EmployeeListPage() {
         >
           Expiring documents
         </Button>
+        {user.role === 'Manager' && (
+          <Button
+            variant={params.team ? 'primary' : 'secondary'}
+            onClick={() => setParams((p) => ({ ...p, team: !p.team, page: 1 }))}
+          >
+            My team
+          </Button>
+        )}
       </div>
 
       {isError ? (

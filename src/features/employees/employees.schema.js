@@ -54,6 +54,8 @@ export const employeeFormSchema = z.object({
 
   emergencyContact: z.object({ name: optional, phone: optionalPhone, relation: optional }),
   notes: z.string().trim().max(2000).optional().or(z.literal('')),
+  // P2-M2: '' means "no coordinator assigned" — sent to the API as null.
+  coordinator: z.string().optional().or(z.literal('')),
 });
 
 const emptyDocument = { number: '', expiry: '' };
@@ -78,6 +80,7 @@ export const emptyEmployeeForm = {
   status: 'Active',
   emergencyContact: { name: '', phone: '', relation: '' },
   notes: '',
+  coordinator: '',
 };
 
 /** API employee → form values (ISO dates become date-input strings). */
@@ -106,5 +109,11 @@ export function employeeToForm(employee) {
       relation: employee.emergencyContact?.relation ?? '',
     },
     notes: employee.notes ?? '',
+    coordinator: employee.coordinator?._id ?? employee.coordinator ?? '',
   };
+}
+
+/** Form values → API payload: '' becomes null so an explicit unassign is sent. */
+export function formToEmployeePayload(values) {
+  return { ...values, coordinator: values.coordinator || null };
 }

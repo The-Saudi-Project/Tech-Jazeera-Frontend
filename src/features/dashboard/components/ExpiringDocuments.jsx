@@ -14,14 +14,36 @@ function ExpiryTag({ daysLeft }) {
   return <Badge variant="warning">{daysLeft}d left</Badge>;
 }
 
-export default function ExpiringDocuments({ items }) {
+/**
+ * `thresholdDays`/`onThresholdChange` (P2-M2): lets a viewer (a Coordinator
+ * watching their own team especially) widen or narrow the alert window
+ * instead of being stuck with a fixed 30 days. Persisted by the parent
+ * (DashboardPage) to localStorage — it's a personal display preference, not
+ * something worth a server round trip to store.
+ */
+export default function ExpiringDocuments({ items, thresholdDays, onThresholdChange, scopedToTeam }) {
   return (
     <Card>
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-        Expiring documents
-      </h2>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          Expiring documents{scopedToTeam ? ' · your team' : ''}
+        </h2>
+        <label className="flex items-center gap-1.5 text-xs text-muted">
+          Alert within
+          <input
+            type="number"
+            min="1"
+            max="365"
+            value={thresholdDays}
+            onChange={(e) => onThresholdChange(Number(e.target.value) || 30)}
+            className="h-7 w-14 rounded-md border border-border bg-surface px-1.5 text-center text-xs text-text"
+            aria-label="Alert window in days"
+          />
+          days
+        </label>
+      </div>
       {items.length === 0 ? (
-        <EmptyState title="Nothing expiring" description="No documents expire in the next 30 days." />
+        <EmptyState title="Nothing expiring" description={`No documents expire in the next ${thresholdDays} days.`} />
       ) : (
         <div className="divide-y divide-border">
           {items.map((item, i) => {

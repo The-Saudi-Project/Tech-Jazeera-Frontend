@@ -20,6 +20,35 @@ export const EMPLOYEE_DELETE_ROLES = ['Admin', 'HR'];
  *  server guard on POST /employees/:id/user — the server enforces. */
 export const ACCOUNT_PROVISION_ROLES = ['Admin', 'HR'];
 
+/** P2-M2: roles this app assigns to a Coordinator's team-scoped queries. */
+export const COORDINATOR_ROLE = 'Coordinator';
+/** Mirror of user.routes.js — who may create/edit staff logins vs just view them. */
+export const STAFF_USER_MANAGE_ROLES = ['Admin'];
+export const STAFF_USER_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
+/** Every role a staff login can be provisioned with (Worker has its own path). */
+export const STAFF_ASSIGNABLE_ROLES = ['Admin', 'Manager', 'HR', 'Operations', 'Accounts', 'Viewer', 'Coordinator'];
+/** Roles a Coordinator may report to (mirrors COORDINATOR_MANAGER_ROLES on the server). */
+export const COORDINATOR_MANAGER_ROLES = ['Admin', 'Manager'];
+
+/** Mirrors leaveType.model.js / leaveRequest.model.js (P2-M2). */
+export const LEAVE_RECURRENCES = ['Annual', 'ContractCycle', 'Manual'];
+export const LEAVE_RECURRENCE_LABELS = {
+  Annual: 'Annual (recurring)',
+  ContractCycle: 'Contract-cycle (one-time per cycle)',
+  Manual: 'Manual review only',
+};
+export const LEAVE_REQUEST_STATUSES = ['AutoApproved', 'PendingReview', 'Approved', 'Rejected', 'Cancelled'];
+export const LEAVE_STATUS_VARIANT = {
+  AutoApproved: 'success',
+  PendingReview: 'warning',
+  Approved: 'success',
+  Rejected: 'danger',
+  Cancelled: 'default',
+};
+/** Mirror of leave.routes.js guards — who configures policy vs who decides requests. */
+export const LEAVE_TYPE_MANAGE_ROLES = ['Admin', 'Manager'];
+export const LEAVE_DECIDE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
+
 /** Mirrors the Client model's status enum. */
 export const CLIENT_STATUSES = ['Active', 'Inactive'];
 
