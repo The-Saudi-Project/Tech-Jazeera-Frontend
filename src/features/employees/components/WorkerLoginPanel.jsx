@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createEmployeeLogin } from '../employees.api.js';
+import { createEmployeeLogin, resetEmployeeLoginPassword } from '../employees.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -31,6 +31,14 @@ export default function WorkerLoginPanel({ employee }) {
       // Flip the card to "has login" — getEmployee now returns a login summary.
       queryClient.invalidateQueries({ queryKey: ['employee', employee._id] });
     },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  // Same reveal modal, reused: the reset response is just { tempPassword },
+  // so `user.email` is filled in from the login already known to this card.
+  const resetMutation = useMutation({
+    mutationFn: () => resetEmployeeLoginPassword(employee._id),
+    onSuccess: (data) => setCreated({ user: { email: employee.login.email }, ...data, reset: true }),
     onError: (error) => toast.error(apiMessage(error)),
   });
 
@@ -59,15 +67,20 @@ export default function WorkerLoginPanel({ employee }) {
       </div>
 
       {login ? (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
-          <div>
-            <span className="text-muted">Sign-in email: </span>
-            <span className="font-medium">{login.email}</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
+            <div>
+              <span className="text-muted">Sign-in email: </span>
+              <span className="font-medium">{login.email}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted">Role:</span>
+              <Badge variant="primary">{login.role}</Badge>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted">Role:</span>
-            <Badge variant="primary">{login.role}</Badge>
-          </div>
+          <Button size="sm" variant="secondary" onClick={() => resetMutation.mutate()} isLoading={resetMutation.isPending}>
+            Reset password
+          </Button>
         </div>
       ) : (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -82,13 +95,23 @@ export default function WorkerLoginPanel({ employee }) {
       )}
 
       {/* One-time credential reveal. `created` is cleared on close. */}
-      <Modal open={!!created} onClose={() => setCreated(null)} title="Worker login created">
+      <Modal open={!!created} onClose={() => setCreated(null)} title={created?.reset ? 'Password reset' : 'Worker login created'}>
         {created && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted">
-              Hand these to <span className="font-medium text-text">{employee.fullName}</span>.
-              The temporary password is shown <span className="font-medium text-text">once</span> —
-              copy it now.
+              {created.reset ? (
+                <>
+                  Their old password no longer works. Hand this new one to{' '}
+                  <span className="font-medium text-text">{employee.fullName}</span> — it's shown{' '}
+                  <span className="font-medium text-text">once</span>, copy it now.
+                </>
+              ) : (
+                <>
+                  Hand these to <span className="font-medium text-text">{employee.fullName}</span>.
+                  The temporary password is shown <span className="font-medium text-text">once</span> —
+                  copy it now.
+                </>
+              )}
             </p>
             <div className="rounded-lg border border-border bg-bg p-3">
               <p className="text-xs uppercase tracking-wide text-muted">Email</p>

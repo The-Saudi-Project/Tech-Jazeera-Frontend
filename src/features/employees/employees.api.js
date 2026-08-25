@@ -37,3 +37,9 @@ export async function createEmployeeLogin(id, payload = {}) {
   const { data } = await api.post(`/employees/${id}/user`, payload);
   return data.data;
 }
+
+/** POST /employees/:id/user/reset-password — returns { tempPassword }, shown once. */
+export async function resetEmployeeLoginPassword(id) {
+  const { data } = await api.post(`/employees/${id}/user/reset-password`);
+  return data.data;
+}

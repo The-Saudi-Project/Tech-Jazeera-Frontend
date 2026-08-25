@@ -18,3 +18,9 @@ export async function updateStaffUser(id, payload) {
   const { data } = await api.patch(`/users/${id}`, payload);
   return data.data;
 }
+
+/** POST /users/:id/reset-password — returns { tempPassword }, shown once. */
+export async function resetStaffPassword(id) {
+  const { data } = await api.post(`/users/${id}/reset-password`);
+  return data.data;
+}

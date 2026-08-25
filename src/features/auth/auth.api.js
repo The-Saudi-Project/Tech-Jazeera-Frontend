@@ -30,3 +30,12 @@ export function refreshRequest() {
 export async function logoutRequest() {
   await api.post('/auth/logout');
 }
+
+/**
+ * PATCH /auth/password — self-service change. Every session (including this
+ * one) is revoked server-side on success; the caller must treat this as a
+ * forced logout and send the user back to /login.
+ */
+export async function changePasswordRequest(payload) {
+  await api.patch('/auth/password', payload);
+}

@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listStaffUsers, createStaffUser, updateStaffUser } from '../users.api.js';
+import { listStaffUsers, createStaffUser, updateStaffUser, resetStaffPassword } from '../users.api.js';
 import { createLoginFormSchema, emptyCreateLoginForm, CREATE_LOGIN_ROLES } from '../users.schema.js';
 import { listEmployees, createEmployeeLogin } from '../../employees/employees.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
@@ -90,6 +90,15 @@ export default function UserListPage() {
     onError: (error) => toast.error(apiMessage(error)),
   });
 
+  // Reveals through the same one-time-password modal as creation — the
+  // response only carries { tempPassword }, so the row's own name/email
+  // (already in hand at click time) fills in the rest of that modal's shape.
+  const resetPasswordMutation = useMutation({
+    mutationFn: (u) => resetStaffPassword(u._id).then((data) => ({ user: u, ...data, reset: true })),
+    onSuccess: (data) => setCreated(data),
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
   async function copyPassword() {
     try {
       await navigator.clipboard.writeText(created.tempPassword);
@@ -134,15 +143,25 @@ export default function UserListPage() {
       className: 'text-right',
       render: (u) =>
         canManage && u._id !== viewer.id ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            className={u.isActive ? 'hover:text-danger' : ''}
-            isLoading={toggleActiveMutation.isPending}
-            onClick={() => toggleActiveMutation.mutate({ id: u._id, isActive: !u.isActive })}
-          >
-            {u.isActive ? 'Deactivate' : 'Reactivate'}
-          </Button>
+          <span className="flex justify-end gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              isLoading={resetPasswordMutation.isPending}
+              onClick={() => resetPasswordMutation.mutate(u)}
+            >
+              Reset password
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className={u.isActive ? 'hover:text-danger' : ''}
+              isLoading={toggleActiveMutation.isPending}
+              onClick={() => toggleActiveMutation.mutate({ id: u._id, isActive: !u.isActive })}
+            >
+              {u.isActive ? 'Deactivate' : 'Reactivate'}
+            </Button>
+          </span>
         ) : null,
     },
   ];
@@ -222,12 +241,22 @@ export default function UserListPage() {
         </form>
       </Modal>
 
-      <Modal open={!!created} onClose={() => setCreated(null)} title="Login created">
+      <Modal open={!!created} onClose={() => setCreated(null)} title={created?.reset ? 'Password reset' : 'Login created'}>
         {created && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted">
-              Hand these to <span className="font-medium text-text">{created.user.name}</span>. The temporary
-              password is shown <span className="font-medium text-text">once</span> — copy it now.
+              {created.reset ? (
+                <>
+                  Their old password no longer works. Hand this new one to{' '}
+                  <span className="font-medium text-text">{created.user.name}</span> — it's shown{' '}
+                  <span className="font-medium text-text">once</span>, copy it now.
+                </>
+              ) : (
+                <>
+                  Hand these to <span className="font-medium text-text">{created.user.name}</span>. The temporary
+                  password is shown <span className="font-medium text-text">once</span> — copy it now.
+                </>
+              )}
             </p>
             <div className="rounded-lg border border-border bg-bg p-3">
               <p className="text-xs uppercase tracking-wide text-muted">Email</p>
