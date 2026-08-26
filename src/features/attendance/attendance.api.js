@@ -35,35 +35,6 @@ export async function setOfficeLocation(payload) {
   return data.data;
 }
 
-/** GET /attendance/tap-points — physical NFC tap points Workers sign in/out with (Admin). */
-export async function listTapPoints() {
-  const { data } = await api.get('/attendance/tap-points');
-  return data.data;
-}
-
-/** POST /attendance/tap-points { name } — creates a tap point with a fresh token/URL (Admin). */
-export async function createTapPoint(payload) {
-  const { data } = await api.post('/attendance/tap-points', payload);
-  return data.data;
-}
-
-/** PATCH /attendance/tap-points/:id { name?, active? } (Admin). */
-export async function updateTapPoint(id, payload) {
-  const { data } = await api.patch(`/attendance/tap-points/${id}`, payload);
-  return data.data;
-}
-
-/** POST /attendance/tap-points/:id/rotate — new token; the physical tag must be rewritten (Admin). */
-export async function rotateTapPointToken(id) {
-  const { data } = await api.post(`/attendance/tap-points/${id}/rotate`);
-  return data.data;
-}
-
-/** DELETE /attendance/tap-points/:id (Admin). */
-export async function deleteTapPoint(id) {
-  await api.delete(`/attendance/tap-points/${id}`);
-}
-
 /** Download the export as a file. format: 'xlsx' | 'pdf'. */
 export async function downloadExport({ format, from, to }) {
   const res = await api.get('/attendance/export', {

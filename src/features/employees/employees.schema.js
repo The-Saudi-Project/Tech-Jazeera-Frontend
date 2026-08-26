@@ -11,6 +11,14 @@ import { EMPLOYEE_STATUSES } from '../../lib/constants.js';
 import { toDateInput } from '../../lib/utils.js';
 
 const optional = z.string().trim().max(200).optional().or(z.literal(''));
+const optionalHours = z
+  .string()
+  .optional()
+  .or(z.literal(''))
+  .refine(
+    (s) => !s || (!Number.isNaN(Number(s)) && Number(s) >= 0 && Number(s) <= 24),
+    'Enter a number of hours between 0 and 24.'
+  );
 const optionalPhone = z
   .string()
   .trim()
@@ -50,6 +58,9 @@ export const employeeFormSchema = z.object({
     .min(1, 'Salary is required.')
     .refine((s) => !Number.isNaN(Number(s)) && Number(s) >= 0, 'Enter a valid amount.'),
   accommodation: optional,
+  // Early-sign-out warning threshold for My Attendance — genuinely varies per
+  // employee, so it's blank (no warning) unless Admin/Manager/HR sets it.
+  expectedDailyHours: optionalHours,
   status: z.enum(EMPLOYEE_STATUSES),
 
   emergencyContact: z.object({ name: optional, phone: optionalPhone, relation: optional }),
@@ -77,6 +88,7 @@ export const emptyEmployeeForm = {
   department: '',
   salary: '',
   accommodation: '',
+  expectedDailyHours: '',
   status: 'Active',
   emergencyContact: { name: '', phone: '', relation: '' },
   notes: '',
@@ -102,6 +114,7 @@ export function employeeToForm(employee) {
     department: employee.department ?? '',
     salary: String(employee.salary),
     accommodation: employee.accommodation ?? '',
+    expectedDailyHours: employee.expectedDailyHours != null ? String(employee.expectedDailyHours) : '',
     status: employee.status,
     emergencyContact: {
       name: employee.emergencyContact?.name ?? '',
@@ -113,7 +126,11 @@ export function employeeToForm(employee) {
   };
 }
 
-/** Form values → API payload: '' becomes null so an explicit unassign is sent. */
+/** Form values → API payload: '' becomes null so an explicit unassign/clear is sent. */
 export function formToEmployeePayload(values) {
-  return { ...values, coordinator: values.coordinator || null };
+  return {
+    ...values,
+    coordinator: values.coordinator || null,
+    expectedDailyHours: values.expectedDailyHours || null,
+  };
 }

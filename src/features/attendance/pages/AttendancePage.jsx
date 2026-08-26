@@ -12,7 +12,6 @@ import MarkTab from '../components/MarkTab.jsx';
 import RecordsGrid from '../components/RecordsGrid.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
 import OfficeLocationSettings from '../components/OfficeLocationSettings.jsx';
-import TapPointsSettings from '../components/TapPointsSettings.jsx';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -25,8 +24,6 @@ export default function AttendancePage() {
     { key: 'summary', label: 'Summary' },
     // P2-M3: Worker self-mark geofence config — Admin-only, it's a security setting.
     ...(isAdmin ? [{ key: 'office', label: 'Office Location' }] : []),
-    // P2-M3+: physical NFC tap points (e.g. one per room) — Admin-only, minting one is a working URL.
-    ...(isAdmin ? [{ key: 'tapPoints', label: 'Tap Points' }] : []),
   ];
   const [tab, setTab] = useState(tabs[0].key);
 
@@ -53,7 +50,6 @@ export default function AttendancePage() {
       {tab === 'records' && <RecordsGrid />}
       {tab === 'summary' && <SummaryTab />}
       {tab === 'office' && <OfficeLocationSettings />}
-      {tab === 'tapPoints' && <TapPointsSettings />}
     </div>
   );
 }

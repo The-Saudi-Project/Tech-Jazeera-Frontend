@@ -99,6 +99,21 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
         <Input label="Department" placeholder="Maintenance" error={errors.department?.message} {...register('department')} />
         <Input label="Salary (SAR/month) *" type="number" min="0" step="50" error={errors.salary?.message} {...register('salary')} />
         <Input label="Accommodation" placeholder="Company camp, room 12" error={errors.accommodation?.message} {...register('accommodation')} />
+        <div>
+          <Input
+            label="Expected daily hours"
+            type="number"
+            min="0"
+            max="24"
+            step="0.5"
+            placeholder="e.g. 9.5"
+            error={errors.expectedDailyHours?.message}
+            {...register('expectedDailyHours')}
+          />
+          <p className="mt-1 text-xs text-muted">
+            Warns this worker in My Attendance if they sign out before this many hours. Leave blank for no warning.
+          </p>
+        </div>
         <Select label="Status" error={errors.status?.message} {...register('status')}>
           {EMPLOYEE_STATUSES.map((s) => (
             <option key={s} value={s}>
