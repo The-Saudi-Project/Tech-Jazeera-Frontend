@@ -39,3 +39,17 @@ export async function logoutRequest() {
 export async function changePasswordRequest(payload) {
   await api.patch('/auth/password', payload);
 }
+
+/** PATCH /auth/avatar (multipart, field `avatar`) → { avatarUrl } */
+export async function uploadAvatarRequest(file) {
+  const fd = new FormData();
+  fd.append('avatar', file);
+  const { data } = await api.patch('/auth/avatar', fd);
+  return data.data;
+}
+
+/** DELETE /auth/avatar → { avatarUrl: null } */
+export async function removeAvatarRequest() {
+  const { data } = await api.delete('/auth/avatar');
+  return data.data;
+}

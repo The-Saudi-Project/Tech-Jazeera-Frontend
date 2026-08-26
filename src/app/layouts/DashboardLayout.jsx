@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext.jsx';
 import ChangePasswordModal from '../../features/auth/components/ChangePasswordModal.jsx';
+import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.jsx';
 import { cn } from '../../lib/utils.js';
 import { STAFF_USER_VIEW_ROLES } from '../../lib/constants.js';
 
@@ -146,6 +147,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
   async function handleLogout() {
     await logout();
@@ -190,9 +192,24 @@ export default function DashboardLayout() {
               <p className="text-sm font-medium leading-tight">{user.name}</p>
               <p className="text-xs text-muted">{user.role}</p>
             </div>
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-inset ring-primary/20">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+            <button
+              onClick={() => setAvatarModalOpen(true)}
+              title="Update profile photo"
+              aria-label="Update profile photo"
+              className="rounded-full"
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt=""
+                  className="h-9 w-9 rounded-full object-cover ring-1 ring-inset ring-primary/20"
+                />
+              ) : (
+                <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-inset ring-primary/20">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </button>
             <button
               onClick={() => setChangePasswordOpen(true)}
               title="Change password"
@@ -230,6 +247,7 @@ export default function DashboardLayout() {
       </div>
 
       <ChangePasswordModal open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
+      <AvatarUploadModal open={avatarModalOpen} onClose={() => setAvatarModalOpen(false)} />
     </div>
   );
 }

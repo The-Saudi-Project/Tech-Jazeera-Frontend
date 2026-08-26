@@ -41,6 +41,9 @@ export const ACTION_LABELS = {
 
   'user.provision.staff': 'created a staff login',
   'user.update.staff': 'updated a staff account',
+  'user.delete.staff': 'deleted a staff login',
+  'user.avatar.update': 'updated their profile photo',
+  'user.avatar.remove': 'removed their profile photo',
 
   'leaveType.create': 'created a leave type',
   'leaveType.update': 'updated a leave type',

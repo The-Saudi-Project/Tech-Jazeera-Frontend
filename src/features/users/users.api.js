@@ -24,3 +24,8 @@ export async function resetStaffPassword(id) {
   const { data } = await api.post(`/users/${id}/reset-password`);
   return data.data;
 }
+
+/** DELETE /users/:id — permanent, not the same as Deactivate. */
+export async function deleteStaffUser(id) {
+  await api.delete(`/users/${id}`);
+}

@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listStaffUsers, createStaffUser, updateStaffUser, resetStaffPassword } from '../users.api.js';
+import { listStaffUsers, createStaffUser, updateStaffUser, resetStaffPassword, deleteStaffUser } from '../users.api.js';
 import { createLoginFormSchema, emptyCreateLoginForm, CREATE_LOGIN_ROLES } from '../users.schema.js';
 import { listEmployees, createEmployeeLogin } from '../../employees/employees.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
@@ -20,6 +20,7 @@ import { apiMessage, formatDate } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import { STAFF_USER_MANAGE_ROLES, COORDINATOR_MANAGER_ROLES } from '../../../lib/constants.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Table from '../../../components/ui/Table.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -99,6 +100,17 @@ export default function UserListPage() {
     onError: (error) => toast.error(apiMessage(error)),
   });
 
+  const [toDelete, setToDelete] = useState(null);
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deleteStaffUser(id),
+    onSuccess: () => {
+      toast.success(`${toDelete.name} deleted.`);
+      setToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
   async function copyPassword() {
     try {
       await navigator.clipboard.writeText(created.tempPassword);
@@ -160,6 +172,9 @@ export default function UserListPage() {
               onClick={() => toggleActiveMutation.mutate({ id: u._id, isActive: !u.isActive })}
             >
               {u.isActive ? 'Deactivate' : 'Reactivate'}
+            </Button>
+            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(u)}>
+              Delete
             </Button>
           </span>
         ) : null,
@@ -273,6 +288,15 @@ export default function UserListPage() {
           </div>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(toDelete)}
+        title="Delete login?"
+        message={`${toDelete?.name} (${toDelete?.email}) will be permanently removed — this cannot be undone. To just remove access while keeping the account, use Deactivate instead.`}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(toDelete._id)}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 }

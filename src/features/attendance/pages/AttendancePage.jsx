@@ -1,7 +1,8 @@
 /**
- * Attendance page — three tabs: Mark (daily marking, writers only), Records
- * (week/month grid), and Summary (counts + export). Non-writers (e.g.
- * Accounts) see only the read tabs.
+ * Attendance page — tabs: Mark (daily marking, writers only), Records
+ * (week/month grid), Summary (counts + export), Sign In/Out (flat time log),
+ * and Office Location (Admin-only). Non-writers (e.g. Accounts) see only the
+ * read tabs.
  */
 import { useState } from 'react';
 import { useAuth } from '../../auth/AuthContext.jsx';
@@ -11,6 +12,7 @@ import PageHeader from '../../../components/shared/PageHeader.jsx';
 import MarkTab from '../components/MarkTab.jsx';
 import RecordsGrid from '../components/RecordsGrid.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
+import TimeLogTab from '../components/TimeLogTab.jsx';
 import OfficeLocationSettings from '../components/OfficeLocationSettings.jsx';
 
 export default function AttendancePage() {
@@ -22,6 +24,7 @@ export default function AttendancePage() {
     ...(canWrite ? [{ key: 'mark', label: 'Mark' }] : []),
     { key: 'records', label: 'Records' },
     { key: 'summary', label: 'Summary' },
+    { key: 'timelog', label: 'Sign In/Out' },
     // P2-M3: Worker self-mark geofence config — Admin-only, it's a security setting.
     ...(isAdmin ? [{ key: 'office', label: 'Office Location' }] : []),
   ];
@@ -49,6 +52,7 @@ export default function AttendancePage() {
       {tab === 'mark' && <MarkTab />}
       {tab === 'records' && <RecordsGrid />}
       {tab === 'summary' && <SummaryTab />}
+      {tab === 'timelog' && <TimeLogTab />}
       {tab === 'office' && <OfficeLocationSettings />}
     </div>
   );

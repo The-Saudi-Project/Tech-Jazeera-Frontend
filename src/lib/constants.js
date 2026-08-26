@@ -103,6 +103,10 @@ export const DOCUMENT_DELETE_ROLES = ['Admin', 'Manager', 'HR'];
 export const DOCUMENT_MAX_MB = 10;
 export const DOCUMENT_ACCEPT = '.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx';
 
+/** Profile-photo upload limits, mirrored from server/src/modules/auth/avatar.upload.js. */
+export const AVATAR_MAX_MB = 2;
+export const AVATAR_ACCEPT = '.jpg,.jpeg,.png,.webp';
+
 /** Mirrors the Quotation model enums. */
 export const QUOTATION_STATUSES = ['Draft', 'Approved', 'Rejected'];
 export const QUOTATION_LINE_TYPES = ['Labour', 'Trading'];

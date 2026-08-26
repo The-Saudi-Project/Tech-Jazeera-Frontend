@@ -92,7 +92,17 @@ export function AuthProvider({ children }) {
     setStatus('guest');
   }, []);
 
-  const value = useMemo(() => ({ user, status, login, logout }), [user, status, login, logout]);
+  // Merge a partial into the in-memory user (e.g. a fresh avatarUrl after
+  // upload) without a full session refresh — the server call that produced
+  // the new value already has it, so there's nothing to re-fetch.
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => (prev ? { ...prev, ...patch } : prev));
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, status, login, logout, updateUser }),
+    [user, status, login, logout, updateUser]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
