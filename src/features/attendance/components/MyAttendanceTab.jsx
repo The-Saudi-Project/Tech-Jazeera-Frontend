@@ -1,10 +1,12 @@
 /**
- * MyAttendanceTab — a Coordinator, HR, or Accounts account's own sign-in/sign-out.
- * Same geofence-verified punch model as a Worker's My Attendance (P2-M3),
+ * MyAttendanceTab — a Coordinator, HR, or Accounts account's own sign-in/
+ * sign-out. Same geofence verification as a Worker's My Attendance (P2-M3),
  * against StaffAttendance instead of Employee-based Attendance — see
  * server/src/modules/staffAttendance/staffAttendance.model.js for why they're
- * kept separate. Both buttons call the same punch endpoint; the server
- * decides whether it's the day's first punch (check-in) or a later one.
+ * kept separate. Unlike the Worker's free-punch model, this is a strict
+ * per-day toggle — exactly one button at a time, and every sign-in/out cycle
+ * today accumulates onto the running hoursWorked total (see
+ * staffAttendance.service.js selfPunch()).
  */
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -64,7 +66,7 @@ export default function MyAttendanceTab() {
     mutationFn: punchStaffAttendance,
     onSuccess: ({ action, record }) => {
       toast.success(
-        action === 'checked-in' ? 'Signed in.' : `Recorded — ${formatHours(record.hoursWorked)} hrs so far today.`
+        action === 'checked-in' ? 'Signed in.' : `Signed out — ${formatHours(record.hoursWorked)} hrs today.`
       );
       queryClient.invalidateQueries({ queryKey: ['staffAttendance'] });
     },
@@ -109,7 +111,7 @@ export default function MyAttendanceTab() {
           )}
           <p className="max-w-sm text-xs text-muted">
             You'll be asked for your location — you must be at the office (or on the office network) for this to
-            work. Only your first sign-in and your last sign-out of the day are used to calculate your hours.
+            work. Sign out and back in as many times as you need during the day; each session adds to today's hours.
           </p>
         </div>
       </Card>
