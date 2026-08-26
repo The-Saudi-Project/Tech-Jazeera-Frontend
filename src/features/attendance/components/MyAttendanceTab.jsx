@@ -35,6 +35,11 @@ export default function MyAttendanceTab() {
 
   const todayRecord = (data ?? []).find((r) => r.date.slice(0, 10) === todayKey());
   const hasPunchedToday = Boolean(todayRecord?.checkInTime);
+  // Exactly one button at a time, toggling on today's state — unlike a
+  // Worker's free-punch model, staff self-attendance is a strict in/out
+  // pair per day: signed in and not yet out → only "Sign out"; anything
+  // else (never signed in, or already signed out) → only "Sign in".
+  const signedInNotOut = hasPunchedToday && !todayRecord?.checkOutTime;
 
   function withLocation(mutate) {
     if (!navigator.geolocation) {
@@ -76,33 +81,32 @@ export default function MyAttendanceTab() {
     <div className="mx-auto max-w-3xl space-y-6">
       <Card>
         <div className="flex flex-col items-center gap-4 py-4 text-center">
-          {hasPunchedToday ? (
+          {signedInNotOut ? (
+            <Badge variant="success" className="text-sm">
+              Signed in at {formatTime(todayRecord.checkInTime)}
+            </Badge>
+          ) : hasPunchedToday ? (
             <>
-              <Badge variant="success" className="text-sm">
-                Signed in at {formatTime(todayRecord.checkInTime)}
+              <Badge variant="default" className="text-sm">
+                Signed out at {formatTime(todayRecord.checkOutTime)}
               </Badge>
-              {todayRecord.checkOutTime && (
-                <p className="text-xs text-muted">
-                  Last recorded at {formatTime(todayRecord.checkOutTime)} ·{' '}
-                  {formatHours(todayRecord.hoursWorked)} hrs so far ·{' '}
-                  {VERIFIED_LABEL[todayRecord.verifiedBy] ?? 'Self-marked'}
-                </p>
-              )}
+              <p className="text-xs text-muted">
+                {formatHours(todayRecord.hoursWorked)} hrs today · {VERIFIED_LABEL[todayRecord.verifiedBy] ?? 'Self-marked'}
+              </p>
             </>
           ) : (
             <p className="text-sm text-muted">You haven't signed in today.</p>
           )}
 
-          <div className="flex gap-3">
+          {signedInNotOut ? (
+            <Button onClick={doPunch} isLoading={busy} size="lg" variant="secondary">
+              Sign out
+            </Button>
+          ) : (
             <Button onClick={doPunch} isLoading={busy} size="lg">
               {hasPunchedToday ? 'Sign in again' : 'Sign in'}
             </Button>
-            {hasPunchedToday && (
-              <Button onClick={doPunch} isLoading={busy} size="lg" variant="secondary">
-                Sign out
-              </Button>
-            )}
-          </div>
+          )}
           <p className="max-w-sm text-xs text-muted">
             You'll be asked for your location — you must be at the office (or on the office network) for this to
             work. Only your first sign-in and your last sign-out of the day are used to calculate your hours.
