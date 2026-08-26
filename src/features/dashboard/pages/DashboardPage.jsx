@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboard } from '../dashboard.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { formatMoney, cn } from '../../../lib/utils.js';
+import { formatMoney } from '../../../lib/utils.js';
 import { EXPIRY_WARNING_DAYS } from '../../../lib/constants.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -102,30 +102,22 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Finance summary — a Coordinator only sees their own team's payroll;
-          quotation-derived revenue has no honest per-team figure (see
-          dashboard.service.js), so it's simply not shown rather than guessed. */}
-      <Card>
-        <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            {isCoordinator ? 'Your team' : 'Finance'}
-          </h2>
-          {!isCoordinator && <span className="text-xs text-muted">Profit needs cost data (a later phase)</span>}
-        </div>
-        <div className={cn('grid grid-cols-1 gap-4', !isCoordinator && 'sm:grid-cols-3')}>
-          {!isCoordinator && (
-            <>
-              <FinanceItem label="Approved revenue" value={finance.approvedRevenue} accent="text-success" hint="Approved quotations" />
-              <FinanceItem label="Pipeline" value={finance.pendingRevenue} hint="Draft quotations" />
-            </>
-          )}
-          <FinanceItem
-            label={isCoordinator ? "Your team's payroll" : 'Monthly payroll'}
-            value={finance.monthlyPayroll}
-            hint="Active workforce salaries"
-          />
-        </div>
-      </Card>
+      {/* Finance summary — Admin/Manager/HR/Accounts only. A Coordinator never
+          sees salary or revenue figures, even scoped to their own team — see
+          dashboard.service.js. */}
+      {!isCoordinator && (
+        <Card>
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Finance</h2>
+            <span className="text-xs text-muted">Profit needs cost data (a later phase)</span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <FinanceItem label="Approved revenue" value={finance.approvedRevenue} accent="text-success" hint="Approved quotations" />
+            <FinanceItem label="Pipeline" value={finance.pendingRevenue} hint="Draft quotations" />
+            <FinanceItem label="Monthly payroll" value={finance.monthlyPayroll} hint="Active workforce salaries" />
+          </div>
+        </Card>
+      )}
 
       {/* Breakdowns */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -143,16 +135,21 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Alerts + activity */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Alerts + activity — Recent Activity is Admin/Manager/HR/Accounts
+          only, same visibility line as Finance above (see dashboard.service.js). */}
+      {isCoordinator ? (
         <ExpiringDocuments
           items={expiringDocuments}
           thresholdDays={thresholdDays}
           onThresholdChange={changeThreshold}
-          scopedToTeam={isCoordinator}
+          scopedToTeam
         />
-        <RecentActivity items={recentActivity} scopedToTeam={isCoordinator} />
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <ExpiringDocuments items={expiringDocuments} thresholdDays={thresholdDays} onThresholdChange={changeThreshold} />
+          <RecentActivity items={recentActivity} />
+        </div>
+      )}
 
       <QuickActions />
     </div>

@@ -1,10 +1,9 @@
 /**
  * RecentActivity — the latest audit-log entries as a human-readable feed.
  * The full, filterable, paginated trail lives on the Security Log page
- * (Admin-only) — this widget is just the newest 8, for a glance. A
- * Coordinator's feed is pre-scoped server-side to their own actions plus
- * their team's self-service actions (see dashboard.service.js) — `scopedToTeam`
- * here is purely the label, matching ExpiringDocuments' convention.
+ * (Admin-only) — this widget is just the newest 8, for a glance.
+ * Admin/Manager/HR/Accounts only — a Coordinator's dashboard never renders
+ * this (see DashboardPage.jsx / dashboard.service.js).
  */
 import { Link } from 'react-router-dom';
 import Card from '../../../components/ui/Card.jsx';
@@ -13,14 +12,12 @@ import { timeAgo } from '../../../lib/utils.js';
 import { describeAction } from '../../../lib/auditActions.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 
-export default function RecentActivity({ items, scopedToTeam }) {
+export default function RecentActivity({ items }) {
   const { user } = useAuth();
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Recent activity{scopedToTeam ? ' · your team' : ''}
-        </h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Recent activity</h2>
         {user.role === 'Admin' && (
           <Link to="/security-log" className="text-xs font-medium text-primary hover:underline">
             View full log
@@ -28,10 +25,7 @@ export default function RecentActivity({ items, scopedToTeam }) {
         )}
       </div>
       {items.length === 0 ? (
-        <EmptyState
-          title="No activity yet"
-          description={scopedToTeam ? "Your team's actions will appear here." : 'Actions across the system will appear here.'}
-        />
+        <EmptyState title="No activity yet" description="Actions across the system will appear here." />
       ) : (
         <ul className="space-y-3">
           {items.map((a) => (
