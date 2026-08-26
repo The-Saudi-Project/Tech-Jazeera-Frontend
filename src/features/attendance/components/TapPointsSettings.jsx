@@ -1,9 +1,11 @@
 /**
  * TapPointsSettings — Admin-only management of physical NFC tap points
- * (e.g. one per room). Each tap point's URL gets written to a real NFC chip
- * with any off-the-shelf NFC-writer phone app; a Worker's phone visiting
- * that URL toggles their check-in/check-out (see attendance.service.js's
- * selfTap() and client/.../ess/pages/TapPage.jsx).
+ * (e.g. one per room entrance, one per exit). Each tap point's URL gets
+ * written to a real NFC chip with any off-the-shelf NFC-writer app; a
+ * Worker's phone visiting that URL attempts a check-in or check-out
+ * depending on the tap point's fixed direction (see attendance.service.js's
+ * selfTap() and client/.../ess/pages/TapPage.jsx) — direction is set here,
+ * not inferred from the worker's current state.
  */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,6 +21,7 @@ import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Input from '../../../components/ui/Input.jsx';
+import Select from '../../../components/ui/Select.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Table from '../../../components/ui/Table.jsx';
@@ -30,10 +33,12 @@ function tapUrl(token) {
   return `${window.location.origin}/tap/${token}`;
 }
 
+const DIRECTION_LABEL = { in: 'Sign in', out: 'Sign out' };
+
 export default function TapPointsSettings() {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [renaming, setRenaming] = useState(null); // { _id, name }
+  const [editing, setEditing] = useState(null); // { _id, name, direction }
   const [confirm, setConfirm] = useState(null); // { id, kind: 'rotate'|'delete', title, message, confirmLabel }
 
   const { data: points, isPending } = useQuery({ queryKey: ['tap-points'], queryFn: listTapPoints });
@@ -43,7 +48,7 @@ export default function TapPointsSettings() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({ defaultValues: { name: '' } });
+  } = useForm({ defaultValues: { name: '', direction: 'in' } });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['tap-points'] });
 
@@ -51,17 +56,17 @@ export default function TapPointsSettings() {
     mutationFn: createTapPoint,
     onSuccess: () => {
       toast.success('Tap point created.');
-      reset({ name: '' });
+      reset({ name: '', direction: 'in' });
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
   });
 
-  const renameMutation = useMutation({
-    mutationFn: ({ id, name }) => updateTapPoint(id, { name }),
+  const editMutation = useMutation({
+    mutationFn: ({ id, name, direction }) => updateTapPoint(id, { name, direction }),
     onSuccess: () => {
-      toast.success('Renamed.');
-      setRenaming(null);
+      toast.success('Saved.');
+      setEditing(null);
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -106,6 +111,13 @@ export default function TapPointsSettings() {
       ),
     },
     {
+      key: 'direction',
+      header: 'Direction',
+      render: (r) => (
+        <Badge variant={r.direction === 'in' ? 'success' : 'warning'}>{DIRECTION_LABEL[r.direction]}</Badge>
+      ),
+    },
+    {
       key: 'url',
       header: 'Tap URL (write this to the chip)',
       render: (r) => (
@@ -122,8 +134,8 @@ export default function TapPointsSettings() {
       header: 'Actions',
       render: (r) => (
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button size="sm" variant="secondary" onClick={() => setRenaming({ _id: r._id, name: r.name })}>
-            Rename
+          <Button size="sm" variant="secondary" onClick={() => setEditing({ _id: r._id, name: r.name, direction: r.direction })}>
+            Edit
           </Button>
           <Button
             size="sm"
@@ -172,9 +184,11 @@ export default function TapPointsSettings() {
       <Card>
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Add a tap point</h2>
         <p className="mb-4 text-sm text-muted">
-          Create one per physical location (e.g. a room entrance), then write its URL to an NFC tag with any
-          NFC-writer app. A Worker's phone tapping the tag signs them in — or out, if they're already signed in —
-          exactly like the Sign in/Sign out buttons in their My Attendance page.
+          Create one per physical tag — typically one for entry and one for exit at each location — then write its
+          URL to an NFC tag with any NFC-writer app. A tag's direction is fixed: a "Sign in" tag always attempts to
+          sign the Worker in, a "Sign out" tag always attempts to sign them out, whichever tag they actually tap. If
+          they tap the wrong one for their current state, they'll see the same message the button in their My
+          Attendance page would show.
         </p>
         <form
           onSubmit={handleSubmit((values) => createMutation.mutate(values))}
@@ -184,10 +198,16 @@ export default function TapPointsSettings() {
           <div className="flex-1">
             <Input
               label="Name"
-              placeholder="Room 1"
+              placeholder="Discussion Room In"
               error={errors.name?.message}
               {...register('name', { required: 'Name is required.' })}
             />
+          </div>
+          <div className="sm:w-40">
+            <Select label="Direction" {...register('direction')}>
+              <option value="in">Sign in</option>
+              <option value="out">Sign out</option>
+            </Select>
           </div>
           <Button type="submit" isLoading={createMutation.isPending}>
             Add tap point
@@ -203,26 +223,34 @@ export default function TapPointsSettings() {
         emptyState={<EmptyState title="No tap points yet" description="Add one above to generate its URL." />}
       />
 
-      <Modal open={Boolean(renaming)} onClose={() => setRenaming(null)} title="Rename tap point">
-        {renaming && (
+      <Modal open={Boolean(editing)} onClose={() => setEditing(null)} title="Edit tap point">
+        {editing && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              renameMutation.mutate({ id: renaming._id, name: renaming.name });
+              editMutation.mutate({ id: editing._id, name: editing.name, direction: editing.direction });
             }}
             className="space-y-4"
           >
             <Input
               label="Name"
-              value={renaming.name}
-              onChange={(e) => setRenaming({ ...renaming, name: e.target.value })}
+              value={editing.name}
+              onChange={(e) => setEditing({ ...editing, name: e.target.value })}
               autoFocus
             />
+            <Select
+              label="Direction"
+              value={editing.direction}
+              onChange={(e) => setEditing({ ...editing, direction: e.target.value })}
+            >
+              <option value="in">Sign in</option>
+              <option value="out">Sign out</option>
+            </Select>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={() => setRenaming(null)}>
+              <Button type="button" variant="secondary" onClick={() => setEditing(null)}>
                 Cancel
               </Button>
-              <Button type="submit" isLoading={renameMutation.isPending}>
+              <Button type="submit" isLoading={editMutation.isPending}>
                 Save
               </Button>
             </div>

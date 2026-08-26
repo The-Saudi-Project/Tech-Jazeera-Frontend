@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboard } from '../dashboard.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { formatMoney } from '../../../lib/utils.js';
+import { formatMoney, cn } from '../../../lib/utils.js';
 import { EXPIRY_WARNING_DAYS } from '../../../lib/constants.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -52,6 +52,7 @@ export default function DashboardPage() {
   });
 
   const firstName = user.name.split(' ')[0];
+  const isCoordinator = user.role === 'Coordinator';
 
   if (isPending) {
     return (
@@ -84,41 +85,62 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader title={`Welcome back, ${firstName}`} description="Here's what's happening across the company." />
+      <PageHeader
+        title={`Welcome back, ${firstName}`}
+        description={isCoordinator ? "Here's what's happening with your team." : "Here's what's happening across the company."}
+      />
 
       {/* Headline stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Deployed now" value={stats.deployedActive} accent="primary" hint="Active placements" to="/deployments" />
         <StatCard label="Active workers" value={stats.activeWorkers} accent="success" hint={`${stats.totalWorkers} total · ${stats.onLeave} on leave`} to="/employees" />
-        <StatCard label="Active clients" value={stats.activeClients} to="/clients" />
-        <StatCard label="Pending quotations" value={stats.pendingQuotations} accent="warning" hint="Draft, awaiting approval" to="/quotations" />
+        <StatCard label={isCoordinator ? 'Your clients' : 'Active clients'} value={stats.activeClients} to="/clients" />
+        {isCoordinator ? (
+          <StatCard label="Expiring soon" value={stats.expiringSoon} accent="warning" hint="Documents needing attention" />
+        ) : (
+          <StatCard label="Pending quotations" value={stats.pendingQuotations} accent="warning" hint="Draft, awaiting approval" to="/quotations" />
+        )}
       </div>
 
-      {/* Finance summary */}
+      {/* Finance summary — a Coordinator only sees their own team's payroll;
+          quotation-derived revenue has no honest per-team figure (see
+          dashboard.service.js), so it's simply not shown rather than guessed. */}
       <Card>
         <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Finance</h2>
-          <span className="text-xs text-muted">Profit needs cost data (a later phase)</span>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            {isCoordinator ? 'Your team' : 'Finance'}
+          </h2>
+          {!isCoordinator && <span className="text-xs text-muted">Profit needs cost data (a later phase)</span>}
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <FinanceItem label="Approved revenue" value={finance.approvedRevenue} accent="text-success" hint="Approved quotations" />
-          <FinanceItem label="Pipeline" value={finance.pendingRevenue} hint="Draft quotations" />
-          <FinanceItem label="Monthly payroll" value={finance.monthlyPayroll} hint="Active workforce salaries" />
+        <div className={cn('grid grid-cols-1 gap-4', !isCoordinator && 'sm:grid-cols-3')}>
+          {!isCoordinator && (
+            <>
+              <FinanceItem label="Approved revenue" value={finance.approvedRevenue} accent="text-success" hint="Approved quotations" />
+              <FinanceItem label="Pipeline" value={finance.pendingRevenue} hint="Draft quotations" />
+            </>
+          )}
+          <FinanceItem
+            label={isCoordinator ? "Your team's payroll" : 'Monthly payroll'}
+            value={finance.monthlyPayroll}
+            hint="Active workforce salaries"
+          />
         </div>
       </Card>
 
       {/* Breakdowns */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <StatusBreakdown
-          title="Workforce by status"
+          title={isCoordinator ? 'Your team by status' : 'Workforce by status'}
           data={workforceByStatus}
           colors={{ Active: 'success', 'On Leave': 'warning', Exited: 'default' }}
         />
-        <StatusBreakdown
-          title="Quotations by status"
-          data={quotationsByStatus}
-          colors={{ Draft: 'default', Approved: 'success', Rejected: 'danger' }}
-        />
+        {!isCoordinator && (
+          <StatusBreakdown
+            title="Quotations by status"
+            data={quotationsByStatus}
+            colors={{ Draft: 'default', Approved: 'success', Rejected: 'danger' }}
+          />
+        )}
       </div>
 
       {/* Alerts + activity */}
@@ -127,9 +149,9 @@ export default function DashboardPage() {
           items={expiringDocuments}
           thresholdDays={thresholdDays}
           onThresholdChange={changeThreshold}
-          scopedToTeam={user.role === 'Coordinator'}
+          scopedToTeam={isCoordinator}
         />
-        <RecentActivity items={recentActivity} />
+        <RecentActivity items={recentActivity} scopedToTeam={isCoordinator} />
       </div>
 
       <QuickActions />
