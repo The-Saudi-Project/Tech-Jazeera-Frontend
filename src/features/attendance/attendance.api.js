@@ -11,6 +11,14 @@ export async function markBulk(payload) {
   return data.data;
 }
 
+/** PATCH /attendance/adjust { employee, date, status, checkInTime?, checkOutTime?, note? } —
+ *  correct one worker's day, e.g. a missed punch. checkInTime/checkOutTime are full ISO
+ *  datetimes or null; hoursWorked is computed server-side from them. */
+export async function adjustAttendance(payload) {
+  const { data } = await api.patch('/attendance/adjust', payload);
+  return data.data;
+}
+
 /** GET /attendance?from&to[&employee] → records[] (for the grid) */
 export async function listAttendance(params) {
   const { data } = await api.get('/attendance', { params });
