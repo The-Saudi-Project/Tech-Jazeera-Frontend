@@ -94,6 +94,10 @@ export const ATTENDANCE_STATUSES = Object.keys(ATTENDANCE_STATUS_META);
 
 /** Mirror of the attendance write guard (server enforces). */
 export const ATTENDANCE_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
+/** Who clocks their own attendance in/out (mirrors staffAttendance.routes.js).
+ *  Admin/Manager are exempt by design; Workers have their own equivalent via
+ *  the ESS portal. */
+export const STAFF_SELF_ATTENDANCE_ROLES = ['Coordinator', 'HR', 'Accounts'];
 
 /** Mirrors the Document model enums. */
 export const DOCUMENT_OWNER_TYPES = ['Employee', 'Client'];

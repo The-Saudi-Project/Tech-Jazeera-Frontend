@@ -1,14 +1,16 @@
 /**
- * Attendance page — tabs: Mark (daily marking, writers only), Records
- * (week/month grid), Summary (counts + export), Sign In/Out (flat time log),
- * and Office Location (Admin-only). Non-writers (e.g. Accounts) see only the
- * read tabs.
+ * Attendance page — tabs: My Attendance (Coordinator/HR/Accounts' own
+ * sign-in/out — Admin/Manager are exempt, Workers use the ESS portal
+ * instead), Mark (daily marking, writers only), Records (week/month grid),
+ * Summary (counts + export), Sign In/Out (flat time log), and Office
+ * Location (Admin-only). Non-writers (e.g. Accounts) see only the read tabs.
  */
 import { useState } from 'react';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { ATTENDANCE_WRITE_ROLES } from '../../../lib/constants.js';
+import { ATTENDANCE_WRITE_ROLES, STAFF_SELF_ATTENDANCE_ROLES } from '../../../lib/constants.js';
 import { cn } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import MyAttendanceTab from '../components/MyAttendanceTab.jsx';
 import MarkTab from '../components/MarkTab.jsx';
 import RecordsGrid from '../components/RecordsGrid.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
@@ -19,8 +21,10 @@ export default function AttendancePage() {
   const { user } = useAuth();
   const canWrite = ATTENDANCE_WRITE_ROLES.includes(user.role);
   const isAdmin = user.role === 'Admin';
+  const selfAttendance = STAFF_SELF_ATTENDANCE_ROLES.includes(user.role);
 
   const tabs = [
+    ...(selfAttendance ? [{ key: 'mine', label: 'My Attendance' }] : []),
     ...(canWrite ? [{ key: 'mark', label: 'Mark' }] : []),
     { key: 'records', label: 'Records' },
     { key: 'summary', label: 'Summary' },
@@ -49,6 +53,7 @@ export default function AttendancePage() {
         ))}
       </div>
 
+      {tab === 'mine' && <MyAttendanceTab />}
       {tab === 'mark' && <MarkTab />}
       {tab === 'records' && <RecordsGrid />}
       {tab === 'summary' && <SummaryTab />}

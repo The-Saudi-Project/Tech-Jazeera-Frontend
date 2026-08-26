@@ -32,6 +32,10 @@ export const ACTION_LABELS = {
   'deployment.end': 'ended a deployment',
 
   'attendance.mark': 'marked attendance',
+  'attendance.checkin': 'signed in',
+  'attendance.checkout': 'signed out',
+  'staffAttendance.checkin': 'signed in',
+  'staffAttendance.checkout': 'signed out',
 
   'document.create': 'uploaded a document',
   'document.version': 'added a document version',
