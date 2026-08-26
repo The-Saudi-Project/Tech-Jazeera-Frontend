@@ -5,6 +5,7 @@
  * placeholder.
  */
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboard } from '../dashboard.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
@@ -89,6 +90,21 @@ export default function DashboardPage() {
         title={`Welcome back, ${firstName}`}
         description={isCoordinator ? "Here's what's happening with your team." : "Here's what's happening across the company."}
       />
+
+      {/* Only ever non-zero for Admin/Manager/HR — a Coordinator's own
+          submissions aren't counted here (see dashboard.service.js). Hidden
+          entirely at zero so it never sits around as dead chrome. */}
+      {stats.pendingClientApprovals > 0 && (
+        <Link
+          to="/coordinator-activity"
+          className="flex items-center justify-between gap-3 rounded-xl border border-warning/25 bg-warning/10 px-4 py-3 text-sm transition-colors hover:bg-warning/15"
+        >
+          <span className="font-medium text-text">
+            {stats.pendingClientApprovals} client{stats.pendingClientApprovals === 1 ? '' : 's'} waiting for approval
+          </span>
+          <span className="font-medium text-primary">Review →</span>
+        </Link>
+      )}
 
       {/* Headline stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

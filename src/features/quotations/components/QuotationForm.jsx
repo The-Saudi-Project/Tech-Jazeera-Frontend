@@ -56,7 +56,11 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
 
   const { data: clientData } = useQuery({
     queryKey: ['clients', 'all-for-quote'],
-    queryFn: () => listClients({ limit: 100, sortBy: 'companyName', sortOrder: 'asc' }),
+    // approvalStatus: 'Approved' — a Coordinator-submitted client not yet
+    // approved shouldn't be quotable (see docs/PHASE2-PLAN.md). Status
+    // (Active/Inactive) is deliberately unfiltered — you can still quote a
+    // dormant client to re-engage them.
+    queryFn: () => listClients({ approvalStatus: 'Approved', limit: 100, sortBy: 'companyName', sortOrder: 'asc' }),
   });
   const clients = clientData?.items ?? [];
 

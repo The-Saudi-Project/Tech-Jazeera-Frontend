@@ -55,6 +55,7 @@ export default function ClientEditPage() {
         onSubmit={(values) => mutation.mutate(values)}
         submitLabel="Save changes"
         submitting={mutation.isPending}
+        client={client}
       />
     </div>
   );

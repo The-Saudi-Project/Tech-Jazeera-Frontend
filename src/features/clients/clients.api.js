@@ -27,3 +27,9 @@ export async function updateClient(id, payload) {
 export async function deleteClient(id) {
   await api.delete(`/clients/${id}`);
 }
+
+/** PATCH /clients/:id/decide { status: 'Approved'|'Rejected', decisionNote? } */
+export async function decideClient(id, payload) {
+  const { data } = await api.patch(`/clients/${id}/decide`, payload);
+  return data.data;
+}

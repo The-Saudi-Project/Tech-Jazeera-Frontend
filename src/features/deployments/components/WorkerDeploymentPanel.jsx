@@ -55,7 +55,7 @@ export default function WorkerDeploymentPanel({ employee }) {
   // transfer modal is open, to avoid a needless request on every profile view.
   const { data: clientData } = useQuery({
     queryKey: ['clients', { active: true }],
-    queryFn: () => listClients({ status: 'Active', limit: 100 }),
+    queryFn: () => listClients({ status: 'Active', approvalStatus: 'Approved', limit: 100 }),
     enabled: transferring,
   });
 

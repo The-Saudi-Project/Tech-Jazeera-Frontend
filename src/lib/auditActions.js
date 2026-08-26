@@ -23,6 +23,9 @@ export const ACTION_LABELS = {
   'client.create': 'added a client',
   'client.update': 'updated a client',
   'client.delete': 'deleted a client',
+  'client.resubmit': 'resubmitted a client for approval',
+  'client.approved': 'approved a client',
+  'client.rejected': 'rejected a client',
 
   'deployment.assign': 'deployed a worker',
   'deployment.transfer': 'transferred a worker',

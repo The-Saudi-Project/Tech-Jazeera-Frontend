@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
 import { listStaffUsers } from '../../users/users.api.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 import { EMPLOYEE_STATUSES } from '../../../lib/constants.js';
 import { COUNTRIES } from '../../../lib/countries.js';
 import Input from '../../../components/ui/Input.jsx';
@@ -40,6 +41,12 @@ function Section({ title, children }) {
 
 export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, submitting }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // A Coordinator adding their own worker never picks a coordinator — the
+  // server always assigns it to themselves regardless of what's submitted
+  // (see employee.service.js), so showing an editable picker here would just
+  // be confusing. Everyone else keeps the normal picker.
+  const isCoordinator = user.role === 'Coordinator';
   const {
     register,
     handleSubmit,
@@ -54,6 +61,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   const { data: coordinators } = useQuery({
     queryKey: ['users', { role: 'Coordinator' }],
     queryFn: () => listStaffUsers({ role: 'Coordinator' }),
+    enabled: !isCoordinator,
   });
 
   // The <select> mounts (via register's ref) before this async list resolves,
@@ -121,14 +129,22 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
             </option>
           ))}
         </Select>
-        <Select label="Coordinator" error={errors.coordinator?.message} {...register('coordinator')}>
-          <option value="">Not assigned</option>
-          {(coordinators ?? []).map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
+        {isCoordinator ? (
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">Coordinator</p>
+            <p className="mt-0.5 text-sm font-medium">{user.name} (you)</p>
+            <p className="mt-1 text-xs text-muted">Employees you add are automatically assigned to your team.</p>
+          </div>
+        ) : (
+          <Select label="Coordinator" error={errors.coordinator?.message} {...register('coordinator')}>
+            <option value="">Not assigned</option>
+            {(coordinators ?? []).map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        )}
       </Section>
 
       <Card>

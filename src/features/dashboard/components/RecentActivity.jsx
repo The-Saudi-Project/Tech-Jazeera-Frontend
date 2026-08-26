@@ -14,6 +14,9 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 
 export default function RecentActivity({ items }) {
   const { user } = useAuth();
+  // Defensive: every current caller always passes an array, but this widget
+  // shouldn't crash the page if a future caller ever passes null/undefined.
+  const safeItems = items ?? [];
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -24,11 +27,11 @@ export default function RecentActivity({ items }) {
           </Link>
         )}
       </div>
-      {items.length === 0 ? (
+      {safeItems.length === 0 ? (
         <EmptyState title="No activity yet" description="Actions across the system will appear here." />
       ) : (
         <ul className="space-y-3">
-          {items.map((a) => (
+          {safeItems.map((a) => (
             <li key={a._id} className="flex items-start gap-2 text-sm">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
               <span className="flex-1">

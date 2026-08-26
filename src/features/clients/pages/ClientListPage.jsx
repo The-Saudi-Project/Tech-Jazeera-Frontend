@@ -9,10 +9,18 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { listClients, deleteClient } from '../clients.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
-import { CLIENT_STATUSES, CLIENT_WRITE_ROLES, CLIENT_DELETE_ROLES } from '../../../lib/constants.js';
+import {
+  CLIENT_STATUSES,
+  CLIENT_DELETE_ROLES,
+  CLIENT_CREATE_ROLES,
+  CLIENT_APPROVAL_STATUSES,
+  CLIENT_APPROVAL_VARIANT,
+} from '../../../lib/constants.js';
 import { apiMessage } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import DecideClientModal from '../components/DecideClientModal.jsx';
+import { canDecideClient, canEditClient } from '../clients.permissions.js';
 import Table from '../../../components/ui/Table.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -28,8 +36,9 @@ export default function ClientListPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const canWrite = CLIENT_WRITE_ROLES.includes(user.role);
+  const canCreate = CLIENT_CREATE_ROLES.includes(user.role);
   const canDelete = CLIENT_DELETE_ROLES.includes(user.role);
+  const [deciding, setDeciding] = useState(null); // client pending Approve/Reject review
 
   const [search, setSearch] = useState('');
   const [params, setParams] = useState({
@@ -37,6 +46,7 @@ export default function ClientListPage() {
     limit: 10,
     search: '',
     status: '',
+    approvalStatus: '',
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
@@ -58,6 +68,7 @@ export default function ClientListPage() {
         sortOrder: params.sortOrder,
         ...(params.search && { search: params.search }),
         ...(params.status && { status: params.status }),
+        ...(params.approvalStatus && { approvalStatus: params.approvalStatus }),
       }),
     placeholderData: keepPreviousData,
   });
@@ -113,6 +124,29 @@ export default function ClientListPage() {
       render: (c) => <Badge variant={STATUS_VARIANT[c.status]}>{c.status}</Badge>,
     },
     {
+      key: 'approvalStatus',
+      header: 'Approval',
+      render: (c) => <Badge variant={CLIENT_APPROVAL_VARIANT[c.approvalStatus]}>{c.approvalStatus}</Badge>,
+    },
+    {
+      key: 'createdBy',
+      header: 'Added by',
+      hideOnMobile: true,
+      render: (c) =>
+        c.createdBy ? (
+          <span>
+            {c.createdBy.name}
+            {c.createdBy.role === 'Coordinator' && (
+              <Badge variant="primary" className="ml-1.5">
+                Coordinator
+              </Badge>
+            )}
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
+    },
+    {
       key: 'actions',
       header: '',
       className: 'text-right',
@@ -121,7 +155,7 @@ export default function ClientListPage() {
           <Button size="sm" variant="secondary" onClick={() => navigate(`/clients/${c._id}`)}>
             View
           </Button>
-          {canWrite && (
+          {canEditClient(user, c) && (
             <Button size="sm" variant="ghost" onClick={() => navigate(`/clients/${c._id}/edit`)}>
               Edit
             </Button>
@@ -131,19 +165,24 @@ export default function ClientListPage() {
               Delete
             </Button>
           )}
+          {canDecideClient(user, c) && (
+            <Button size="sm" onClick={() => setDeciding(c)}>
+              Review
+            </Button>
+          )}
         </span>
       ),
     },
   ];
 
-  const noFilters = !params.search && !params.status;
+  const noFilters = !params.search && !params.status && !params.approvalStatus;
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Clients"
         description="Companies we supply manpower and trade to."
-        actions={canWrite && <Button onClick={() => navigate('/clients/new')}>Add client</Button>}
+        actions={canCreate && <Button onClick={() => navigate('/clients/new')}>Add client</Button>}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -162,6 +201,19 @@ export default function ClientListPage() {
         >
           <option value="">All statuses</option>
           {CLIENT_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={params.approvalStatus}
+          onChange={(e) => setParams((p) => ({ ...p, approvalStatus: e.target.value, page: 1 }))}
+          className="sm:max-w-[180px]"
+          aria-label="Filter by approval"
+        >
+          <option value="">All approval states</option>
+          {CLIENT_APPROVAL_STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -199,7 +251,7 @@ export default function ClientListPage() {
                     : 'Try clearing the search or filters.'
                 }
                 action={
-                  noFilters && canWrite ? (
+                  noFilters && canCreate ? (
                     <Button onClick={() => navigate('/clients/new')}>Add client</Button>
                   ) : null
                 }
@@ -237,6 +289,8 @@ export default function ClientListPage() {
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}
       />
+
+      <DecideClientModal client={deciding} onClose={() => setDeciding(null)} />
     </div>
   );
 }

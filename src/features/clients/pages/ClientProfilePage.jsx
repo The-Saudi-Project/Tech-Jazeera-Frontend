@@ -15,10 +15,12 @@ import { getClient, deleteClient } from '../clients.api.js';
 import { listEmployees } from '../../employees/employees.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
-import { CLIENT_WRITE_ROLES, CLIENT_DELETE_ROLES } from '../../../lib/constants.js';
+import { CLIENT_DELETE_ROLES, CLIENT_APPROVAL_VARIANT } from '../../../lib/constants.js';
+import { canDecideClient, canEditClient } from '../clients.permissions.js';
 import { apiMessage, cn, formatDate } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import DecideClientModal from '../components/DecideClientModal.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -43,6 +45,31 @@ function Field({ label, children }) {
 function OverviewTab({ client }) {
   return (
     <div className="space-y-6">
+      {client.approvalStatus === 'Rejected' && (
+        <Card className="border-danger/30 bg-danger/5">
+          <div className="flex items-start gap-3">
+            <Badge variant="danger">Rejected</Badge>
+            <div>
+              <p className="text-sm font-medium">This submission was rejected.</p>
+              {client.decisionNote && <p className="mt-1 text-sm text-muted">{client.decisionNote}</p>}
+              {client.decidedBy?.name && (
+                <p className="mt-1 text-xs text-muted">
+                  By {client.decidedBy.name}, {formatDate(client.decidedAt)}
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+      {client.approvalStatus === 'Pending' && (
+        <Card className="border-warning/30 bg-warning/5">
+          <div className="flex items-center gap-3">
+            <Badge variant="warning">Pending approval</Badge>
+            <p className="text-sm text-muted">Not usable for deployments or quotations yet.</p>
+          </div>
+        </Card>
+      )}
+
       <Card>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Company details</h2>
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -53,6 +80,18 @@ function OverviewTab({ client }) {
           <Field label="VAT number">{client.vatNumber}</Field>
           <Field label="Commercial Registration">{client.crNumber}</Field>
           <Field label="Address">{client.address}</Field>
+          <Field label="Added by">
+            {client.createdBy?.name && (
+              <>
+                {client.createdBy.name}
+                {client.createdBy.role === 'Coordinator' && (
+                  <Badge variant="primary" className="ml-1.5">
+                    Coordinator
+                  </Badge>
+                )}
+              </>
+            )}
+          </Field>
         </dl>
       </Card>
 
@@ -137,8 +176,8 @@ export default function ClientProfilePage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState('overview');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deciding, setDeciding] = useState(false);
 
-  const canWrite = CLIENT_WRITE_ROLES.includes(user.role);
   const canDelete = CLIENT_DELETE_ROLES.includes(user.role);
 
   const { data: client, isPending, isError } = useQuery({
@@ -199,7 +238,13 @@ export default function ClientProfilePage() {
             <Badge variant={STATUS_VARIANT[client.status]} className="mr-1">
               {client.status}
             </Badge>
-            {canWrite && (
+            {client.approvalStatus !== 'Approved' && (
+              <Badge variant={CLIENT_APPROVAL_VARIANT[client.approvalStatus]} className="mr-1">
+                {client.approvalStatus}
+              </Badge>
+            )}
+            {canDecideClient(user, client) && <Button onClick={() => setDeciding(true)}>Review</Button>}
+            {canEditClient(user, client) && (
               <Button variant="secondary" onClick={() => navigate(`/clients/${id}/edit`)}>
                 Edit
               </Button>
@@ -245,6 +290,8 @@ export default function ClientProfilePage() {
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setConfirmingDelete(false)}
       />
+
+      <DecideClientModal client={deciding ? client : null} onClose={() => setDeciding(false)} />
     </div>
   );
 }

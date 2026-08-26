@@ -15,6 +15,9 @@ export const EMPLOYEE_STATUSES = ['Active', 'On Leave', 'Exited'];
  *  reject anyway. The server is the real enforcement. */
 export const EMPLOYEE_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
 export const EMPLOYEE_DELETE_ROLES = ['Admin', 'HR'];
+/** Who may reach the "Add employee" form — write roles plus self-service
+ *  Coordinator (adds only to their own team, no approval needed). */
+export const EMPLOYEE_CREATE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
 
 /** Who may provision a worker login for an employee (P2-M1). Mirror of the
  *  server guard on POST /employees/:id/user — the server enforces. */
@@ -55,6 +58,20 @@ export const CLIENT_STATUSES = ['Active', 'Inactive'];
 /** Mirror of the client route guards (server enforces). */
 export const CLIENT_WRITE_ROLES = ['Admin', 'Manager'];
 export const CLIENT_DELETE_ROLES = ['Admin', 'Manager'];
+/** Who may reach the "Add client" form — write roles plus self-service
+ *  Coordinator (their submission starts Pending approval). */
+export const CLIENT_CREATE_ROLES = ['Admin', 'Manager', 'Coordinator'];
+
+/** Mirrors the Client model's approvalStatus enum — separate from `status`
+ *  above. A Coordinator-created client starts Pending until decided. */
+export const CLIENT_APPROVAL_STATUSES = ['Approved', 'Pending', 'Rejected'];
+export const CLIENT_APPROVAL_VARIANT = { Approved: 'success', Pending: 'warning', Rejected: 'danger' };
+/** Mirror of the client decide-route guard (server enforces the finer
+ *  "must be THIS coordinator's manager" rule). */
+export const CLIENT_DECIDE_ROLES = ['Admin', 'Manager'];
+
+/** Who sees the Coordinator Activity oversight page. */
+export const COORDINATOR_ACTIVITY_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
 
 /** Mirrors the Deployment model enums. */
 export const DEPLOYMENT_SHIFTS = ['Day', 'Night', 'Rotating'];

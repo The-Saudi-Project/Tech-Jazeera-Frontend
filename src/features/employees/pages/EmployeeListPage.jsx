@@ -14,6 +14,7 @@ import {
   EMPLOYEE_STATUSES,
   EMPLOYEE_WRITE_ROLES,
   EMPLOYEE_DELETE_ROLES,
+  EMPLOYEE_CREATE_ROLES,
   EXPIRY_WARNING_DAYS,
 } from '../../../lib/constants.js';
 import { apiMessage, daysUntil, formatDate } from '../../../lib/utils.js';
@@ -52,6 +53,7 @@ export default function EmployeeListPage() {
 
   const canWrite = EMPLOYEE_WRITE_ROLES.includes(user.role);
   const canDelete = EMPLOYEE_DELETE_ROLES.includes(user.role);
+  const canCreate = EMPLOYEE_CREATE_ROLES.includes(user.role);
 
   // `search` is what the user types; `params.search` is what we query with —
   // debounced 300ms so we don't fire a request per keystroke.
@@ -148,6 +150,24 @@ export default function EmployeeListPage() {
     },
     { key: 'docs', header: 'Documents', render: docsBadge },
     {
+      key: 'createdBy',
+      header: 'Added by',
+      hideOnMobile: true,
+      render: (e) =>
+        e.createdBy ? (
+          <span>
+            {e.createdBy.name}
+            {e.createdBy.role === 'Coordinator' && (
+              <Badge variant="primary" className="ml-1.5">
+                Coordinator
+              </Badge>
+            )}
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
+    },
+    {
       key: 'actions',
       header: '',
       className: 'text-right',
@@ -178,7 +198,7 @@ export default function EmployeeListPage() {
       <PageHeader
         title="Employees"
         description="The company's workforce register."
-        actions={canWrite && <Button onClick={() => navigate('/employees/new')}>Add employee</Button>}
+        actions={canCreate && <Button onClick={() => navigate('/employees/new')}>Add employee</Button>}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -248,7 +268,7 @@ export default function EmployeeListPage() {
                     : 'Try clearing the search or filters.'
                 }
                 action={
-                  noFilters && canWrite ? (
+                  noFilters && canCreate ? (
                     <Button onClick={() => navigate('/employees/new')}>Add employee</Button>
                   ) : null
                 }

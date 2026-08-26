@@ -14,6 +14,7 @@ import Select from '../../../components/ui/Select.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Card from '../../../components/ui/Card.jsx';
+import Badge from '../../../components/ui/Badge.jsx';
 
 function Section({ title, description, children }) {
   return (
@@ -25,7 +26,13 @@ function Section({ title, description, children }) {
   );
 }
 
-export default function ClientForm({ defaultValues, onSubmit, submitLabel, submitting }) {
+/**
+ * `client` (the raw record, edit only) drives the approval-status banner —
+ * a Coordinator resubmitting a Rejected client needs to see exactly what a
+ * Manager flagged, and anyone reviewing a Pending one should know it isn't
+ * live yet. Absent on create (a brand-new client has no approval history).
+ */
+export default function ClientForm({ defaultValues, onSubmit, submitLabel, submitting, client }) {
   const navigate = useNavigate();
   const {
     register,
@@ -38,6 +45,29 @@ export default function ClientForm({ defaultValues, onSubmit, submitLabel, submi
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+      {client?.approvalStatus === 'Rejected' && (
+        <Card className="border-danger/30 bg-danger/5">
+          <div className="flex items-start gap-3">
+            <Badge variant="danger">Rejected</Badge>
+            <div>
+              <p className="text-sm font-medium">This submission was rejected.</p>
+              {client.decisionNote && <p className="mt-1 text-sm text-muted">{client.decisionNote}</p>}
+              <p className="mt-2 text-xs text-muted">Saving changes resubmits it for approval.</p>
+            </div>
+          </div>
+        </Card>
+      )}
+      {client?.approvalStatus === 'Pending' && (
+        <Card className="border-warning/30 bg-warning/5">
+          <div className="flex items-center gap-3">
+            <Badge variant="warning">Pending approval</Badge>
+            <p className="text-sm text-muted">
+              Not usable for deployments or quotations yet — waiting on a review.
+            </p>
+          </div>
+        </Card>
+      )}
+
       <Section title="Company">
         <Input label="Company name *" error={errors.companyName?.message} {...register('companyName')} />
         <Input label="Industry" placeholder="Construction, Facilities…" error={errors.industry?.message} {...register('industry')} />

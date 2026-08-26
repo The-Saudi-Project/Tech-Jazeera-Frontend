@@ -132,6 +132,18 @@ export default function EmployeeProfilePage() {
             <Field label="Department">{employee.department}</Field>
             <Field label="Salary">SAR {employee.salary?.toLocaleString()}</Field>
             <Field label="Accommodation">{employee.accommodation}</Field>
+            <Field label="Added by">
+              {employee.createdBy?.name && (
+                <>
+                  {employee.createdBy.name}
+                  {employee.createdBy.role === 'Coordinator' && (
+                    <Badge variant="primary" className="ml-1.5">
+                      Coordinator
+                    </Badge>
+                  )}
+                </>
+              )}
+            </Field>
           </dl>
         </Card>
 

@@ -38,6 +38,7 @@ import NfcCardListPage from '../features/nfc/pages/NfcCardListPage.jsx';
 import NfcCardDetailPage from '../features/nfc/pages/NfcCardDetailPage.jsx';
 import NfcAnalyticsPage from '../features/nfc/pages/NfcAnalyticsPage.jsx';
 import UserListPage from '../features/users/pages/UserListPage.jsx';
+import CoordinatorActivityPage from '../features/coordinatorActivity/pages/CoordinatorActivityPage.jsx';
 import LeavePage from '../features/leave/pages/LeavePage.jsx';
 import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
@@ -108,6 +109,7 @@ export const router = createBrowserRouter([
               { path: '/quotations/:id/edit', element: <QuotationEditPage /> },
               { path: '/timesheet-processor', element: <TimesheetProcessorPage /> },
               { path: '/team', element: <UserListPage /> },
+              { path: '/coordinator-activity', element: <CoordinatorActivityPage /> },
               { path: '/leave', element: <LeavePage /> },
               { path: '/security-log', element: <AuditLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },

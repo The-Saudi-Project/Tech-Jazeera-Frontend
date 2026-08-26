@@ -33,10 +33,12 @@ export default function DeploymentNewPage() {
     queryKey: ['employees', { assignable: true }],
     queryFn: () => listEmployees({ unassigned: 'true', limit: 100 }),
   });
-  // Only active clients can receive deployments.
+  // Only active, approved clients can receive deployments — a
+  // Coordinator-submitted client not yet approved isn't real enough to
+  // commit a worker to (see docs/PHASE2-PLAN.md).
   const { data: clientData, isPending: clientsLoading } = useQuery({
     queryKey: ['clients', { active: true }],
-    queryFn: () => listClients({ status: 'Active', limit: 100 }),
+    queryFn: () => listClients({ status: 'Active', approvalStatus: 'Approved', limit: 100 }),
   });
 
   const mutation = useMutation({
