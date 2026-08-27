@@ -14,6 +14,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext.jsx';
 import ChangePasswordModal from '../../features/auth/components/ChangePasswordModal.jsx';
 import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.jsx';
+import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
 import { cn } from '../../lib/utils.js';
 import { STAFF_USER_VIEW_ROLES, COORDINATOR_ACTIVITY_VIEW_ROLES } from '../../lib/constants.js';
 
@@ -199,6 +200,7 @@ export default function DashboardLayout() {
               <p className="text-sm font-medium leading-tight">{user.name}</p>
               <p className="text-xs text-muted">{user.role}</p>
             </div>
+            <ThemeToggle />
             <button
               onClick={() => setAvatarModalOpen(true)}
               title="Update profile photo"

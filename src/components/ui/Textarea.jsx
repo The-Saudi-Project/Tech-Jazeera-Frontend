@@ -6,6 +6,7 @@ import { cn } from '../../lib/utils.js';
 
 const Textarea = forwardRef(function Textarea({ label, error, className, rows = 4, ...props }, ref) {
   const id = useId();
+  const errorId = `${id}-error`;
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -19,6 +20,7 @@ const Textarea = forwardRef(function Textarea({ label, error, className, rows = 
         ref={ref}
         rows={rows}
         aria-invalid={Boolean(error) || undefined}
+        aria-describedby={error ? errorId : undefined}
         className={cn(
           'w-full rounded-lg border bg-surface px-3 py-2 text-sm text-text shadow-xs',
           'placeholder:text-muted/70 transition-colors',
@@ -28,7 +30,11 @@ const Textarea = forwardRef(function Textarea({ label, error, className, rows = 
         )}
         {...props}
       />
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && (
+        <p id={errorId} className="text-sm text-danger">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

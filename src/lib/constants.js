@@ -41,6 +41,13 @@ export const LEAVE_RECURRENCE_LABELS = {
   Manual: 'Manual review only',
 };
 export const LEAVE_REQUEST_STATUSES = ['AutoApproved', 'PendingReview', 'Approved', 'Rejected', 'Cancelled'];
+export const LEAVE_REQUEST_STATUS_LABELS = {
+  AutoApproved: 'Auto-approved',
+  PendingReview: 'Pending review',
+  Approved: 'Approved',
+  Rejected: 'Rejected',
+  Cancelled: 'Cancelled',
+};
 export const LEAVE_STATUS_VARIANT = {
   AutoApproved: 'success',
   PendingReview: 'warning',

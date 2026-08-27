@@ -44,13 +44,13 @@ export default function AttendancePage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Attendance" description="Mark daily attendance, review the grid, and export summaries." />
 
-      <div className="mb-6 flex gap-1 border-b border-border">
+      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
             className={cn(
-              '-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
+              '-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
               tab === t.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-text'
             )}
           >

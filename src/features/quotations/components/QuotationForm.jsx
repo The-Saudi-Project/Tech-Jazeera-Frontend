@@ -6,7 +6,7 @@
  */
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { quotationFormSchema, emptyLineItem, computeTotals } from '../quotations.schema.js';
 import { listClients } from '../../clients/clients.api.js';
@@ -68,14 +68,25 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
       <Card>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Select label="Client *" className="sm:col-span-2" error={errors.client?.message} {...register('client')}>
-            <option value="">Select a client…</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.companyName}
-              </option>
-            ))}
-          </Select>
+          <div className="sm:col-span-2">
+            <Select label="Client *" error={errors.client?.message} {...register('client')}>
+              <option value="">Select a client…</option>
+              {clients.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.companyName}
+                </option>
+              ))}
+            </Select>
+            {clientData && clients.length === 0 && (
+              <p className="mt-1 text-xs text-muted">
+                No approved clients yet —{' '}
+                <Link to="/clients/new" className="text-primary hover:underline">
+                  add one first
+                </Link>
+                .
+              </p>
+            )}
+          </div>
           <Select label="Status" error={errors.status?.message} {...register('status')}>
             {QUOTATION_STATUSES.map((s) => (
               <option key={s} value={s}>

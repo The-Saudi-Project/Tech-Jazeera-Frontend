@@ -12,7 +12,7 @@ import { listMyLeave, submitMyLeave, cancelMyLeave } from '../ess.api.js';
 import { listLeaveTypes } from '../../leave/leave.api.js';
 import { submitLeaveFormSchema, emptySubmitLeaveForm } from '../../leave/leave.schema.js';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
-import { LEAVE_STATUS_VARIANT } from '../../../lib/constants.js';
+import { LEAVE_STATUS_VARIANT, LEAVE_REQUEST_STATUS_LABELS } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -140,7 +140,7 @@ export default function MyLeavePage() {
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{req.status}</Badge>
+                    <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{LEAVE_REQUEST_STATUS_LABELS[req.status]}</Badge>
                     {cancellable && (
                       <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToCancel(req)}>
                         Cancel

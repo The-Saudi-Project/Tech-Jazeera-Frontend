@@ -23,6 +23,7 @@ import {
   LEAVE_RECURRENCES,
   LEAVE_RECURRENCE_LABELS,
   LEAVE_REQUEST_STATUSES,
+  LEAVE_REQUEST_STATUS_LABELS,
   LEAVE_STATUS_VARIANT,
   LEAVE_TYPE_MANAGE_ROLES,
   LEAVE_DECIDE_ROLES,
@@ -207,7 +208,7 @@ function ReviewQueue() {
           <option value="">All statuses</option>
           {LEAVE_REQUEST_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {LEAVE_REQUEST_STATUS_LABELS[s]}
             </option>
           ))}
         </Select>
@@ -241,7 +242,7 @@ function ReviewQueue() {
                   <p className="mt-1 text-xs text-muted">{req.eligibility?.ruleApplied}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{req.status}</Badge>
+                  <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{LEAVE_REQUEST_STATUS_LABELS[req.status]}</Badge>
                   {canDecide && req.status === 'PendingReview' && (
                     <div className="flex gap-2">
                       <Button

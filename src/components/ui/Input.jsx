@@ -12,6 +12,7 @@ import { cn } from '../../lib/utils.js';
 
 const Input = forwardRef(function Input({ label, error, type = 'text', className, ...props }, ref) {
   const id = useId(); // stable unique id so the label targets this input
+  const errorId = `${id}-error`;
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -25,6 +26,7 @@ const Input = forwardRef(function Input({ label, error, type = 'text', className
         ref={ref}
         type={type}
         aria-invalid={Boolean(error) || undefined}
+        aria-describedby={error ? errorId : undefined}
         className={cn(
           'h-10 w-full rounded-lg border bg-surface px-3 text-sm text-text shadow-xs',
           'placeholder:text-muted/70 transition-colors',
@@ -34,7 +36,11 @@ const Input = forwardRef(function Input({ label, error, type = 'text', className
         )}
         {...props}
       />
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && (
+        <p id={errorId} className="text-sm text-danger">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

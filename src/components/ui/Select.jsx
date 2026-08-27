@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils.js';
 
 const Select = forwardRef(function Select({ label, error, className, children, ...props }, ref) {
   const id = useId();
+  const errorId = `${id}-error`;
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -20,6 +21,7 @@ const Select = forwardRef(function Select({ label, error, className, children, .
         id={id}
         ref={ref}
         aria-invalid={Boolean(error) || undefined}
+        aria-describedby={error ? errorId : undefined}
         className={cn(
           'h-10 w-full rounded-lg border bg-surface px-3 text-sm text-text shadow-xs transition-colors',
           error
@@ -30,7 +32,11 @@ const Select = forwardRef(function Select({ label, error, className, children, .
       >
         {children}
       </select>
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && (
+        <p id={errorId} className="text-sm text-danger">
+          {error}
+        </p>
+      )}
     </div>
   );
 });
