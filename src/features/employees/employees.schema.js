@@ -61,6 +61,9 @@ export const employeeFormSchema = z.object({
   // Early-sign-out warning threshold for My Attendance — genuinely varies per
   // employee, so it's blank (no warning) unless Admin/Manager/HR sets it.
   expectedDailyHours: optionalHours,
+  // A closed <select> of weekdays, not free text — no numeric range to
+  // validate client-side, just "did they pick one of the options."
+  weeklyOffDay: z.string().optional().or(z.literal('')),
   status: z.enum(EMPLOYEE_STATUSES),
 
   emergencyContact: z.object({ name: optional, phone: optionalPhone, relation: optional }),
@@ -89,6 +92,7 @@ export const emptyEmployeeForm = {
   salary: '',
   accommodation: '',
   expectedDailyHours: '',
+  weeklyOffDay: '5', // pre-selected Friday, mirrors the model's create-default
   status: 'Active',
   emergencyContact: { name: '', phone: '', relation: '' },
   notes: '',
@@ -115,6 +119,7 @@ export function employeeToForm(employee) {
     salary: String(employee.salary),
     accommodation: employee.accommodation ?? '',
     expectedDailyHours: employee.expectedDailyHours != null ? String(employee.expectedDailyHours) : '',
+    weeklyOffDay: employee.weeklyOffDay != null ? String(employee.weeklyOffDay) : '',
     status: employee.status,
     emergencyContact: {
       name: employee.emergencyContact?.name ?? '',
@@ -132,5 +137,6 @@ export function formToEmployeePayload(values) {
     ...values,
     coordinator: values.coordinator || null,
     expectedDailyHours: values.expectedDailyHours || null,
+    weeklyOffDay: values.weeklyOffDay === '' ? null : values.weeklyOffDay,
   };
 }

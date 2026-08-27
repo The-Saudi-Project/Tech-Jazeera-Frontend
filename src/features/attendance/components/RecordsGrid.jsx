@@ -3,14 +3,22 @@
  * each cell shows the day's status as a coloured letter. The grid scrolls
  * horizontally inside its own container so the page never does.
  *
- * Writers (Admin/Manager/HR) can click any cell to correct that worker's
- * day — status, and optionally the actual check-in/check-out times (e.g. a
- * worker forgot to sign in/out, or a system issue lost their punch).
+ * Two row groups: workers (Employee-based Attendance, click any cell to
+ * correct) and, for Admin/Manager/HR, a read-only "Coordinators & Staff"
+ * group below (StaffAttendance — a separate collection by design, see
+ * server/src/modules/staffAttendance/staffAttendance.model.js; merged here
+ * for display only, never combined into one lookup keyed by bare id).
+ *
+ * A worker cell with no real record but whose weekly off day matches the
+ * column shows an INFERRED "Off" — visually distinct, never written to the
+ * database. A real record for that day always wins over the inference.
  */
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listEmployees } from '../../employees/employees.api.js';
-import { listAttendance, adjustAttendance } from '../attendance.api.js';
+import { listStaffUsers } from '../../users/users.api.js';
+import { listAttendance, adjustAttendance, markBulk } from '../attendance.api.js';
+import { listAllStaffAttendance } from '../staffAttendance.api.js';
 import {
   monthRange,
   weekRange,
@@ -19,10 +27,16 @@ import {
   monthLabel,
   dayHeader,
   isWeekend,
+  dayOfWeek,
   todayKey,
 } from '../attendance.dates.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { ATTENDANCE_STATUS_META, ATTENDANCE_STATUSES, ATTENDANCE_WRITE_ROLES } from '../../../lib/constants.js';
+import {
+  ATTENDANCE_STATUS_META,
+  ATTENDANCE_STATUSES,
+  ATTENDANCE_WRITE_ROLES,
+  STAFF_SELF_ATTENDANCE_ROLES,
+} from '../../../lib/constants.js';
 import { cn, formatHours, apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -32,6 +46,7 @@ import Modal from '../../../components/ui/Modal.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 
 /** ISO datetime -> "HH:MM" in the viewer's local time, for a time input. */
 function toTimeInput(iso) {
@@ -50,10 +65,12 @@ export default function RecordsGrid() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const canEdit = ATTENDANCE_WRITE_ROLES.includes(user.role);
+  const canSeeStaffRows = ATTENDANCE_WRITE_ROLES.includes(user.role);
 
   const [mode, setMode] = useState('month'); // 'month' | 'week'
   const [ref, setRef] = useState(todayKey());
   const [editing, setEditing] = useState(null); // { employeeId, employeeName, date, status, checkIn, checkOut, note }
+  const [markAllOpen, setMarkAllOpen] = useState(false);
 
   const range = useMemo(() => (mode === 'month' ? monthRange(ref) : weekRange(ref)), [mode, ref]);
 
@@ -65,9 +82,19 @@ export default function RecordsGrid() {
     queryKey: ['attendance', 'range', range.from, range.to],
     queryFn: () => listAttendance({ from: range.from, to: range.to }),
   });
+  const { data: staffUsers } = useQuery({
+    queryKey: ['users', 'staffRoster'],
+    queryFn: () => listStaffUsers({}),
+    enabled: canSeeStaffRows,
+  });
+  const { data: staffRecords } = useQuery({
+    queryKey: ['staffAttendance', 'all', range.from, range.to],
+    queryFn: () => listAllStaffAttendance({ from: range.from, to: range.to }),
+    enabled: canSeeStaffRows,
+  });
 
   // Fast lookup: `${employeeId}|${dateKey}` → { status, source, hoursWorked, checkInTime, checkOutTime, note }.
-  const marks = useMemo(() => {
+  const employeeMarks = useMemo(() => {
     const map = {};
     for (const r of records ?? []) {
       map[`${r.employee._id}|${r.date.slice(0, 10)}`] = {
@@ -82,13 +109,42 @@ export default function RecordsGrid() {
     return map;
   }, [records]);
 
+  // Same shape, but keyed by User id — a separate map on purpose, never
+  // merged with employeeMarks (Employee ids and User ids are different
+  // collections; a shared unprefixed map would risk an accidental collision).
+  const staffMarks = useMemo(() => {
+    const map = {};
+    for (const r of staffRecords ?? []) {
+      if (!r.user) continue;
+      map[`${r.user._id}|${r.date.slice(0, 10)}`] = {
+        checkInTime: r.checkInTime,
+        checkOutTime: r.checkOutTime,
+        hoursWorked: r.hoursWorked,
+      };
+    }
+    return map;
+  }, [staffRecords]);
+
   const workers = (employeeData?.items ?? []).filter((e) => e.status !== 'Exited');
+  const staffRows = canSeeStaffRows
+    ? (staffUsers ?? []).filter((u) => STAFF_SELF_ATTENDANCE_ROLES.includes(u.role) && u.isActive)
+    : [];
+
+  /** A real record always wins; otherwise infer "Off" on the employee's configured weekly off day. */
+  function markFor(worker, date) {
+    const explicit = employeeMarks[`${worker._id}|${date}`];
+    if (explicit) return explicit;
+    if (worker.weeklyOffDay != null && dayOfWeek(date) === worker.weeklyOffDay) {
+      return { status: 'Off', inferred: true };
+    }
+    return null;
+  }
 
   const shift = (dir) => setRef((r) => (mode === 'month' ? addMonths(r, dir) : addDays(r, dir * 7)));
 
   function openEditor(worker, date) {
     if (!canEdit) return;
-    const mark = marks[`${worker._id}|${date}`];
+    const mark = markFor(worker, date);
     setEditing({
       employeeId: worker._id,
       employeeName: worker.fullName,
@@ -121,6 +177,32 @@ export default function RecordsGrid() {
     });
   }
 
+  // "Mark all Present" — folded in from the old Mark tab. Only offered when
+  // today is actually a visible column, and skips anyone whose configured
+  // weekly off day is today, so it can't silently overwrite a deliberate
+  // off day (a real day-off worked as comp-time is still one click away via
+  // the per-cell editor).
+  const today = todayKey();
+  const markAllCandidates = workers.filter((w) => w.weeklyOffDay == null || dayOfWeek(today) !== w.weeklyOffDay);
+  const showMarkAll = canEdit && range.days.includes(today) && markAllCandidates.length > 0;
+
+  const markAllMutation = useMutation({
+    mutationFn: () =>
+      markBulk({
+        date: today,
+        records: markAllCandidates.map((w) => ({ employee: w._id, status: 'Present' })),
+      }),
+    onSuccess: (res) => {
+      toast.success(`Marked ${res.marked} worker(s) present for today.`);
+      setMarkAllOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+    },
+    onError: (error) => {
+      toast.error(apiMessage(error));
+      setMarkAllOpen(false);
+    },
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -148,6 +230,11 @@ export default function RecordsGrid() {
           <Button size="sm" variant="secondary" onClick={() => shift(1)}>
             Next ›
           </Button>
+          {showMarkAll && (
+            <Button size="sm" variant="secondary" onClick={() => setMarkAllOpen(true)}>
+              Mark all present
+            </Button>
+          )}
         </div>
       </div>
 
@@ -162,12 +249,18 @@ export default function RecordsGrid() {
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
+          <span className="grid h-5 w-5 place-items-center rounded text-[10px] font-bold bg-border/25 text-muted/70 ring-1 ring-inset ring-border/40">
+            F
+          </span>
+          Inferred weekly off (not recorded)
+        </span>
+        <span className="inline-flex items-center gap-1.5">
           <span className="relative inline-block h-3 w-3">
             <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />
           </span>
-          Self-marked by worker (hours shown once signed out)
+          Self-marked (hours shown once signed out)
         </span>
-        {canEdit && <span>Click any cell to correct a day.</span>}
+        {canEdit && <span>Click any worker cell to correct a day.</span>}
       </div>
 
       {employeesLoading || recordsLoading ? (
@@ -201,16 +294,18 @@ export default function RecordsGrid() {
                     <span className="block text-xs text-muted">{w.employeeId}</span>
                   </td>
                   {range.days.map((d) => {
-                    const mark = marks[`${w._id}|${d}`];
+                    const mark = markFor(w, d);
                     const meta = mark ? ATTENDANCE_STATUS_META[mark.status] : null;
                     // A completed self-marked shift has real hours to show —
                     // that's more useful to a manager than a plain "P".
                     const hasHours = mark?.hoursWorked != null;
                     const cellText = hasHours ? formatHours(mark.hoursWorked) : meta?.letter;
                     const cellTitle = mark
-                      ? [mark.status, hasHours && `${formatHours(mark.hoursWorked)} hrs`, mark.source === 'self' && 'self-marked']
-                          .filter(Boolean)
-                          .join(' · ')
+                      ? mark.inferred
+                        ? 'Off — weekly day off (not recorded)'
+                        : [mark.status, hasHours && `${formatHours(mark.hoursWorked)} hrs`, mark.source === 'self' && 'self-marked']
+                            .filter(Boolean)
+                            .join(' · ')
                       : canEdit
                         ? 'Click to add'
                         : undefined;
@@ -231,7 +326,9 @@ export default function RecordsGrid() {
                               className={cn(
                                 'relative inline-grid h-6 min-w-[1.6rem] place-items-center rounded px-1 font-bold',
                                 hasHours ? 'text-[9px]' : 'text-[11px]',
-                                meta.cell
+                                mark.inferred
+                                  ? 'bg-border/25 text-muted/70 ring-1 ring-inset ring-border/40'
+                                  : meta.cell
                               )}
                             >
                               {cellText}
@@ -244,6 +341,55 @@ export default function RecordsGrid() {
                             <span className="text-muted/30">·</span>
                           )}
                         </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+
+              {staffRows.length > 0 && (
+                <tr className="border-t border-border bg-bg/60">
+                  <td
+                    colSpan={range.days.length + 1}
+                    className="sticky left-0 z-10 bg-bg/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted"
+                  >
+                    Coordinators &amp; staff
+                  </td>
+                </tr>
+              )}
+              {staffRows.map((u) => (
+                <tr key={`staff-${u._id}`} className="border-t border-border">
+                  <td className="sticky left-0 z-10 whitespace-nowrap bg-surface px-3 py-2">
+                    <span className="font-medium">{u.name}</span>
+                    <span className="block text-xs text-muted">{u.role}</span>
+                  </td>
+                  {range.days.map((d) => {
+                    const mark = staffMarks[`${u._id}|${d}`];
+                    const hasHours = mark?.hoursWorked != null;
+                    const signedIn = Boolean(mark?.checkInTime) && !mark?.checkOutTime;
+                    const cellText = hasHours ? formatHours(mark.hoursWorked) : signedIn ? 'In' : null;
+                    const cellTitle = hasHours
+                      ? `${formatHours(mark.hoursWorked)} hrs · self-marked`
+                      : signedIn
+                        ? 'Signed in, not yet out'
+                        : undefined;
+                    return (
+                      <td key={d} className={cn('p-0 text-center', isWeekend(d) && 'bg-bg/40')}>
+                        <div title={cellTitle} className="flex h-10 w-full items-center justify-center">
+                          {cellText ? (
+                            <span
+                              className={cn(
+                                'inline-grid h-6 min-w-[1.6rem] place-items-center rounded px-1 font-bold',
+                                hasHours ? 'text-[9px]' : 'text-[11px]',
+                                hasHours ? 'bg-border/60 text-muted' : 'bg-primary/15 text-primary'
+                              )}
+                            >
+                              {cellText}
+                            </span>
+                          ) : (
+                            <span className="text-muted/30">·</span>
+                          )}
+                        </div>
                       </td>
                     );
                   })}
@@ -312,6 +458,16 @@ export default function RecordsGrid() {
           </form>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={markAllOpen}
+        title="Mark all present?"
+        message={`${markAllCandidates.length} worker(s) will be marked Present for today (${today}). Anyone with an existing mark for today will be overwritten; workers whose weekly off day is today are skipped.`}
+        confirmLabel="Mark all present"
+        loading={markAllMutation.isPending}
+        onConfirm={() => markAllMutation.mutate()}
+        onCancel={() => setMarkAllOpen(false)}
+      />
     </div>
   );
 }

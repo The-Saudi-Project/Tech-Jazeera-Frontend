@@ -26,6 +26,7 @@ import ClientEditPage from '../features/clients/pages/ClientEditPage.jsx';
 import DeploymentListPage from '../features/deployments/pages/DeploymentListPage.jsx';
 import DeploymentNewPage from '../features/deployments/pages/DeploymentNewPage.jsx';
 import AttendancePage from '../features/attendance/pages/AttendancePage.jsx';
+import AttendanceSummaryPage from '../features/attendance/pages/AttendanceSummaryPage.jsx';
 import DocumentListPage from '../features/documents/pages/DocumentListPage.jsx';
 import QuotationListPage from '../features/quotations/pages/QuotationListPage.jsx';
 import QuotationNewPage from '../features/quotations/pages/QuotationNewPage.jsx';
@@ -102,6 +103,7 @@ export const router = createBrowserRouter([
               { path: '/deployments', element: <DeploymentListPage /> },
               { path: '/deployments/new', element: <DeploymentNewPage /> },
               { path: '/attendance', element: <AttendancePage /> },
+              { path: '/attendance/summary', element: <AttendanceSummaryPage /> },
               { path: '/documents', element: <DocumentListPage /> },
               { path: '/quotations', element: <QuotationListPage /> },
               { path: '/quotations/new', element: <QuotationNewPage /> },

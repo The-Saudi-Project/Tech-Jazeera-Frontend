@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
 import { listStaffUsers } from '../../users/users.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { EMPLOYEE_STATUSES } from '../../../lib/constants.js';
+import { EMPLOYEE_STATUSES, WEEKDAY_LABELS } from '../../../lib/constants.js';
 import { COUNTRIES } from '../../../lib/countries.js';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
@@ -120,6 +120,20 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           />
           <p className="mt-1 text-xs text-muted">
             Warns this worker in My Attendance if they sign out before this many hours. Leave blank for no warning.
+          </p>
+        </div>
+        <div>
+          <Select label="Weekly off day" error={errors.weeklyOffDay?.message} {...register('weeklyOffDay')}>
+            <option value="">No fixed day off</option>
+            {WEEKDAY_LABELS.map((label, i) => (
+              <option key={i} value={i}>
+                {label}
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-xs text-muted">
+            Shown as an inferred "Off" day on the Attendance Records grid when nothing was recorded — a real record
+            for that day always overrides it.
           </p>
         </div>
         <Select label="Status" error={errors.status?.message} {...register('status')}>

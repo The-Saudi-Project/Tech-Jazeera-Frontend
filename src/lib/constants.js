@@ -95,9 +95,12 @@ export const ATTENDANCE_STATUS_META = {
   Absent: { letter: 'A', variant: 'danger', cell: 'bg-danger/15 text-danger' },
   Leave: { letter: 'L', variant: 'warning', cell: 'bg-warning/15 text-warning' },
   Sick: { letter: 'S', variant: 'primary', cell: 'bg-primary/15 text-primary' },
-  Off: { letter: 'O', variant: 'default', cell: 'bg-border/60 text-muted' },
+  Off: { letter: 'F', variant: 'default', cell: 'bg-border/60 text-muted' },
 };
 export const ATTENDANCE_STATUSES = Object.keys(ATTENDANCE_STATUS_META);
+
+/** Mirrors Employee.weeklyOffDay's 0=Sun..6=Sat convention (Date#getUTCDay()). */
+export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /** Mirror of the attendance write guard (server enforces). */
 export const ATTENDANCE_WRITE_ROLES = ['Admin', 'Manager', 'HR'];

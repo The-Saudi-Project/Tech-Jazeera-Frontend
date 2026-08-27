@@ -18,7 +18,7 @@ const ACTIONS = [
   { label: 'Add employee', to: '/employees/new', roles: EMPLOYEE_WRITE_ROLES },
   { label: 'Add client', to: '/clients/new', roles: CLIENT_WRITE_ROLES },
   { label: 'Assign worker', to: '/deployments/new', roles: DEPLOYMENT_WRITE_ROLES },
-  { label: 'Mark attendance', to: '/attendance', roles: ATTENDANCE_WRITE_ROLES },
+  { label: 'Attendance', to: '/attendance', roles: ATTENDANCE_WRITE_ROLES },
   { label: 'New quotation', to: '/quotations/new', roles: QUOTATION_WRITE_ROLES },
 ];
 

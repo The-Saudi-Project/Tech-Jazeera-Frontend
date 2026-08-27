@@ -77,3 +77,8 @@ export function isWeekend(dateKey) {
   const day = new Date(dateKey).getUTCDay();
   return day === 5 || day === 6; // Fri, Sat
 }
+
+/** 0=Sun..6=Sat for a date key — matches Employee.weeklyOffDay's convention. */
+export function dayOfWeek(dateKey) {
+  return new Date(dateKey).getUTCDay();
+}

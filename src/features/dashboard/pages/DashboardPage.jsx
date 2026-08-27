@@ -107,7 +107,7 @@ export default function DashboardPage() {
       )}
 
       {/* Headline stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard label="Deployed now" value={stats.deployedActive} accent="primary" hint="Active placements" to="/deployments" />
         <StatCard label="Active workers" value={stats.activeWorkers} accent="success" hint={`${stats.totalWorkers} total · ${stats.onLeave} on leave`} to="/employees" />
         <StatCard label={isCoordinator ? 'Your clients' : 'Active clients'} value={stats.activeClients} to="/clients" />
@@ -116,6 +116,12 @@ export default function DashboardPage() {
         ) : (
           <StatCard label="Pending quotations" value={stats.pendingQuotations} accent="warning" hint="Draft, awaiting approval" to="/quotations" />
         )}
+        <StatCard
+          label="Marked today"
+          value={stats.markedToday}
+          hint={`of ${stats.activeWorkers} active workers`}
+          to="/attendance/summary"
+        />
       </div>
 
       {/* Finance summary — Admin/Manager/HR/Accounts only. A Coordinator never
