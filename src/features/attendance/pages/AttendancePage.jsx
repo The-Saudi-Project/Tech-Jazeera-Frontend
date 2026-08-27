@@ -2,7 +2,9 @@
  * Attendance page — tabs: My Attendance (Coordinator/HR/Accounts' own
  * sign-in/out — Admin/Manager are exempt, Workers use the ESS portal
  * instead), Mark (daily marking, writers only), Records (week/month grid),
- * Summary (counts + export), Sign In/Out (flat time log), and Office
+ * Summary (counts + export), Sign In/Out (flat time log of Employee/Worker
+ * attendance), Staff Attendance (oversight of everyone's self-marked
+ * Coordinator/HR/Accounts sign-ins — Admin/Manager/HR only), and Office
  * Location (Admin-only). Non-writers (e.g. Accounts) see only the read tabs.
  */
 import { useState } from 'react';
@@ -15,6 +17,7 @@ import MarkTab from '../components/MarkTab.jsx';
 import RecordsGrid from '../components/RecordsGrid.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
 import TimeLogTab from '../components/TimeLogTab.jsx';
+import StaffAttendanceTab from '../components/StaffAttendanceTab.jsx';
 import OfficeLocationSettings from '../components/OfficeLocationSettings.jsx';
 
 export default function AttendancePage() {
@@ -29,6 +32,9 @@ export default function AttendancePage() {
     { key: 'records', label: 'Records' },
     { key: 'summary', label: 'Summary' },
     { key: 'timelog', label: 'Sign In/Out' },
+    // Oversight of Coordinator/HR/Accounts self-attendance — same circle
+    // that already sees the Employee-based tabs above.
+    ...(canWrite ? [{ key: 'staffAttendance', label: 'Staff Attendance' }] : []),
     // P2-M3: Worker self-mark geofence config — Admin-only, it's a security setting.
     ...(isAdmin ? [{ key: 'office', label: 'Office Location' }] : []),
   ];
@@ -58,6 +64,7 @@ export default function AttendancePage() {
       {tab === 'records' && <RecordsGrid />}
       {tab === 'summary' && <SummaryTab />}
       {tab === 'timelog' && <TimeLogTab />}
+      {tab === 'staffAttendance' && <StaffAttendanceTab />}
       {tab === 'office' && <OfficeLocationSettings />}
     </div>
   );

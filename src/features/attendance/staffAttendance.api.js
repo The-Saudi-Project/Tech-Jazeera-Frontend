@@ -16,3 +16,9 @@ export async function listMyStaffAttendance(params) {
   const { data } = await api.get('/staff-attendance', { params });
   return data.data;
 }
+
+/** GET /staff-attendance/all?from&to → record[] — everyone's, Admin/Manager/HR only. */
+export async function listAllStaffAttendance(params) {
+  const { data } = await api.get('/staff-attendance/all', { params });
+  return data.data;
+}
