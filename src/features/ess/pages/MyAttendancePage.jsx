@@ -3,14 +3,13 @@
  * verified server-side by GPS geofence or by their request coming from the
  * office's allow-listed IP — never trusted from what the client claims.
  *
- * Both buttons call the same punch endpoint — the server decides whether
- * it's the day's first punch (check-in) or a later one, not the button
- * label. A Worker can press either button, any number of times, in any
- * order: leaving for an errand and coming back never errors. Only the very
- * first punch of the day and the most recent one end up mattering for
- * hoursWorked, which is why the "so far" framing below never claims to be
- * final — there's no way to know a punch is the day's last one until no
- * further punches happen.
+ * Strict per-day toggle, not a free-for-all: exactly one button shows at a
+ * time, based on whether today's record is currently "signed in" (checkIn
+ * set, checkOut not). The same punch endpoint handles both directions — the
+ * server decides sign-in vs. sign-out from that same state (see
+ * attendance.service.js selfPunch()). A worker can sign out and back in any
+ * number of times in a day; each completed session adds to the running
+ * hoursWorked total rather than replacing it.
  *
  * Early sign-out warning: purely a client-side nudge, not a server-enforced
  * rule — a worker can always confirm past it (a real early departure still
@@ -56,6 +55,9 @@ export default function MyAttendancePage() {
   const todayRecord = (data ?? []).find((r) => r.date.slice(0, 10) === todayKey());
   const isStaffSet = todayRecord?.source === 'staff';
   const hasPunchedToday = todayRecord?.source === 'self' && Boolean(todayRecord.checkInTime);
+  // Exactly one button at a time — signed in and not yet out → only "Sign
+  // out"; anything else (never punched, or already signed out) → "Sign in".
+  const signedInNotOut = hasPunchedToday && !todayRecord?.checkOutTime;
 
   function withLocation(mutate) {
     if (!navigator.geolocation) {
@@ -83,7 +85,7 @@ export default function MyAttendancePage() {
     mutationFn: punchMyAttendance,
     onSuccess: ({ action, record }) => {
       toast.success(
-        action === 'checked-in' ? 'Signed in.' : `Recorded — ${formatHours(record.hoursWorked)} hrs so far today.`
+        action === 'checked-in' ? 'Signed in.' : `Signed out — ${formatHours(record.hoursWorked)} hrs today.`
       );
       queryClient.invalidateQueries({ queryKey: ['me', 'attendance'] });
     },
@@ -113,7 +115,7 @@ export default function MyAttendancePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
         title="My attendance"
-        description="Sign in when you arrive and sign out when you leave — tap either button as many times as you need throughout the day."
+        description="Sign in when you arrive and sign out when you leave — sign out and back in as many times as you need throughout the day."
       />
 
       <Card>
@@ -127,36 +129,37 @@ export default function MyAttendancePage() {
             </>
           ) : (
             <>
-              {hasPunchedToday ? (
+              {signedInNotOut ? (
+                <Badge variant="success" className="text-sm">
+                  Signed in at {formatTime(todayRecord.checkInTime)}
+                </Badge>
+              ) : hasPunchedToday ? (
                 <>
-                  <Badge variant="success" className="text-sm">
-                    Signed in at {formatTime(todayRecord.checkInTime)}
+                  <Badge variant="default" className="text-sm">
+                    Signed out at {formatTime(todayRecord.checkOutTime)}
                   </Badge>
-                  {todayRecord.checkOutTime && (
-                    <p className="text-xs text-muted">
-                      Last recorded at {formatTime(todayRecord.checkOutTime)} ·{' '}
-                      {formatHours(todayRecord.hoursWorked)} hrs so far ·{' '}
-                      {VERIFIED_LABEL[todayRecord.verifiedBy] ?? 'Self-marked'}
-                    </p>
-                  )}
+                  <p className="text-xs text-muted">
+                    {formatHours(todayRecord.hoursWorked)} hrs today ·{' '}
+                    {VERIFIED_LABEL[todayRecord.verifiedBy] ?? 'Self-marked'}
+                  </p>
                 </>
               ) : (
                 <p className="text-sm text-muted">You haven't signed in today.</p>
               )}
 
-              <div className="flex gap-3">
+              {signedInNotOut ? (
+                <Button onClick={handleSignOutClick} isLoading={busy} size="lg" variant="secondary">
+                  Sign out
+                </Button>
+              ) : (
                 <Button onClick={doPunch} isLoading={busy} size="lg">
                   {hasPunchedToday ? 'Sign in again' : 'Sign in'}
                 </Button>
-                {hasPunchedToday && (
-                  <Button onClick={handleSignOutClick} isLoading={busy} size="lg" variant="secondary">
-                    Sign out
-                  </Button>
-                )}
-              </div>
+              )}
               <p className="max-w-sm text-xs text-muted">
                 You'll be asked for your location — you must be at the office (or on the office network) for this to
-                work. Only your first sign-in and your last sign-out of the day are used to calculate your hours.
+                work. Sign out and back in as many times as you need during the day; each session adds to today's
+                hours.
               </p>
             </>
           )}
