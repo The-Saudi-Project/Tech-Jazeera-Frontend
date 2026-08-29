@@ -18,9 +18,9 @@
  */
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { punchMyAttendance, listMyAttendance, getMyProfile } from '../ess.api.js';
+import { punchMyAttendance, listMyAttendance, getMyProfile, listMyTimesheets, submitMyTimesheet } from '../ess.api.js';
 import { apiMessage, formatDate, formatHours, formatTime } from '../../../lib/utils.js';
-import { ATTENDANCE_STATUS_META } from '../../../lib/constants.js';
+import { ATTENDANCE_STATUS_META, TIMESHEET_STATUS_VARIANT } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -34,6 +34,68 @@ const VERIFIED_LABEL = { geofence: 'Verified by location', officeIp: 'Verified b
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Submit the current week's attendance as a timesheet for approval —
+ *  doesn't re-enter hours, just summarizes what's already recorded (see
+ *  timesheet.service.js). */
+function MyTimesheetsSection() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const { data, isPending } = useQuery({
+    queryKey: ['me', 'timesheets'],
+    queryFn: () => listMyTimesheets({ limit: 10 }),
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: () => submitMyTimesheet({ periodStart: new Date().toISOString() }),
+    onSuccess: (timesheet) => {
+      toast.success(`Timesheet submitted — ${formatHours(timesheet.totalHours)} hrs.`);
+      queryClient.invalidateQueries({ queryKey: ['me', 'timesheets'] });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  const items = data?.items ?? [];
+  const thisWeek = items[0];
+  const canSubmitThisWeek = !thisWeek || thisWeek.status === 'Rejected';
+
+  return (
+    <div>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Weekly timesheet</h2>
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted">
+            {canSubmitThisWeek
+              ? 'Submit this week for your supervisor to approve.'
+              : `This week is already ${thisWeek.status.toLowerCase()}.`}
+          </p>
+          {canSubmitThisWeek && (
+            <Button size="sm" isLoading={submitMutation.isPending} onClick={() => submitMutation.mutate()}>
+              Submit this week
+            </Button>
+          )}
+        </div>
+
+        {!isPending && items.length > 0 && (
+          <div className="mt-4 divide-y divide-border border-t border-border">
+            {items.map((t) => (
+              <div key={t._id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                <div>
+                  <p className="font-medium">
+                    {formatDate(t.periodStart)} – {formatDate(t.periodEnd)}
+                  </p>
+                  <p className="text-xs text-muted">{formatHours(t.totalHours)} hrs</p>
+                </div>
+                <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
 }
 
 export default function MyAttendancePage() {
@@ -206,6 +268,8 @@ export default function MyAttendancePage() {
           </Card>
         )}
       </div>
+
+      <MyTimesheetsSection />
 
       <ConfirmDialog
         open={Boolean(confirmEarlySignOut)}

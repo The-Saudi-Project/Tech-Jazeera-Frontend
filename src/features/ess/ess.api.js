@@ -107,3 +107,63 @@ export async function downloadMyReceipt(id, filename) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export async function listMyExitReentry(params) {
+  const { data } = await api.get('/me/exit-reentry', { params });
+  return data.data;
+}
+
+export async function submitMyExitReentry(payload) {
+  const { data } = await api.post('/me/exit-reentry', payload);
+  return data.data;
+}
+
+export async function cancelMyExitReentry(id) {
+  const { data } = await api.patch(`/me/exit-reentry/${id}/cancel`);
+  return data.data;
+}
+
+export async function listMyCertificates(params) {
+  const { data } = await api.get('/me/certificates', { params });
+  return data.data;
+}
+
+export async function submitMyCertificate(payload) {
+  const { data } = await api.post('/me/certificates', payload);
+  return data.data;
+}
+
+export async function cancelMyCertificate(id) {
+  const { data } = await api.patch(`/me/certificates/${id}/cancel`);
+  return data.data;
+}
+
+/** Download own certificate PDF as an authenticated Blob (letter types only). */
+export async function downloadMyCertificatePdf(id, filename) {
+  const res = await api.get(`/me/certificates/${id}/pdf`, { responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Read-only — a Worker never assigns/returns their own assets. */
+export async function listMyAssets() {
+  const { data } = await api.get('/me/assets');
+  return data.data;
+}
+
+export async function listMyTimesheets(params) {
+  const { data } = await api.get('/me/timesheets', { params });
+  return data.data;
+}
+
+/** { periodStart, notes? } — periodStart is any date within the target week. */
+export async function submitMyTimesheet(payload) {
+  const { data } = await api.post('/me/timesheets', payload);
+  return data.data;
+}

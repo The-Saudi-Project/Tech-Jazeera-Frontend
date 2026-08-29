@@ -46,11 +46,15 @@ import SettlementListPage from '../features/eosb/pages/SettlementListPage.jsx';
 import SettlementNewPage from '../features/eosb/pages/SettlementNewPage.jsx';
 import SettlementViewPage from '../features/eosb/pages/SettlementViewPage.jsx';
 import FinancialRequestsPage from '../features/financialRequests/pages/FinancialRequestsPage.jsx';
+import AssetListPage from '../features/assets/pages/AssetListPage.jsx';
+import ExitDocumentsPage from '../features/exitDocuments/pages/ExitDocumentsPage.jsx';
+import TimesheetsPage from '../features/timesheets/pages/TimesheetsPage.jsx';
 import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
 import MyRequestsPage from '../features/ess/pages/MyRequestsPage.jsx';
+import MyExitDocumentsPage from '../features/ess/pages/MyExitDocumentsPage.jsx';
 import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
@@ -125,6 +129,9 @@ export const router = createBrowserRouter([
               { path: '/eosb/new', element: <SettlementNewPage /> },
               { path: '/eosb/:id', element: <SettlementViewPage /> },
               { path: '/financial-requests', element: <FinancialRequestsPage /> },
+              { path: '/assets', element: <AssetListPage /> },
+              { path: '/exit-documents', element: <ExitDocumentsPage /> },
+              { path: '/timesheets', element: <TimesheetsPage /> },
               { path: '/security-log', element: <AuditLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },
               { path: '/nfc/cards', element: <NfcCardListPage /> },
@@ -147,6 +154,7 @@ export const router = createBrowserRouter([
               { path: '/me/attendance', element: <MyAttendancePage /> },
               { path: '/me/leave', element: <MyLeavePage /> },
               { path: '/me/requests', element: <MyRequestsPage /> },
+              { path: '/me/exit-documents', element: <MyExitDocumentsPage /> },
             ],
           },
         ],

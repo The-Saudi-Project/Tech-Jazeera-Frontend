@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getEmployee, deleteEmployee } from '../employees.api.js';
+import { listAssetsByEmployee } from '../../assets/assets.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import {
@@ -45,6 +46,42 @@ function Field({ label, children }) {
       <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
       <dd className="mt-0.5 text-sm">{children || '—'}</dd>
     </div>
+  );
+}
+
+/** Read-only summary of assigned assets — full assign/return actions live
+ *  on the dedicated Assets page (P3-D); this is a discoverability panel. */
+function AssignedAssetsPanel({ employeeId }) {
+  const { data } = useQuery({
+    queryKey: ['assets', 'by-employee', employeeId],
+    queryFn: () => listAssetsByEmployee(employeeId),
+  });
+  const current = (data ?? []).filter((a) => a.status === 'Active');
+  if (data && data.length === 0) return null;
+
+  return (
+    <Card>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Assigned assets</h2>
+        <Link to="/assets" className="text-xs font-medium text-primary hover:underline">
+          Manage assets
+        </Link>
+      </div>
+      {!data ? (
+        <p className="text-sm text-muted">Loading…</p>
+      ) : current.length === 0 ? (
+        <p className="text-sm text-muted">Nothing currently assigned.</p>
+      ) : (
+        <div className="divide-y divide-border">
+          {current.map((a, i) => (
+            <div key={i} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+              <span>{a.assetName}</span>
+              <span className="text-xs text-muted">{a.assetTag}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -167,6 +204,8 @@ export default function EmployeeProfilePage() {
             owns its own data; populates from the M6 deployment workflow.
             Client-type only — an internal Own-type employee is never deployed. */}
         {employee.type === 'Client' && <WorkerDeploymentPanel employee={employee} />}
+
+        <AssignedAssetsPanel employeeId={id} />
 
         <Card>
           {/* Identity metadata (numbers + expiry) — distinct from uploaded

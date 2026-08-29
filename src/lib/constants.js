@@ -109,6 +109,43 @@ export const FINANCIAL_REQUEST_MONEY_ROLES = ['Admin', 'Manager', 'HR', 'Account
 export const RECEIPT_ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
 export const RECEIPT_MAX_MB = 10;
 
+/** Mirrors exitReentry.model.js / certificate.model.js. */
+export const VISA_TYPES = ['Single', 'Multiple'];
+export const EXIT_REENTRY_STATUSES = ['Pending', 'Approved', 'Rejected', 'Cancelled', 'Issued'];
+export const EXIT_REENTRY_STATUS_VARIANT = {
+  Pending: 'warning',
+  Approved: 'success',
+  Rejected: 'danger',
+  Cancelled: 'default',
+  Issued: 'primary',
+};
+export const CERTIFICATE_TYPES = ['SalaryCertificate', 'ServiceCertificate', 'ChamberOfCommerceAttestation'];
+export const CERTIFICATE_TYPE_LABELS = {
+  SalaryCertificate: 'Salary Certificate',
+  ServiceCertificate: 'Service Certificate',
+  ChamberOfCommerceAttestation: 'Chamber of Commerce Attestation',
+};
+export const CERTIFICATE_TYPES_WITH_PDF = ['SalaryCertificate', 'ServiceCertificate'];
+export const CERTIFICATE_STATUSES = ['Pending', 'Approved', 'Rejected', 'Issued'];
+export const CERTIFICATE_STATUS_VARIANT = { Pending: 'warning', Approved: 'success', Rejected: 'danger', Issued: 'primary' };
+/** Mirror of exitDocuments.routes.js guards — an HR/compliance-only module. */
+export const EXIT_DOCUMENTS_ROLES = ['Admin', 'Manager', 'HR'];
+
+/** Mirrors asset.model.js / assetAssignment.model.js. */
+export const ASSET_CATEGORIES = ['Vehicle', 'Laptop', 'Mobile Device', 'Tool', 'Other'];
+export const ASSET_STATUSES = ['Available', 'Assigned', 'Maintenance', 'Retired'];
+export const ASSET_STATUS_VARIANT = { Available: 'success', Assigned: 'primary', Maintenance: 'warning', Retired: 'default' };
+/** Mirror of asset.routes.js guards. */
+export const ASSET_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
+export const ASSET_DELETE_ROLES = ['Admin', 'HR'];
+
+/** Mirrors timesheet.model.js. Same write circle as Attendance. */
+export const TIMESHEET_STATUSES = ['Submitted', 'Approved', 'Rejected'];
+export const TIMESHEET_STATUS_VARIANT = { Submitted: 'warning', Approved: 'success', Rejected: 'danger' };
+/** Same roles as ATTENDANCE_WRITE_ROLES (defined below) — deciding a
+ *  timesheet is the same supervisory circle as correcting an attendance day. */
+export const TIMESHEET_DECIDE_ROLES = ['Admin', 'Manager', 'HR'];
+
 /** Mirrors the Client model's status enum. */
 export const CLIENT_STATUSES = ['Active', 'Inactive'];
 
