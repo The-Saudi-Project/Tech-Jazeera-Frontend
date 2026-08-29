@@ -63,3 +63,47 @@ export async function listMyAttendance(params) {
   const { data } = await api.get('/me/attendance', { params });
   return data.data;
 }
+
+export async function listMyAdvances(params) {
+  const { data } = await api.get('/me/advances', { params });
+  return data.data;
+}
+
+export async function submitMyAdvance(payload) {
+  const { data } = await api.post('/me/advances', payload);
+  return data.data;
+}
+
+export async function cancelMyAdvance(id) {
+  const { data } = await api.patch(`/me/advances/${id}/cancel`);
+  return data.data;
+}
+
+export async function listMyReimbursements(params) {
+  const { data } = await api.get('/me/reimbursements', { params });
+  return data.data;
+}
+
+/** multipart: fields + a `file` (the receipt image/PDF). */
+export async function submitMyReimbursement(formData) {
+  const { data } = await api.post('/me/reimbursements', formData);
+  return data.data;
+}
+
+export async function cancelMyReimbursement(id) {
+  const { data } = await api.patch(`/me/reimbursements/${id}/cancel`);
+  return data.data;
+}
+
+/** Download own receipt as an authenticated Blob, named by its original filename. */
+export async function downloadMyReceipt(id, filename) {
+  const res = await api.get(`/me/reimbursements/${id}/receipt`, { responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

@@ -71,6 +71,44 @@ export const LEAVE_DECIDE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
 /** Mirror of holiday.routes.js guards — read-open to everyone authenticated. */
 export const HOLIDAY_MANAGE_ROLES = ['Admin', 'Manager', 'HR'];
 
+/** Mirror of settlement.model.js. */
+export const EXIT_REASONS = ['Resignation', 'TerminationByEmployer', 'EndOfContract'];
+export const EXIT_REASON_LABELS = {
+  Resignation: 'Resignation',
+  TerminationByEmployer: 'Termination by employer',
+  EndOfContract: 'End of contract',
+};
+/** Mirror of settlement.routes.js guards — view is wider than write (Accounts
+ *  needs the figure to pay it; only HR/Manager/Admin compute one). */
+export const EOSB_VIEW_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
+export const EOSB_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
+
+/** Mirrors advance.model.js / reimbursement.model.js. */
+export const ADVANCE_STATUSES = ['Pending', 'Approved', 'Rejected', 'Cancelled', 'Closed'];
+export const ADVANCE_STATUS_VARIANT = {
+  Pending: 'warning',
+  Approved: 'success',
+  Rejected: 'danger',
+  Cancelled: 'default',
+  Closed: 'primary',
+};
+export const REIMBURSEMENT_CATEGORIES = ['Travel', 'Fuel', 'Meals', 'Medical', 'Tools', 'Other'];
+export const REIMBURSEMENT_STATUSES = ['Pending', 'Approved', 'Rejected', 'Paid'];
+export const REIMBURSEMENT_STATUS_VARIANT = {
+  Pending: 'warning',
+  Approved: 'success',
+  Rejected: 'danger',
+  Paid: 'primary',
+};
+/** Mirror of financialRequests.routes.js guards. Approving is Admin/Manager/HR;
+ *  handling the actual money (repayments, marking paid) also includes Accounts. */
+export const FINANCIAL_REQUEST_VIEW_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
+export const FINANCIAL_REQUEST_DECIDE_ROLES = ['Admin', 'Manager', 'HR'];
+export const FINANCIAL_REQUEST_MONEY_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
+/** UX hint only — the server's real allowlist/limit is middleware/upload.js. */
+export const RECEIPT_ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
+export const RECEIPT_MAX_MB = 10;
+
 /** Mirrors the Client model's status enum. */
 export const CLIENT_STATUSES = ['Active', 'Inactive'];
 

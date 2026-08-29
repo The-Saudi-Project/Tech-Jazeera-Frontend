@@ -13,6 +13,7 @@ import {
   EMPLOYEE_WRITE_ROLES,
   EMPLOYEE_DELETE_ROLES,
   ACCOUNT_PROVISION_ROLES,
+  EOSB_WRITE_ROLES,
 } from '../../../lib/constants.js';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -58,6 +59,7 @@ export default function EmployeeProfilePage() {
   const canWrite = EMPLOYEE_WRITE_ROLES.includes(user.role);
   const canDelete = EMPLOYEE_DELETE_ROLES.includes(user.role);
   const canProvisionAccount = ACCOUNT_PROVISION_ROLES.includes(user.role);
+  const canComputeEosb = EOSB_WRITE_ROLES.includes(user.role);
 
   const { data: employee, isPending, isError } = useQuery({
     queryKey: ['employee', id],
@@ -110,6 +112,11 @@ export default function EmployeeProfilePage() {
             <Badge variant={STATUS_VARIANT[employee.status]} className="mr-1">
               {employee.status}
             </Badge>
+            {canComputeEosb && (
+              <Button variant="secondary" onClick={() => navigate(`/eosb/new?employee=${id}`)}>
+                Calculate EOSB
+              </Button>
+            )}
             {canWrite && (
               <Button variant="secondary" onClick={() => navigate(`/employees/${id}/edit`)}>
                 Edit

@@ -42,10 +42,15 @@ import UserListPage from '../features/users/pages/UserListPage.jsx';
 import CoordinatorActivityPage from '../features/coordinatorActivity/pages/CoordinatorActivityPage.jsx';
 import LeavePage from '../features/leave/pages/LeavePage.jsx';
 import HolidayListPage from '../features/holidays/pages/HolidayListPage.jsx';
+import SettlementListPage from '../features/eosb/pages/SettlementListPage.jsx';
+import SettlementNewPage from '../features/eosb/pages/SettlementNewPage.jsx';
+import SettlementViewPage from '../features/eosb/pages/SettlementViewPage.jsx';
+import FinancialRequestsPage from '../features/financialRequests/pages/FinancialRequestsPage.jsx';
 import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
+import MyRequestsPage from '../features/ess/pages/MyRequestsPage.jsx';
 import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
@@ -115,6 +120,11 @@ export const router = createBrowserRouter([
               { path: '/coordinator-activity', element: <CoordinatorActivityPage /> },
               { path: '/leave', element: <LeavePage /> },
               { path: '/holidays', element: <HolidayListPage /> },
+              { path: '/eosb', element: <SettlementListPage /> },
+              // Before the /eosb/:id catch-all, or "new" is read as a settlement id.
+              { path: '/eosb/new', element: <SettlementNewPage /> },
+              { path: '/eosb/:id', element: <SettlementViewPage /> },
+              { path: '/financial-requests', element: <FinancialRequestsPage /> },
               { path: '/security-log', element: <AuditLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },
               { path: '/nfc/cards', element: <NfcCardListPage /> },
@@ -136,6 +146,7 @@ export const router = createBrowserRouter([
               { path: '/me/documents', element: <MyDocumentsPage /> },
               { path: '/me/attendance', element: <MyAttendancePage /> },
               { path: '/me/leave', element: <MyLeavePage /> },
+              { path: '/me/requests', element: <MyRequestsPage /> },
             ],
           },
         ],
