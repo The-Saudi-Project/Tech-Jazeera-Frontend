@@ -210,7 +210,7 @@ export default function EmployeeProfilePage() {
       <ConfirmDialog
         open={confirmingDelete}
         title="Delete employee?"
-        message={`${employee.fullName} (${employee.employeeId}) will be permanently removed. For staff who left the company, set status to "Exited" instead.`}
+        message={`${employee.fullName} (${employee.employeeId}) will be permanently removed, along with their login (if any) and attendance history. For staff who left the company, set status to "Exited" instead.`}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setConfirmingDelete(false)}

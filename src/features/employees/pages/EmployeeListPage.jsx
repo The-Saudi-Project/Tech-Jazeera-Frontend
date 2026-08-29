@@ -328,7 +328,7 @@ export default function EmployeeListPage() {
       <ConfirmDialog
         open={Boolean(toDelete)}
         title="Delete employee?"
-        message={`${toDelete?.fullName} (${toDelete?.employeeId}) will be permanently removed. For staff who left the company, set status to "Exited" instead.`}
+        message={`${toDelete?.fullName} (${toDelete?.employeeId}) will be permanently removed, along with their login (if any) and attendance history. For staff who left the company, set status to "Exited" instead.`}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}
