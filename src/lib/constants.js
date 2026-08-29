@@ -10,6 +10,9 @@ export const EXPIRY_WARNING_DAYS = 30;
 
 /** Mirrors the Employee model's status enum. */
 export const EMPLOYEE_STATUSES = ['Active', 'On Leave', 'Exited'];
+/** 'Own' = internal staff (reports to a Manager). 'Client' = the workforce
+ *  supplied to clients (mapped to a Coordinator and/or a Manager). */
+export const EMPLOYEE_TYPES = ['Own', 'Client'];
 
 /** Mirror of the server's route guards — used only to hide UI the API would
  *  reject anyway. The server is the real enforcement. */
@@ -19,19 +22,25 @@ export const EMPLOYEE_DELETE_ROLES = ['Admin', 'HR'];
  *  Coordinator (adds only to their own team, no approval needed). */
 export const EMPLOYEE_CREATE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
 
-/** Who may provision a worker login for an employee (P2-M1). Mirror of the
- *  server guard on POST /employees/:id/user — the server enforces. */
+/** Who may provision a login for an employee. Mirror of the server guard on
+ *  POST /employees/:id/user — the server enforces. */
 export const ACCOUNT_PROVISION_ROLES = ['Admin', 'HR'];
+/** Every role a login can be provisioned with from an Employee's profile —
+ *  any role except Admin, which has no Employee. */
+export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Worker'];
 
 /** P2-M2: roles this app assigns to a Coordinator's team-scoped queries. */
 export const COORDINATOR_ROLE = 'Coordinator';
-/** Mirror of user.routes.js — who may create/edit staff logins vs just view them. */
+/** Mirror of user.routes.js — who may edit staff logins vs just view them. */
 export const STAFF_USER_MANAGE_ROLES = ['Admin'];
 export const STAFF_USER_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
-/** Every role a staff login can be provisioned with (Worker has its own path). */
+/** Every role a staff login can be assigned (Worker is provisioned the same
+ *  way, from an employee's profile, but isn't "staff" — see rbac.js). */
 export const STAFF_ASSIGNABLE_ROLES = ['Admin', 'Manager', 'HR', 'Accounts', 'Coordinator'];
-/** Roles a Coordinator may report to (mirrors COORDINATOR_MANAGER_ROLES on the server). */
-export const COORDINATOR_MANAGER_ROLES = ['Admin', 'Manager'];
+/** Roles eligible to be an Employee's manager (mirrors MANAGER_ELIGIBLE_ROLES
+ *  on the server) — used by both the Coordinator-manager and Employee-manager
+ *  pickers. */
+export const MANAGER_ELIGIBLE_ROLES = ['Admin', 'Manager'];
 
 /** Mirrors leaveType.model.js / leaveRequest.model.js (P2-M2). */
 export const LEAVE_RECURRENCES = ['Annual', 'ContractCycle', 'Manual'];

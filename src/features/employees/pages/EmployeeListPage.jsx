@@ -12,6 +12,7 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import {
   EMPLOYEE_STATUSES,
+  EMPLOYEE_TYPES,
   EMPLOYEE_WRITE_ROLES,
   EMPLOYEE_DELETE_ROLES,
   EMPLOYEE_CREATE_ROLES,
@@ -63,6 +64,7 @@ export default function EmployeeListPage() {
     limit: 10,
     search: '',
     status: '',
+    type: '',
     alerts: false,
     team: false, // P2-M2: Manager-only "my coordinators' employees" filter
     sortBy: 'createdAt',
@@ -86,6 +88,7 @@ export default function EmployeeListPage() {
         sortOrder: params.sortOrder,
         ...(params.search && { search: params.search }),
         ...(params.status && { status: params.status }),
+        ...(params.type && { type: params.type }),
         ...(params.alerts && { alerts: 'true' }),
         ...(params.team && { team: 'mine' }),
       }),
@@ -137,6 +140,7 @@ export default function EmployeeListPage() {
       ),
     },
     { key: 'mobile', header: 'Mobile', hideOnMobile: true, render: (e) => e.mobile },
+    { key: 'type', header: 'Type', hideOnMobile: true, render: (e) => <Badge>{e.type}</Badge> },
     {
       key: 'joiningDate',
       header: 'Joined',
@@ -191,7 +195,7 @@ export default function EmployeeListPage() {
     },
   ];
 
-  const noFilters = !params.search && !params.status && !params.alerts && !params.team;
+  const noFilters = !params.search && !params.status && !params.type && !params.alerts && !params.team;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -219,6 +223,19 @@ export default function EmployeeListPage() {
           {EMPLOYEE_STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={params.type}
+          onChange={(e) => setParams((p) => ({ ...p, type: e.target.value, page: 1 }))}
+          className="sm:max-w-[180px]"
+          aria-label="Filter by type"
+        >
+          <option value="">Own &amp; Client</option>
+          {EMPLOYEE_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
             </option>
           ))}
         </Select>

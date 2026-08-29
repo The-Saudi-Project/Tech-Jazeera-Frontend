@@ -76,7 +76,10 @@ export default function RecordsGrid() {
 
   const { data: employeeData, isPending: employeesLoading } = useQuery({
     queryKey: ['employees', { forAttendance: true }],
-    queryFn: () => listEmployees({ limit: 100, sortBy: 'fullName', sortOrder: 'asc' }),
+    // type: 'Client' — the grid tracks the supplied workforce; Own-type
+    // employees (Manager/HR/Coordinator/Accounts) already have their own
+    // section below, sourced from StaffAttendance, not this Attendance query.
+    queryFn: () => listEmployees({ limit: 100, type: 'Client', sortBy: 'fullName', sortOrder: 'asc' }),
   });
   const { data: records, isPending: recordsLoading } = useQuery({
     queryKey: ['attendance', 'range', range.from, range.to],

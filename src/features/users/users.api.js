@@ -1,17 +1,13 @@
 /**
- * Staff-user API layer (P2-M2). Never touches Worker logins — those stay on
- * employees.api.js's createEmployeeLogin, linked to an Employee record.
+ * Staff-user API layer — manages EXISTING logins. Creation, staff or Worker
+ * alike, always goes through employees.api.js's createEmployeeLogin, since a
+ * login is meaningless without the Employee it's linked to.
  */
 import { api } from '../../lib/axios.js';
 
 export async function listStaffUsers(params) {
   const { data } = await api.get('/users', { params });
   return data.data;
-}
-
-export async function createStaffUser(payload) {
-  const { data } = await api.post('/users', payload);
-  return data.data; // { user, tempPassword }
 }
 
 export async function updateStaffUser(id, payload) {

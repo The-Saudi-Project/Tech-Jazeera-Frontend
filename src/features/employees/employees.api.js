@@ -3,7 +3,7 @@
  */
 import { api } from '../../lib/axios.js';
 
-/** GET /employees — params: page, limit, search, status, alerts, sortBy, sortOrder */
+/** GET /employees — params: page, limit, search, status, type, alerts, sortBy, sortOrder */
 export async function listEmployees(params) {
   const { data } = await api.get('/employees', { params });
   return data.data; // { items, total, page, pages }
@@ -29,9 +29,10 @@ export async function deleteEmployee(id) {
 }
 
 /**
- * POST /employees/:id/user — provision a Worker login (Admin/HR).
- * Returns { user, tempPassword }; the temp password is shown ONCE.
- * `payload.email` is optional — only needed when the employee has no email.
+ * POST /employees/:id/user — provision a login for this employee, any role
+ * except Admin (Admin/HR only). Returns { user, tempPassword }; the temp
+ * password is shown ONCE. `payload.email` is optional — only needed when the
+ * employee has no email on file. `payload.role` is required.
  */
 export async function createEmployeeLogin(id, payload = {}) {
   const { data } = await api.post(`/employees/${id}/user`, payload);

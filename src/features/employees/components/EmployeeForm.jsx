@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
 import { listStaffUsers } from '../../users/users.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { EMPLOYEE_STATUSES, WEEKDAY_LABELS } from '../../../lib/constants.js';
+import { EMPLOYEE_STATUSES, EMPLOYEE_TYPES, WEEKDAY_LABELS, MANAGER_ELIGIBLE_ROLES } from '../../../lib/constants.js';
 import { COUNTRIES } from '../../../lib/countries.js';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
@@ -50,9 +50,16 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   const {
     register,
     handleSubmit,
+    watch,
     setValue,
     formState: { errors },
   } = useForm({ resolver: zodResolver(employeeFormSchema), defaultValues });
+
+  // Drives which fields below render as required — nationality/mobile/
+  // joining date/salary are compliance & payroll fields that only make sense
+  // for 'Client' (the supplied workforce); an 'Own' (internal staff) record
+  // may have none of that.
+  const type = watch('type');
 
   // P2-M2: who this employee's day-to-day (leave, expiry follow-up) reports
   // to. The list call itself is the access check — Accounts can't reach it
@@ -64,16 +71,32 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
     enabled: !isCoordinator,
   });
 
-  // The <select> mounts (via register's ref) before this async list resolves,
-  // so setting its value to an id with no matching <option> yet silently
-  // fails — a native select doesn't retroactively select an option added
-  // later. Re-apply the default once the real options exist.
+  // Every 'Own' employee reports to a Manager; a 'Client' employee may too,
+  // alongside or instead of a coordinator — so this stays fetched regardless
+  // of type. MANAGER_ELIGIBLE_ROLES (Admin or Manager) filtered client-side,
+  // since listStaffUsers only takes one exact role per call.
+  const { data: staffUsers } = useQuery({
+    queryKey: ['users', {}],
+    queryFn: () => listStaffUsers({}),
+  });
+  const managers = (staffUsers ?? []).filter((u) => MANAGER_ELIGIBLE_ROLES.includes(u.role));
+
+  // The <select>s mount (via register's ref) before these async lists
+  // resolve, so setting their value to an id with no matching <option> yet
+  // silently fails — a native select doesn't retroactively select an option
+  // added later. Re-apply the defaults once the real options exist.
   useEffect(() => {
     if (coordinators && defaultValues.coordinator) {
       setValue('coordinator', defaultValues.coordinator);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coordinators]);
+  useEffect(() => {
+    if (staffUsers && defaultValues.manager) {
+      setValue('manager', defaultValues.manager);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [staffUsers]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
@@ -87,25 +110,59 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
         ))}
       </datalist>
 
+      <Section title="Employee type">
+        <div className="sm:col-span-2">
+          <Select label="Type *" error={errors.type?.message} {...register('type')}>
+            {EMPLOYEE_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t === 'Client' ? 'Client — supplied workforce' : 'Own — internal staff'}
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-xs text-muted">
+            {type === 'Own'
+              ? 'Internal staff (Manager/HR/Coordinator/IT/Office). Nationality, mobile, joining date and salary are optional.'
+              : 'Workforce supplied to clients — visa/iqama tracking and payroll apply.'}
+          </p>
+        </div>
+      </Section>
+
       <Section title="Personal details">
         <Input label="Employee ID *" placeholder="AJ-001" error={errors.employeeId?.message} {...register('employeeId')} />
         <Input label="Full name *" error={errors.fullName?.message} {...register('fullName')} />
         <Input
-          label="Nationality *"
+          label={`Nationality${type === 'Client' ? ' *' : ''}`}
           list="country-list"
           autoComplete="off"
           error={errors.nationality?.message}
           {...register('nationality')}
         />
-        <Input label="Mobile *" placeholder="+966 5x xxx xxxx" error={errors.mobile?.message} {...register('mobile')} />
+        <Input
+          label={`Mobile${type === 'Client' ? ' *' : ''}`}
+          placeholder="+966 5x xxx xxxx"
+          error={errors.mobile?.message}
+          {...register('mobile')}
+        />
         <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
       </Section>
 
       <Section title="Employment">
-        <Input label="Joining date *" type="date" error={errors.joiningDate?.message} {...register('joiningDate')} />
+        <Input
+          label={`Joining date${type === 'Client' ? ' *' : ''}`}
+          type="date"
+          error={errors.joiningDate?.message}
+          {...register('joiningDate')}
+        />
         <Input label="Designation *" placeholder="Electrician" error={errors.designation?.message} {...register('designation')} />
         <Input label="Department" placeholder="Maintenance" error={errors.department?.message} {...register('department')} />
-        <Input label="Salary (SAR/month) *" type="number" min="0" step="50" error={errors.salary?.message} {...register('salary')} />
+        <Input
+          label={`Salary (SAR/month)${type === 'Client' ? ' *' : ''}`}
+          type="number"
+          min="0"
+          step="50"
+          error={errors.salary?.message}
+          {...register('salary')}
+        />
         <Input label="Accommodation" placeholder="Company camp, room 12" error={errors.accommodation?.message} {...register('accommodation')} />
         <div>
           <Input
@@ -159,6 +216,21 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
             ))}
           </Select>
         )}
+        <div>
+          <Select label="Manager" error={errors.manager?.message} {...register('manager')}>
+            <option value="">Not assigned</option>
+            {managers.map((m) => (
+              <option key={m._id} value={m._id}>
+                {m.name} ({m.role})
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-xs text-muted">
+            {type === 'Own'
+              ? 'Who this employee reports to.'
+              : "Optional — alongside or instead of a coordinator, if they report to a manager directly."}
+          </p>
+        </div>
       </Section>
 
       <Card>

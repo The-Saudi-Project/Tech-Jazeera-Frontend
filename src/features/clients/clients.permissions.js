@@ -7,11 +7,12 @@
 import { CLIENT_WRITE_ROLES } from '../../lib/constants.js';
 
 /** Can this viewer decide THIS specific pending client? Admin always; a
- *  Manager only for a Coordinator who actually reports to them. */
+ *  Manager only for a Coordinator who actually reports to them (via the
+ *  Coordinator's own linked Employee record — Employee.manager). */
 export function canDecideClient(user, client) {
   if (client.approvalStatus !== 'Pending') return false;
   if (user.role === 'Admin') return true;
-  return user.role === 'Manager' && client.createdBy?.managedBy === user.id;
+  return user.role === 'Manager' && client.createdBy?.employee?.manager === user.id;
 }
 
 /** Can this viewer edit THIS specific client? Admin/Manager always; a

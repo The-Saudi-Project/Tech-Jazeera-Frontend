@@ -7,7 +7,7 @@
  * coercion and is the actual gatekeeper.
  */
 import { z } from 'zod';
-import { EMPLOYEE_STATUSES } from '../../lib/constants.js';
+import { EMPLOYEE_STATUSES, EMPLOYEE_TYPES } from '../../lib/constants.js';
 import { toDateInput } from '../../lib/utils.js';
 
 const optional = z.string().trim().max(200).optional().or(z.literal(''));
@@ -29,48 +29,62 @@ const optionalPhone = z
 /** number + expiry pair for one identity document. */
 const documentSchema = z.object({ number: optional, expiry: z.string() });
 
-export const employeeFormSchema = z.object({
-  employeeId: z
-    .string()
-    .trim()
-    .min(2, 'Employee ID is required.')
-    .max(20)
-    .regex(/^[A-Za-z0-9-]+$/, 'Only letters, numbers and dashes.'),
-  fullName: z.string().trim().min(2, 'Full name is required.').max(100),
-  nationality: z.string().trim().min(2, 'Nationality is required.').max(60),
-  mobile: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9][0-9 -]{5,18}$/, 'Enter a valid mobile number.'),
-  email: z.union([z.literal(''), z.email('Enter a valid email address.')]),
+export const employeeFormSchema = z
+  .object({
+    employeeId: z
+      .string()
+      .trim()
+      .min(2, 'Employee ID is required.')
+      .max(20)
+      .regex(/^[A-Za-z0-9-]+$/, 'Only letters, numbers and dashes.'),
+    fullName: z.string().trim().min(2, 'Full name is required.').max(100),
+    // 'Own' = internal staff (reports to a Manager); 'Client' = workforce
+    // supplied to clients. Only 'Client' requires the compliance/payroll
+    // fields below — see the superRefine at the bottom of this schema.
+    type: z.enum(EMPLOYEE_TYPES),
+    nationality: optional,
+    mobile: optionalPhone,
+    email: z.union([z.literal(''), z.email('Enter a valid email address.')]),
 
-  passport: documentSchema,
-  visa: documentSchema,
-  iqama: documentSchema,
-  medical: documentSchema,
-  drivingLicense: documentSchema,
+    passport: documentSchema,
+    visa: documentSchema,
+    iqama: documentSchema,
+    medical: documentSchema,
+    drivingLicense: documentSchema,
 
-  joiningDate: z.string().min(1, 'Joining date is required.'),
-  designation: z.string().trim().min(2, 'Designation is required.').max(60),
-  department: optional,
-  salary: z
-    .string()
-    .min(1, 'Salary is required.')
-    .refine((s) => !Number.isNaN(Number(s)) && Number(s) >= 0, 'Enter a valid amount.'),
-  accommodation: optional,
-  // Early-sign-out warning threshold for My Attendance — genuinely varies per
-  // employee, so it's blank (no warning) unless Admin/Manager/HR sets it.
-  expectedDailyHours: optionalHours,
-  // A closed <select> of weekdays, not free text — no numeric range to
-  // validate client-side, just "did they pick one of the options."
-  weeklyOffDay: z.string().optional().or(z.literal('')),
-  status: z.enum(EMPLOYEE_STATUSES),
+    joiningDate: z.string().optional().or(z.literal('')),
+    designation: z.string().trim().min(2, 'Designation is required.').max(60),
+    department: optional,
+    salary: z
+      .string()
+      .optional()
+      .or(z.literal(''))
+      .refine((s) => !s || (!Number.isNaN(Number(s)) && Number(s) >= 0), 'Enter a valid amount.'),
+    accommodation: optional,
+    // Early-sign-out warning threshold for My Attendance — genuinely varies per
+    // employee, so it's blank (no warning) unless Admin/Manager/HR sets it.
+    expectedDailyHours: optionalHours,
+    // A closed <select> of weekdays, not free text — no numeric range to
+    // validate client-side, just "did they pick one of the options."
+    weeklyOffDay: z.string().optional().or(z.literal('')),
+    status: z.enum(EMPLOYEE_STATUSES),
 
-  emergencyContact: z.object({ name: optional, phone: optionalPhone, relation: optional }),
-  notes: z.string().trim().max(2000).optional().or(z.literal('')),
-  // P2-M2: '' means "no coordinator assigned" — sent to the API as null.
-  coordinator: z.string().optional().or(z.literal('')),
-});
+    emergencyContact: z.object({ name: optional, phone: optionalPhone, relation: optional }),
+    notes: z.string().trim().max(2000).optional().or(z.literal('')),
+    // P2-M2: '' means "no coordinator assigned" — sent to the API as null.
+    coordinator: z.string().optional().or(z.literal('')),
+    // '' means "no manager assigned" — sent to the API as null. Universal
+    // across both types (every 'Own' employee has one; a 'Client' employee
+    // may have one alongside or instead of a coordinator).
+    manager: z.string().optional().or(z.literal('')),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type !== 'Client') return;
+    if (!data.nationality) ctx.addIssue({ code: 'custom', path: ['nationality'], message: 'Nationality is required.' });
+    if (!data.mobile) ctx.addIssue({ code: 'custom', path: ['mobile'], message: 'Enter a valid mobile number.' });
+    if (!data.joiningDate) ctx.addIssue({ code: 'custom', path: ['joiningDate'], message: 'Joining date is required.' });
+    if (!data.salary) ctx.addIssue({ code: 'custom', path: ['salary'], message: 'Salary is required.' });
+  });
 
 const emptyDocument = { number: '', expiry: '' };
 
@@ -78,6 +92,7 @@ const emptyDocument = { number: '', expiry: '' };
 export const emptyEmployeeForm = {
   employeeId: '',
   fullName: '',
+  type: 'Client',
   nationality: '',
   mobile: '',
   email: '',
@@ -97,6 +112,7 @@ export const emptyEmployeeForm = {
   emergencyContact: { name: '', phone: '', relation: '' },
   notes: '',
   coordinator: '',
+  manager: '',
 };
 
 /** API employee → form values (ISO dates become date-input strings). */
@@ -105,8 +121,9 @@ export function employeeToForm(employee) {
   return {
     employeeId: employee.employeeId,
     fullName: employee.fullName,
-    nationality: employee.nationality,
-    mobile: employee.mobile,
+    type: employee.type ?? 'Client',
+    nationality: employee.nationality ?? '',
+    mobile: employee.mobile ?? '',
     email: employee.email ?? '',
     passport: doc(employee.passport),
     visa: doc(employee.visa),
@@ -116,7 +133,7 @@ export function employeeToForm(employee) {
     joiningDate: toDateInput(employee.joiningDate),
     designation: employee.designation,
     department: employee.department ?? '',
-    salary: String(employee.salary),
+    salary: employee.salary != null ? String(employee.salary) : '',
     accommodation: employee.accommodation ?? '',
     expectedDailyHours: employee.expectedDailyHours != null ? String(employee.expectedDailyHours) : '',
     weeklyOffDay: employee.weeklyOffDay != null ? String(employee.weeklyOffDay) : '',
@@ -128,6 +145,7 @@ export function employeeToForm(employee) {
     },
     notes: employee.notes ?? '',
     coordinator: employee.coordinator?._id ?? employee.coordinator ?? '',
+    manager: employee.manager?._id ?? employee.manager ?? '',
   };
 }
 
@@ -136,6 +154,7 @@ export function formToEmployeePayload(values) {
   return {
     ...values,
     coordinator: values.coordinator || null,
+    manager: values.manager || null,
     expectedDailyHours: values.expectedDailyHours || null,
     weeklyOffDay: values.weeklyOffDay === '' ? null : values.weeklyOffDay,
   };

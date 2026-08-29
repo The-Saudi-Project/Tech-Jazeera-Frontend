@@ -25,7 +25,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import WorkerDeploymentPanel from '../../deployments/components/WorkerDeploymentPanel.jsx';
 import DocumentsPanel from '../../documents/components/DocumentsPanel.jsx';
-import WorkerLoginPanel from '../components/WorkerLoginPanel.jsx';
+import EmployeeLoginPanel from '../components/EmployeeLoginPanel.jsx';
 
 const STATUS_VARIANT = { Active: 'success', 'On Leave': 'warning', Exited: 'default' };
 
@@ -104,6 +104,9 @@ export default function EmployeeProfilePage() {
         description={`${employee.employeeId} · ${employee.designation}`}
         actions={
           <>
+            <Badge variant="default" className="mr-1">
+              {employee.type}
+            </Badge>
             <Badge variant={STATUS_VARIANT[employee.status]} className="mr-1">
               {employee.status}
             </Badge>
@@ -130,8 +133,10 @@ export default function EmployeeProfilePage() {
             <Field label="Email">{employee.email}</Field>
             <Field label="Joining date">{formatDate(employee.joiningDate)}</Field>
             <Field label="Department">{employee.department}</Field>
-            <Field label="Salary">SAR {employee.salary?.toLocaleString()}</Field>
+            <Field label="Salary">{employee.salary != null ? `SAR ${employee.salary.toLocaleString()}` : null}</Field>
             <Field label="Accommodation">{employee.accommodation}</Field>
+            <Field label="Coordinator">{employee.coordinator?.name}</Field>
+            <Field label="Manager">{employee.manager?.name}</Field>
             <Field label="Added by">
               {employee.createdBy?.name && (
                 <>
@@ -147,13 +152,14 @@ export default function EmployeeProfilePage() {
           </dl>
         </Card>
 
-        {/* Worker login (P2-M1) — Admin/HR only. Create/inspect this
-            employee's self-service account. */}
-        {canProvisionAccount && <WorkerLoginPanel employee={employee} />}
+        {/* Login (any role) — Admin/HR only. Create/inspect this
+            employee's account. */}
+        {canProvisionAccount && <EmployeeLoginPanel employee={employee} />}
 
         {/* Current deployment, actions (transfer/end/assign) and history —
-            owns its own data; populates from the M6 deployment workflow. */}
-        <WorkerDeploymentPanel employee={employee} />
+            owns its own data; populates from the M6 deployment workflow.
+            Client-type only — an internal Own-type employee is never deployed. */}
+        {employee.type === 'Client' && <WorkerDeploymentPanel employee={employee} />}
 
         <Card>
           {/* Identity metadata (numbers + expiry) — distinct from uploaded

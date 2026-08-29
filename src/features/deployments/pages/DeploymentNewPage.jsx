@@ -26,12 +26,13 @@ export default function DeploymentNewPage() {
   const [searchParams] = useSearchParams();
   const preselectedWorker = searchParams.get('worker') ?? '';
 
-  // Assignable = unassigned employees who haven't exited the company. We
-  // filter Exited out client-side (the server also rejects them); On Leave
-  // workers stay eligible, matching the server's rule.
+  // Assignable = unassigned, type: 'Client' employees who haven't exited the
+  // company (an internal Own-type employee is never deployed to a client).
+  // We filter Exited out client-side (the server also rejects them); On
+  // Leave workers stay eligible, matching the server's rule.
   const { data: workerData, isPending: workersLoading } = useQuery({
     queryKey: ['employees', { assignable: true }],
-    queryFn: () => listEmployees({ unassigned: 'true', limit: 100 }),
+    queryFn: () => listEmployees({ unassigned: 'true', type: 'Client', limit: 100 }),
   });
   // Only active, approved clients can receive deployments — a
   // Coordinator-submitted client not yet approved isn't real enough to
