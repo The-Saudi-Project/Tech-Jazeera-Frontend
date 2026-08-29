@@ -21,6 +21,7 @@ import StatusBreakdown from '../components/StatusBreakdown.jsx';
 import ExpiringDocuments from '../components/ExpiringDocuments.jsx';
 import RecentActivity from '../components/RecentActivity.jsx';
 import QuickActions from '../components/QuickActions.jsx';
+import ProfitCard from '../components/ProfitCard.jsx';
 
 /** A labelled money figure for the finance card. */
 function FinanceItem({ label, value, hint, accent }) {
@@ -47,9 +48,14 @@ export default function DashboardPage() {
     localStorage.setItem(THRESHOLD_STORAGE_KEY, String(days));
   }
 
+  // P2-M8: which month the Profit section shows. Not persisted like the
+  // threshold above — always opens on the current month, so nobody mistakes
+  // an old month's figures for today's by forgetting they changed it last visit.
+  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ['dashboard', thresholdDays],
-    queryFn: () => getDashboard(thresholdDays),
+    queryKey: ['dashboard', thresholdDays, month],
+    queryFn: () => getDashboard(thresholdDays, month),
   });
 
   const firstName = user.name.split(' ')[0];
@@ -128,17 +134,20 @@ export default function DashboardPage() {
           sees salary or revenue figures, even scoped to their own team — see
           dashboard.service.js. */}
       {!isCoordinator && (
-        <Card>
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Finance</h2>
-            <span className="text-xs text-muted">Profit needs cost data (a later phase)</span>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FinanceItem label="Approved revenue" value={finance.approvedRevenue} accent="text-success" hint="Approved quotations" />
-            <FinanceItem label="Pipeline" value={finance.pendingRevenue} hint="Draft quotations" />
-            <FinanceItem label="Monthly payroll" value={finance.monthlyPayroll} hint="Active workforce salaries" />
-          </div>
-        </Card>
+        <>
+          <Card>
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Pipeline</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <FinanceItem label="Approved revenue" value={finance.approvedRevenue} accent="text-success" hint="Approved quotations" />
+              <FinanceItem label="Pipeline" value={finance.pendingRevenue} hint="Draft quotations" />
+              <FinanceItem label="Monthly payroll" value={finance.monthlyPayroll} hint="Active workforce salaries, run-rate" />
+            </div>
+          </Card>
+
+          {/* P2-M8: real profit for a selected month — Revenue − Payroll −
+              Expenses, from Invoices/finalized Payroll/Expenses. */}
+          <ProfitCard profit={finance.profit} month={month} onMonthChange={setMonth} />
+        </>
       )}
 
       {/* Breakdowns */}

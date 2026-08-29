@@ -163,6 +163,16 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           error={errors.salary?.message}
           {...register('salary')}
         />
+        <div className="sm:col-span-2">
+          <p className="mb-2 text-xs font-medium text-muted">
+            WPS salary breakdown (optional — leave blank to show the full salary as Basic on payslips)
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Input label="Basic" type="number" min="0" step="50" error={errors.basicSalary?.message} {...register('basicSalary')} />
+            <Input label="Housing allowance" type="number" min="0" step="50" error={errors.housingAllowance?.message} {...register('housingAllowance')} />
+            <Input label="Transport allowance" type="number" min="0" step="50" error={errors.transportAllowance?.message} {...register('transportAllowance')} />
+          </div>
+        </div>
         <Input label="Accommodation" placeholder="Company camp, room 12" error={errors.accommodation?.message} {...register('accommodation')} />
         <div>
           <Input

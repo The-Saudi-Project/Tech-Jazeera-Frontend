@@ -19,6 +19,11 @@ const optionalHours = z
     (s) => !s || (!Number.isNaN(Number(s)) && Number(s) >= 0 && Number(s) <= 24),
     'Enter a number of hours between 0 and 24.'
   );
+const optionalAmount = z
+  .string()
+  .optional()
+  .or(z.literal(''))
+  .refine((s) => !s || (!Number.isNaN(Number(s)) && Number(s) >= 0), 'Enter a valid amount.');
 const optionalPhone = z
   .string()
   .trim()
@@ -60,6 +65,11 @@ export const employeeFormSchema = z
       .optional()
       .or(z.literal(''))
       .refine((s) => !s || (!Number.isNaN(Number(s)) && Number(s) >= 0), 'Enter a valid amount.'),
+    // Optional WPS breakdown of `salary` — leave blank unless the real split
+    // for this employee is known (Payroll then treats the whole salary as Basic).
+    basicSalary: optionalAmount,
+    housingAllowance: optionalAmount,
+    transportAllowance: optionalAmount,
     accommodation: optional,
     // Early-sign-out warning threshold for My Attendance — genuinely varies per
     // employee, so it's blank (no warning) unless Admin/Manager/HR sets it.
@@ -105,6 +115,9 @@ export const emptyEmployeeForm = {
   designation: '',
   department: '',
   salary: '',
+  basicSalary: '',
+  housingAllowance: '',
+  transportAllowance: '',
   accommodation: '',
   expectedDailyHours: '',
   weeklyOffDay: '5', // pre-selected Friday, mirrors the model's create-default
@@ -134,6 +147,9 @@ export function employeeToForm(employee) {
     designation: employee.designation,
     department: employee.department ?? '',
     salary: employee.salary != null ? String(employee.salary) : '',
+    basicSalary: employee.basicSalary != null ? String(employee.basicSalary) : '',
+    housingAllowance: employee.housingAllowance != null ? String(employee.housingAllowance) : '',
+    transportAllowance: employee.transportAllowance != null ? String(employee.transportAllowance) : '',
     accommodation: employee.accommodation ?? '',
     expectedDailyHours: employee.expectedDailyHours != null ? String(employee.expectedDailyHours) : '',
     weeklyOffDay: employee.weeklyOffDay != null ? String(employee.weeklyOffDay) : '',
@@ -157,5 +173,8 @@ export function formToEmployeePayload(values) {
     manager: values.manager || null,
     expectedDailyHours: values.expectedDailyHours || null,
     weeklyOffDay: values.weeklyOffDay === '' ? null : values.weeklyOffDay,
+    basicSalary: values.basicSalary || null,
+    housingAllowance: values.housingAllowance || null,
+    transportAllowance: values.transportAllowance || null,
   };
 }

@@ -49,11 +49,17 @@ import FinancialRequestsPage from '../features/financialRequests/pages/Financial
 import AssetListPage from '../features/assets/pages/AssetListPage.jsx';
 import ExitDocumentsPage from '../features/exitDocuments/pages/ExitDocumentsPage.jsx';
 import TimesheetsPage from '../features/timesheets/pages/TimesheetsPage.jsx';
+import PayrollListPage from '../features/payroll/pages/PayrollListPage.jsx';
+import PayrollRunPage from '../features/payroll/pages/PayrollRunPage.jsx';
+import InvoiceListPage from '../features/invoices/pages/InvoiceListPage.jsx';
+import InvoiceViewPage from '../features/invoices/pages/InvoiceViewPage.jsx';
+import ExpenseListPage from '../features/expenses/pages/ExpenseListPage.jsx';
 import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
 import MyRequestsPage from '../features/ess/pages/MyRequestsPage.jsx';
+import MyPayslipsPage from '../features/ess/pages/MyPayslipsPage.jsx';
 import MyExitDocumentsPage from '../features/ess/pages/MyExitDocumentsPage.jsx';
 import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
@@ -132,6 +138,11 @@ export const router = createBrowserRouter([
               { path: '/assets', element: <AssetListPage /> },
               { path: '/exit-documents', element: <ExitDocumentsPage /> },
               { path: '/timesheets', element: <TimesheetsPage /> },
+              { path: '/payroll', element: <PayrollListPage /> },
+              { path: '/payroll/:id', element: <PayrollRunPage /> },
+              { path: '/invoices', element: <InvoiceListPage /> },
+              { path: '/invoices/:id', element: <InvoiceViewPage /> },
+              { path: '/expenses', element: <ExpenseListPage /> },
               { path: '/security-log', element: <AuditLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },
               { path: '/nfc/cards', element: <NfcCardListPage /> },
@@ -154,6 +165,7 @@ export const router = createBrowserRouter([
               { path: '/me/attendance', element: <MyAttendancePage /> },
               { path: '/me/leave', element: <MyLeavePage /> },
               { path: '/me/requests', element: <MyRequestsPage /> },
+              { path: '/me/payslips', element: <MyPayslipsPage /> },
               { path: '/me/exit-documents', element: <MyExitDocumentsPage /> },
             ],
           },

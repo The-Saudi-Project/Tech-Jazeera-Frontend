@@ -146,6 +146,31 @@ export const TIMESHEET_STATUS_VARIANT = { Submitted: 'warning', Approved: 'succe
  *  timesheet is the same supervisory circle as correcting an attendance day. */
 export const TIMESHEET_DECIDE_ROLES = ['Admin', 'Manager', 'HR'];
 
+/** Mirrors payrollRun.model.js / payroll.routes.js guards. */
+export const PAYROLL_STATUSES = ['Draft', 'Finalized'];
+export const PAYROLL_STATUS_VARIANT = { Draft: 'warning', Finalized: 'success' };
+export const PAYROLL_VIEW_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
+export const PAYROLL_WRITE_ROLES = ['Admin', 'Manager', 'Accounts'];
+export const PAYROLL_FINALIZE_ROLES = ['Admin', 'Manager'];
+export const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/** Mirrors invoice.model.js / invoice.routes.js guards — same commercial-
+ *  document circle as Quotation. */
+export const INVOICE_STATUSES = ['Unpaid', 'Partially Paid', 'Paid'];
+export const INVOICE_STATUS_VARIANT = { Unpaid: 'danger', 'Partially Paid': 'warning', Paid: 'success' };
+export const INVOICE_WRITE_ROLES = ['Admin', 'Manager', 'Accounts'];
+export const INVOICE_DELETE_ROLES = ['Admin', 'Manager'];
+
+/** Mirrors expense.model.js / expense.routes.js guards. Internal cost data —
+ *  a narrower view circle than Invoices, same as Payroll/EOSB. */
+export const EXPENSE_CATEGORIES = ['Rent', 'Fuel', 'Salaries-external', 'Purchases', 'Utilities', 'Other'];
+export const EXPENSE_VIEW_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
+export const EXPENSE_WRITE_ROLES = ['Admin', 'Manager', 'Accounts'];
+export const EXPENSE_DELETE_ROLES = ['Admin', 'Manager'];
+
 /** Mirrors the Client model's status enum. */
 export const CLIENT_STATUSES = ['Active', 'Inactive'];
 

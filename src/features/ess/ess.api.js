@@ -167,3 +167,21 @@ export async function submitMyTimesheet(payload) {
   const { data } = await api.post('/me/timesheets', payload);
   return data.data;
 }
+
+export async function listMyPayslips() {
+  const { data } = await api.get('/me/payslips');
+  return data.data;
+}
+
+/** Download own payslip PDF as an authenticated Blob. */
+export async function downloadMyPayslipPdf(runId, filename) {
+  const res = await api.get(`/me/payslips/${runId}/pdf`, { responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

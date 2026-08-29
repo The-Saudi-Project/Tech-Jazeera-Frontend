@@ -7,6 +7,8 @@
  *                  employee endpoint filtered by client).
  *   - Documents  — this client's files (M8).
  *   - Quotations — priced offers to this client (M9).
+ *   - Invoices   — billed amounts and payments, created from an approved
+ *                  quotation (P2-M6).
  */
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -29,6 +31,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import DocumentsPanel from '../../documents/components/DocumentsPanel.jsx';
 import QuotationsPanel from '../../quotations/components/QuotationsPanel.jsx';
+import InvoicesPanel from '../../invoices/components/InvoicesPanel.jsx';
 
 const STATUS_VARIANT = { Active: 'success', Inactive: 'default' };
 
@@ -226,6 +229,7 @@ export default function ClientProfilePage() {
     { key: 'workers', label: 'Workers' },
     { key: 'documents', label: 'Documents' },
     { key: 'quotations', label: 'Quotations' },
+    { key: 'invoices', label: 'Invoices' },
   ];
 
   return (
@@ -281,6 +285,7 @@ export default function ClientProfilePage() {
         <DocumentsPanel ownerType="Client" ownerId={id} ownerName={client.companyName} />
       )}
       {tab === 'quotations' && <QuotationsPanel clientId={id} />}
+      {tab === 'invoices' && <InvoicesPanel clientId={id} />}
 
       <ConfirmDialog
         open={confirmingDelete}

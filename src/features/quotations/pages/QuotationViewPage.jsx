@@ -9,9 +9,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getQuotation, duplicateQuotation, deleteQuotation } from '../quotations.api.js';
 import { STATUS_VARIANT } from '../components/quotationColumns.jsx';
 import QuotationPdfButton from '../components/QuotationPdfButton.jsx';
+import { listInvoices, createInvoice } from '../../invoices/invoices.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
-import { QUOTATION_WRITE_ROLES, QUOTATION_DELETE_ROLES } from '../../../lib/constants.js';
+import { QUOTATION_WRITE_ROLES, QUOTATION_DELETE_ROLES, INVOICE_WRITE_ROLES } from '../../../lib/constants.js';
 import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
@@ -38,10 +39,30 @@ export default function QuotationViewPage() {
 
   const canWrite = QUOTATION_WRITE_ROLES.includes(user.role);
   const canDelete = QUOTATION_DELETE_ROLES.includes(user.role);
+  const canInvoice = INVOICE_WRITE_ROLES.includes(user.role);
 
   const { data: q, isPending, isError } = useQuery({
     queryKey: ['quotation', id],
     queryFn: () => getQuotation(id),
+  });
+
+  // Whether this quotation already has an invoice — governs "Create
+  // invoice" vs "View invoice" below. Only relevant once Approved.
+  const { data: existingInvoices } = useQuery({
+    queryKey: ['invoices', { quotation: id }],
+    queryFn: () => listInvoices({ quotation: id, limit: 1 }),
+    enabled: !!q && q.status === 'Approved',
+  });
+  const existingInvoice = existingInvoices?.items?.[0] ?? null;
+
+  const createInvoiceMutation = useMutation({
+    mutationFn: () => createInvoice({ quotation: id }),
+    onSuccess: (invoice) => {
+      toast.success(`${invoice.invoiceNumber} created.`);
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      navigate(`/invoices/${invoice._id}`);
+    },
+    onError: (error) => toast.error(apiMessage(error)),
   });
 
   const duplicateMutation = useMutation({
@@ -100,6 +121,16 @@ export default function QuotationViewPage() {
               {q.status}
             </Badge>
             <QuotationPdfButton id={q._id} number={q.quotationNumber} />
+            {q.status === 'Approved' && canInvoice && existingInvoice && (
+              <Link to={`/invoices/${existingInvoice._id}`}>
+                <Button variant="secondary">View invoice</Button>
+              </Link>
+            )}
+            {q.status === 'Approved' && canInvoice && !existingInvoice && (
+              <Button isLoading={createInvoiceMutation.isPending} onClick={() => createInvoiceMutation.mutate()}>
+                Create invoice
+              </Button>
+            )}
             {canWrite && (
               <>
                 <Button variant="secondary" onClick={() => navigate(`/quotations/${id}/edit`)}>
