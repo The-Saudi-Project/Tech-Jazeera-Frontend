@@ -41,6 +41,7 @@ import NfcAnalyticsPage from '../features/nfc/pages/NfcAnalyticsPage.jsx';
 import UserListPage from '../features/users/pages/UserListPage.jsx';
 import CoordinatorActivityPage from '../features/coordinatorActivity/pages/CoordinatorActivityPage.jsx';
 import LeavePage from '../features/leave/pages/LeavePage.jsx';
+import HolidayListPage from '../features/holidays/pages/HolidayListPage.jsx';
 import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
@@ -113,6 +114,7 @@ export const router = createBrowserRouter([
               { path: '/team', element: <UserListPage /> },
               { path: '/coordinator-activity', element: <CoordinatorActivityPage /> },
               { path: '/leave', element: <LeavePage /> },
+              { path: '/holidays', element: <HolidayListPage /> },
               { path: '/security-log', element: <AuditLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },
               { path: '/nfc/cards', element: <NfcCardListPage /> },

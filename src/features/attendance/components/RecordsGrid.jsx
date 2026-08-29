@@ -19,6 +19,7 @@ import { listEmployees } from '../../employees/employees.api.js';
 import { listStaffUsers } from '../../users/users.api.js';
 import { listAttendance, adjustAttendance, markBulk } from '../attendance.api.js';
 import { listAllStaffAttendance } from '../staffAttendance.api.js';
+import { listHolidays } from '../../holidays/holidays.api.js';
 import {
   monthRange,
   weekRange,
@@ -36,6 +37,7 @@ import {
   ATTENDANCE_STATUSES,
   ATTENDANCE_WRITE_ROLES,
   STAFF_SELF_ATTENDANCE_ROLES,
+  HOLIDAY_DISPLAY_META,
 } from '../../../lib/constants.js';
 import { cn, formatHours, apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
@@ -95,6 +97,10 @@ export default function RecordsGrid() {
     queryFn: () => listAllStaffAttendance({ from: range.from, to: range.to }),
     enabled: canSeeStaffRows,
   });
+  const { data: holidays } = useQuery({
+    queryKey: ['holidays', range.from, range.to],
+    queryFn: () => listHolidays({ from: range.from, to: range.to }),
+  });
 
   // Fast lookup: `${employeeId}|${dateKey}` → { status, source, hoursWorked, checkInTime, checkOutTime, note }.
   const employeeMarks = useMemo(() => {
@@ -133,10 +139,18 @@ export default function RecordsGrid() {
     ? (staffUsers ?? []).filter((u) => STAFF_SELF_ATTENDANCE_ROLES.includes(u.role) && u.isActive)
     : [];
 
-  /** A real record always wins; otherwise infer "Off" on the employee's configured weekly off day. */
+  /** The holiday (if any) covering this date key — a date-string range check, so it
+   *  works the same whether the holiday is a single day or spans several. */
+  function holidayFor(date) {
+    return (holidays ?? []).find((h) => h.startDate.slice(0, 10) <= date && h.endDate.slice(0, 10) >= date) ?? null;
+  }
+
+  /** A real record always wins; otherwise infer a Holiday, then the employee's weekly off day. */
   function markFor(worker, date) {
     const explicit = employeeMarks[`${worker._id}|${date}`];
     if (explicit) return explicit;
+    const holiday = holidayFor(date);
+    if (holiday) return { status: 'Holiday', inferred: true, holidayName: holiday.name };
     if (worker.weeklyOffDay != null && dayOfWeek(date) === worker.weeklyOffDay) {
       return { status: 'Off', inferred: true };
     }
@@ -152,7 +166,10 @@ export default function RecordsGrid() {
       employeeId: worker._id,
       employeeName: worker.fullName,
       date,
-      status: mark?.status ?? 'Present',
+      // Only a real, selectable status pre-fills the form — an inferred
+      // Holiday isn't one of ATTENDANCE_STATUSES, so it'd render as an
+      // invalid <select> value.
+      status: mark && ATTENDANCE_STATUSES.includes(mark.status) ? mark.status : 'Present',
       checkIn: toTimeInput(mark?.checkInTime),
       checkOut: toTimeInput(mark?.checkOutTime),
       note: mark?.note ?? '',
@@ -258,6 +275,12 @@ export default function RecordsGrid() {
           Inferred weekly off (not recorded)
         </span>
         <span className="inline-flex items-center gap-1.5">
+          <span className="grid h-5 w-5 place-items-center rounded text-[10px] font-bold bg-border/25 text-muted/70 ring-1 ring-inset ring-border/40">
+            {HOLIDAY_DISPLAY_META.letter}
+          </span>
+          Company holiday (not recorded)
+        </span>
+        <span className="inline-flex items-center gap-1.5">
           <span className="relative inline-block h-3 w-3">
             <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />
           </span>
@@ -298,17 +321,23 @@ export default function RecordsGrid() {
                   </td>
                   {range.days.map((d) => {
                     const mark = markFor(w, d);
-                    const meta = mark ? ATTENDANCE_STATUS_META[mark.status] : null;
+                    const meta = mark
+                      ? mark.status === 'Holiday'
+                        ? HOLIDAY_DISPLAY_META
+                        : ATTENDANCE_STATUS_META[mark.status]
+                      : null;
                     // A completed self-marked shift has real hours to show —
                     // that's more useful to a manager than a plain "P".
                     const hasHours = mark?.hoursWorked != null;
                     const cellText = hasHours ? formatHours(mark.hoursWorked) : meta?.letter;
                     const cellTitle = mark
-                      ? mark.inferred
-                        ? 'Off — weekly day off (not recorded)'
-                        : [mark.status, hasHours && `${formatHours(mark.hoursWorked)} hrs`, mark.source === 'self' && 'self-marked']
-                            .filter(Boolean)
-                            .join(' · ')
+                      ? mark.status === 'Holiday'
+                        ? `Holiday — ${mark.holidayName} (not recorded)`
+                        : mark.inferred
+                          ? 'Off — weekly day off (not recorded)'
+                          : [mark.status, hasHours && `${formatHours(mark.hoursWorked)} hrs`, mark.source === 'self' && 'self-marked']
+                              .filter(Boolean)
+                              .join(' · ')
                       : canEdit
                         ? 'Click to add'
                         : undefined;

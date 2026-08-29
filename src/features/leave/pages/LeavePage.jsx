@@ -29,6 +29,7 @@ import {
   LEAVE_DECIDE_ROLES,
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
+import UpcomingHolidays from '../../holidays/components/UpcomingHolidays.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -103,6 +104,8 @@ function LeaveTypesPanel() {
                   {t.recurrence === 'Annual' && ` · ${t.daysPerYear} days/yr${t.tierYears ? ` (${t.tierDaysPerYear} after ${t.tierYears}yr)` : ''}`}
                   {t.recurrence === 'ContractCycle' && ` · ${t.daysPerCycle} days every ${t.cycleYears}yr`}
                   {t.minServiceMonths > 0 && ` · min ${t.minServiceMonths}mo service`}
+                  {t.maxDaysPerRequest ? ` · capped at ${t.maxDaysPerRequest}d/request` : ''}
+                  {!t.isPaid && ' · unpaid'}
                 </p>
               </div>
               <Badge variant={t.isActive ? 'success' : 'default'}>{t.isActive ? 'Active' : 'Inactive'}</Badge>
@@ -141,14 +144,28 @@ function LeaveTypesPanel() {
             </div>
           )}
 
-          <Input
-            label="Minimum service before eligible (months)"
-            type="number"
-            min="0"
-            error={errors.minServiceMonths?.message}
-            {...register('minServiceMonths')}
-          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label="Minimum service before eligible (months)"
+              type="number"
+              min="0"
+              error={errors.minServiceMonths?.message}
+              {...register('minServiceMonths')}
+            />
+            <Input
+              label="Max days per request"
+              type="number"
+              min="1"
+              placeholder="No cap"
+              error={errors.maxDaysPerRequest?.message}
+              {...register('maxDaysPerRequest')}
+            />
+          </div>
 
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isPaid')} />
+            Paid leave
+          </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isActive')} />
             Active — visible when staff/workers submit a request
@@ -293,6 +310,7 @@ export default function LeavePage() {
             : 'Leave requests across the company.'
         }
       />
+      <UpcomingHolidays />
       {canManageTypes && <LeaveTypesPanel />}
       <ReviewQueue />
     </div>

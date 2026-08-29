@@ -71,6 +71,12 @@ const NAV_ITEMS = [
     icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5',
   },
   {
+    to: '/holidays',
+    label: 'Holidays',
+    // Read-open to all staff (GET /api/holidays); only Admin/Manager/HR manage it.
+    icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5M8.25 14.25h1.5m3 0h1.5m-6 3h1.5m3 0h1.5',
+  },
+  {
     to: '/team',
     label: 'Team',
     // P2-M2: staff-account management (incl. Coordinator logins).

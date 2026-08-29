@@ -14,6 +14,7 @@ import { submitLeaveFormSchema, emptySubmitLeaveForm } from '../../leave/leave.s
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import { LEAVE_STATUS_VARIANT, LEAVE_REQUEST_STATUS_LABELS } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
+import UpcomingHolidays from '../../holidays/components/UpcomingHolidays.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -75,6 +76,8 @@ export default function MyLeavePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="My leave" description="Request leave and track its status." />
+
+      <UpcomingHolidays />
 
       <Card>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Request leave</h2>

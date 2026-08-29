@@ -21,6 +21,8 @@ export const leaveTypeFormSchema = z
     cycleYears: optionalNum,
     daysPerCycle: optionalNum,
     minServiceMonths: z.string().min(1, 'Enter 0 if there is no minimum.'),
+    maxDaysPerRequest: optionalNum,
+    isPaid: z.boolean(),
     isActive: z.boolean(),
   })
   .superRefine((data, ctx) => {
@@ -57,6 +59,8 @@ export const emptyLeaveTypeForm = {
   cycleYears: '',
   daysPerCycle: '',
   minServiceMonths: '0',
+  maxDaysPerRequest: '',
+  isPaid: true,
   isActive: true,
 };
 
@@ -70,6 +74,8 @@ export function leaveTypeToForm(type) {
     cycleYears: type.cycleYears != null ? String(type.cycleYears) : '',
     daysPerCycle: type.daysPerCycle != null ? String(type.daysPerCycle) : '',
     minServiceMonths: String(type.minServiceMonths ?? 0),
+    maxDaysPerRequest: type.maxDaysPerRequest != null ? String(type.maxDaysPerRequest) : '',
+    isPaid: type.isPaid ?? true,
     isActive: type.isActive,
   };
 }

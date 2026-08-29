@@ -68,6 +68,9 @@ export const LEAVE_STATUS_VARIANT = {
 export const LEAVE_TYPE_MANAGE_ROLES = ['Admin', 'Manager'];
 export const LEAVE_DECIDE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
 
+/** Mirror of holiday.routes.js guards — read-open to everyone authenticated. */
+export const HOLIDAY_MANAGE_ROLES = ['Admin', 'Manager', 'HR'];
+
 /** Mirrors the Client model's status enum. */
 export const CLIENT_STATUSES = ['Active', 'Inactive'];
 
@@ -107,6 +110,13 @@ export const ATTENDANCE_STATUS_META = {
   Off: { letter: 'F', variant: 'default', cell: 'bg-border/60 text-muted' },
 };
 export const ATTENDANCE_STATUSES = Object.keys(ATTENDANCE_STATUS_META);
+
+/** Display-only inference for a company Holiday date in the records grid —
+ *  deliberately NOT part of ATTENDANCE_STATUS_META so it can never become a
+ *  selectable value in the manual status dropdown (see holiday.model.js: a
+ *  holiday is never written to Attendance itself). Cell styling matches the
+ *  grid's shared "inferred" treatment (see RecordsGrid.jsx), not its own color. */
+export const HOLIDAY_DISPLAY_META = { letter: 'H' };
 
 /** Mirrors Employee.weeklyOffDay's 0=Sun..6=Sat convention (Date#getUTCDay()). */
 export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
