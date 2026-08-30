@@ -3,13 +3,18 @@
  * real gatekeeper (same split as everywhere else in this app).
  */
 import { z } from 'zod';
-import { LEAVE_RECURRENCES } from '../../lib/constants.js';
+import { LEAVE_RECURRENCES, DEFAULT_SICK_PAY_TIERS } from '../../lib/constants.js';
 
 const optionalNum = z
   .string()
   .optional()
   .or(z.literal(''))
   .transform((v) => (v === '' || v === undefined ? undefined : v));
+
+const sickPayTierFormSchema = z.object({
+  days: z.string().min(1, 'Required.'),
+  payPercent: z.string().min(1, 'Required.'),
+});
 
 export const leaveTypeFormSchema = z
   .object({
@@ -20,6 +25,7 @@ export const leaveTypeFormSchema = z
     tierDaysPerYear: optionalNum,
     cycleYears: optionalNum,
     daysPerCycle: optionalNum,
+    sickPayTiers: z.array(sickPayTierFormSchema),
     minServiceMonths: z.string().min(1, 'Enter 0 if there is no minimum.'),
     maxDaysPerRequest: optionalNum,
     isPaid: z.boolean(),
@@ -31,6 +37,9 @@ export const leaveTypeFormSchema = z
     }
     if (data.recurrence === 'ContractCycle' && (!data.cycleYears || !data.daysPerCycle)) {
       ctx.addIssue({ code: 'custom', path: ['cycleYears'], message: 'Cycle length and days/cycle are required.' });
+    }
+    if (data.recurrence === 'Sick' && data.sickPayTiers.length === 0) {
+      ctx.addIssue({ code: 'custom', path: ['sickPayTiers'], message: 'At least one pay tier is required.' });
     }
     // Mirrors the server's cross-field check: a tier with no day count (or a
     // day count with no tier) is meaningless. Missing this on the client was
@@ -58,11 +67,18 @@ export const emptyLeaveTypeForm = {
   tierDaysPerYear: '',
   cycleYears: '',
   daysPerCycle: '',
+  sickPayTiers: [],
   minServiceMonths: '0',
   maxDaysPerRequest: '',
   isPaid: true,
   isActive: true,
 };
+
+/** Pre-filled with Article 117's statutory tiers — the sensible starting
+ *  point when someone picks 'Sick' for a brand-new leave type, editable
+ *  before saving. Only used for a NEW type; editing an existing one always
+ *  shows its own real stored tiers via leaveTypeToForm(). */
+export const emptySickLeaveTypeForm = { ...emptyLeaveTypeForm, recurrence: 'Sick', sickPayTiers: DEFAULT_SICK_PAY_TIERS };
 
 export function leaveTypeToForm(type) {
   return {
@@ -73,6 +89,7 @@ export function leaveTypeToForm(type) {
     tierDaysPerYear: type.tierDaysPerYear != null ? String(type.tierDaysPerYear) : '',
     cycleYears: type.cycleYears != null ? String(type.cycleYears) : '',
     daysPerCycle: type.daysPerCycle != null ? String(type.daysPerCycle) : '',
+    sickPayTiers: (type.sickPayTiers ?? []).map((t) => ({ days: String(t.days), payPercent: String(t.payPercent) })),
     minServiceMonths: String(type.minServiceMonths ?? 0),
     maxDaysPerRequest: type.maxDaysPerRequest != null ? String(type.maxDaysPerRequest) : '',
     isPaid: type.isPaid ?? true,

@@ -177,7 +177,14 @@ export default function PayrollRunPage() {
                   {line.approvedHours || '—'}
                   {line.overtimeHours > 0 && <span className="block text-xs text-warning">{line.overtimeHours}h OT</span>}
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatMoney(line.totalDeductions)}</td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {formatMoney(line.totalDeductions)}
+                  {line.sickLeaveDeduction > 0 && (
+                    <span className="block text-xs font-normal text-danger" title={line.sickLeaveNote}>
+                      -{formatMoney(line.sickLeaveDeduction)} sick
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatMoney(line.netPay)}</td>
                 <td className="px-4 py-3 text-right">
                   <span className="flex justify-end gap-2">

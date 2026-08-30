@@ -4,8 +4,8 @@
  * Manager/HR/Coordinator decide — Coordinator scoped to their own team by
  * the server). Workers use MyLeavePage (/me/leave) instead.
  */
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -16,7 +16,7 @@ import {
   decideLeaveRequest,
   acknowledgeLeaveRequest,
 } from '../leave.api.js';
-import { leaveTypeFormSchema, emptyLeaveTypeForm, leaveTypeToForm } from '../leave.schema.js';
+import { leaveTypeFormSchema, emptyLeaveTypeForm, emptySickLeaveTypeForm, leaveTypeToForm } from '../leave.schema.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import {
@@ -49,12 +49,27 @@ function LeaveTypesPanel() {
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({ resolver: zodResolver(leaveTypeFormSchema), defaultValues: emptyLeaveTypeForm });
+  const { fields: tierFields, append: appendTier, remove: removeTier } = useFieldArray({ control, name: 'sickPayTiers' });
   const recurrence = watch('recurrence');
+
+  // Switching a NEW leave type to 'Sick' pre-fills Article 117's statutory
+  // tiers as a starting point (editable before saving) — only the tiers
+  // field, so it never clobbers a name the user already typed. Only for a
+  // brand new type; editing an existing one already loaded its own real
+  // tiers via leaveTypeToForm(), so this must never fire for `editing?._id`.
+  useEffect(() => {
+    if (!editing || editing._id) return;
+    if (recurrence === 'Sick' && tierFields.length === 0) {
+      setValue('sickPayTiers', emptySickLeaveTypeForm.sickPayTiers);
+    }
+  }, [recurrence, editing, tierFields.length, setValue]);
 
   const saveMutation = useMutation({
     mutationFn: (values) =>
@@ -103,9 +118,13 @@ function LeaveTypesPanel() {
                   {LEAVE_RECURRENCE_LABELS[t.recurrence]}
                   {t.recurrence === 'Annual' && ` · ${t.daysPerYear} days/yr${t.tierYears ? ` (${t.tierDaysPerYear} after ${t.tierYears}yr)` : ''}`}
                   {t.recurrence === 'ContractCycle' && ` · ${t.daysPerCycle} days every ${t.cycleYears}yr`}
+                  {t.recurrence === 'Sick' &&
+                    ` · ${(t.sickPayTiers ?? []).reduce((sum, tier) => sum + tier.days, 0)} days/yr (${(t.sickPayTiers ?? [])
+                      .map((tier) => `${tier.days}d @ ${tier.payPercent}%`)
+                      .join(', ')})`}
                   {t.minServiceMonths > 0 && ` · min ${t.minServiceMonths}mo service`}
                   {t.maxDaysPerRequest ? ` · capped at ${t.maxDaysPerRequest}d/request` : ''}
-                  {!t.isPaid && ' · unpaid'}
+                  {t.recurrence !== 'Sick' && !t.isPaid && ' · unpaid'}
                 </p>
               </div>
               <Badge variant={t.isActive ? 'success' : 'default'}>{t.isActive ? 'Active' : 'Inactive'}</Badge>
@@ -143,6 +162,48 @@ function LeaveTypesPanel() {
               <Input label="Days per cycle *" type="number" min="0" error={errors.daysPerCycle?.message} {...register('daysPerCycle')} />
             </div>
           )}
+          {recurrence === 'Sick' && (
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-sm font-medium">Pay tiers *</label>
+                <Button type="button" size="sm" variant="secondary" onClick={() => appendTier({ days: '', payPercent: '' })}>
+                  Add tier
+                </Button>
+              </div>
+              <p className="mb-2 text-xs text-muted">
+                The next N days of sick leave taken each leave year are paid at the given %, in order. Article 117's
+                default is 30 days @ 100%, 60 days @ 75%, 30 days @ 0% (120 days/year total) — adjust if your company
+                policy is more generous.
+              </p>
+              <div className="space-y-2">
+                {tierFields.map((field, i) => (
+                  <div key={field.id} className="flex items-start gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Days"
+                      aria-label={`Tier ${i + 1} days`}
+                      error={errors.sickPayTiers?.[i]?.days?.message}
+                      {...register(`sickPayTiers.${i}.days`)}
+                    />
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="Pay %"
+                      aria-label={`Tier ${i + 1} pay percent`}
+                      error={errors.sickPayTiers?.[i]?.payPercent?.message}
+                      {...register(`sickPayTiers.${i}.payPercent`)}
+                    />
+                    <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => removeTier(i)} aria-label="Remove tier">
+                      ✕
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {errors.sickPayTiers?.message && <p className="mt-1 text-sm text-danger">{errors.sickPayTiers.message}</p>}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
@@ -162,10 +223,12 @@ function LeaveTypesPanel() {
             />
           </div>
 
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isPaid')} />
-            Paid leave
-          </label>
+          {recurrence !== 'Sick' && (
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isPaid')} />
+              Paid leave
+            </label>
+          )}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isActive')} />
             Active — visible when staff/workers submit a request

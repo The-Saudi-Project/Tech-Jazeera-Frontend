@@ -43,12 +43,21 @@ export const STAFF_ASSIGNABLE_ROLES = ['Admin', 'Manager', 'HR', 'Accounts', 'Co
 export const MANAGER_ELIGIBLE_ROLES = ['Admin', 'Manager'];
 
 /** Mirrors leaveType.model.js / leaveRequest.model.js (P2-M2). */
-export const LEAVE_RECURRENCES = ['Annual', 'ContractCycle', 'Manual'];
+export const LEAVE_RECURRENCES = ['Annual', 'ContractCycle', 'Sick', 'Manual'];
 export const LEAVE_RECURRENCE_LABELS = {
   Annual: 'Annual (recurring)',
   ContractCycle: 'Contract-cycle (one-time per cycle)',
+  Sick: 'Sick (tiered pay)',
   Manual: 'Manual review only',
 };
+/** Article 117's statutory default — pre-filled when a new 'Sick' leave
+ *  type is created, but a real editable field, not a hardcoded rate (a
+ *  company may pay more generously). See leaveType.model.js. */
+export const DEFAULT_SICK_PAY_TIERS = [
+  { days: '30', payPercent: '100' },
+  { days: '60', payPercent: '75' },
+  { days: '30', payPercent: '0' },
+];
 export const LEAVE_REQUEST_STATUSES = ['AutoApproved', 'PendingReview', 'Approved', 'Rejected', 'Cancelled'];
 export const LEAVE_REQUEST_STATUS_LABELS = {
   AutoApproved: 'Auto-approved',
