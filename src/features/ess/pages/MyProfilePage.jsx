@@ -4,6 +4,7 @@
  * and rendered read-only — a worker never edits their own HR record here.
  */
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getMyProfile } from '../ess.api.js';
 import { formatDate, formatMoney } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -15,13 +16,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 const STATUS_VARIANT = { Active: 'success', 'On Leave': 'warning', Exited: 'default' };
-const DOCUMENTS = [
-  ['passport', 'Passport'],
-  ['visa', 'Visa'],
-  ['iqama', 'Iqama'],
-  ['medical', 'Medical'],
-  ['drivingLicense', 'Driving License'],
-];
+const DOCUMENTS = ['passport', 'visa', 'iqama', 'medical', 'drivingLicense'];
 
 function Field({ label, value }) {
   return (
@@ -33,6 +28,7 @@ function Field({ label, value }) {
 }
 
 export default function MyProfilePage() {
+  const { t } = useTranslation();
   const { data: employee, isPending, isError, refetch } = useQuery({
     queryKey: ['me', 'profile'],
     queryFn: getMyProfile,
@@ -50,11 +46,11 @@ export default function MyProfilePage() {
   if (isError) {
     return (
       <div className="mx-auto max-w-3xl">
-        <PageHeader title="My profile" />
+        <PageHeader title={t('profile.title')} />
         <EmptyState
-          title="Could not load your profile"
-          description="Check your connection and try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('profile.loadError')}
+          description={t('common.checkConnection')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       </div>
     );
@@ -65,46 +61,46 @@ export default function MyProfilePage() {
       <PageHeader
         title={employee.fullName}
         description={`${employee.employeeId} · ${employee.designation}`}
-        actions={<Badge variant={STATUS_VARIANT[employee.status]}>{employee.status}</Badge>}
+        actions={<Badge variant={STATUS_VARIANT[employee.status]}>{t(`profile.employeeStatus.${employee.status}`, employee.status)}</Badge>}
       />
 
       <Card>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Personal details</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('profile.personalDetails')}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Nationality" value={employee.nationality} />
-          <Field label="Mobile" value={employee.mobile} />
-          <Field label="Email" value={employee.email} />
-          <Field label="Joining date" value={formatDate(employee.joiningDate)} />
+          <Field label={t('profile.nationality')} value={employee.nationality} />
+          <Field label={t('profile.mobile')} value={employee.mobile} />
+          <Field label={t('profile.email')} value={employee.email} />
+          <Field label={t('profile.joiningDate')} value={formatDate(employee.joiningDate)} />
         </div>
       </Card>
 
       <Card>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Employment</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('profile.employment')}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Designation" value={employee.designation} />
-          <Field label="Department" value={employee.department} />
-          <Field label="Monthly salary" value={formatMoney(employee.salary)} />
-          <Field label="Accommodation" value={employee.accommodation} />
+          <Field label={t('profile.designation')} value={employee.designation} />
+          <Field label={t('profile.department')} value={employee.department} />
+          <Field label={t('profile.monthlySalary')} value={formatMoney(employee.salary)} />
+          <Field label={t('profile.accommodation')} value={employee.accommodation} />
           <Field
-            label="Current client"
+            label={t('profile.currentClient')}
             value={employee.currentClient?.companyName ?? (employee.currentSite ? employee.currentSite : null)}
           />
-          <Field label="My coordinator" value={employee.coordinator ? `${employee.coordinator.name}` : 'Not assigned'} />
+          <Field label={t('profile.myCoordinator')} value={employee.coordinator ? `${employee.coordinator.name}` : t('common.notAssigned')} />
         </div>
       </Card>
 
       <Card>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Documents on file</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('profile.documentsOnFile')}</h2>
         <div className="divide-y divide-border">
-          {DOCUMENTS.map(([key, label]) => {
+          {DOCUMENTS.map((key) => {
             const doc = employee[key];
             return (
               <div key={key} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <div>
-                  <p className="font-medium">{label}</p>
+                  <p className="font-medium">{t(`profile.documents.${key}`)}</p>
                   <p className="text-xs text-muted">
-                    {doc?.number ? `No. ${doc.number}` : 'No number on file'}
-                    {doc?.expiry ? ` · expires ${formatDate(doc.expiry)}` : ''}
+                    {doc?.number ? t('profile.docNumber', { number: doc.number }) : t('profile.docNoNumber')}
+                    {doc?.expiry ? t('profile.docExpires', { date: formatDate(doc.expiry) }) : ''}
                   </p>
                 </div>
                 <ExpiryBadge date={doc?.expiry} />
@@ -116,11 +112,11 @@ export default function MyProfilePage() {
 
       {employee.emergencyContact?.name && (
         <Card>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Emergency contact</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('profile.emergencyContact')}</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Field label="Name" value={employee.emergencyContact.name} />
-            <Field label="Phone" value={employee.emergencyContact.phone} />
-            <Field label="Relation" value={employee.emergencyContact.relation} />
+            <Field label={t('profile.contactName')} value={employee.emergencyContact.name} />
+            <Field label={t('profile.contactPhone')} value={employee.emergencyContact.phone} />
+            <Field label={t('profile.contactRelation')} value={employee.emergencyContact.relation} />
           </div>
         </Card>
       )}

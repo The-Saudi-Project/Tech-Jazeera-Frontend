@@ -7,20 +7,26 @@
  * behind it, so the effect adds warmth without costing legibility.
  */
 import { Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
+import LanguageSwitcher from '../../components/shared/LanguageSwitcher.jsx';
 
 export default function AuthLayout() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
-      <ThemeToggle className="fixed right-4 top-4" />
+      <div className="fixed right-4 top-4 flex items-center gap-2">
+        <LanguageSwitcher className="w-auto" />
+        <ThemeToggle />
+      </div>
       <div className="flex items-center gap-2.5">
         <img src="/logo.png" alt="Al Jazeera" className="h-10 w-10 rounded-xl shadow-glow" />
-        <span className="text-lg font-semibold tracking-tight">Al Jazeera ERP</span>
+        <span className="text-lg font-semibold tracking-tight">{t('common.appName')}</span>
       </div>
       <div className="w-full max-w-sm rounded-2xl border border-white/60 bg-surface/70 p-6 shadow-xl backdrop-blur-xl animate-rise-in dark:border-white/10">
         <Outlet />
       </div>
-      <p className="text-xs text-muted">Internal system, authorized staff only</p>
+      <p className="text-xs text-muted">{t('auth.footerNotice')}</p>
     </div>
   );
 }

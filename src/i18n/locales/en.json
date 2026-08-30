@@ -1,0 +1,343 @@
+{
+  "common": {
+    "appName": "Al Jazeera ERP",
+    "save": "Save",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "download": "Download",
+    "submitRequest": "Submit request",
+    "optional": "Optional",
+    "note": "Note",
+    "checkConnection": "Check your connection and try again.",
+    "notAssigned": "Not assigned",
+    "language": "Language",
+    "expiry": {
+      "notSet": "Not set",
+      "expired": "Expired",
+      "daysLeft": "{{days}}d left",
+      "valid": "Valid"
+    },
+    "status": {
+      "Pending": "Pending",
+      "PendingReview": "Pending review",
+      "AutoApproved": "Approved",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Cancelled": "Cancelled",
+      "Closed": "Closed",
+      "Submitted": "Submitted",
+      "Paid": "Paid",
+      "Issued": "Issued",
+      "Present": "Present",
+      "Absent": "Absent",
+      "Leave": "Leave",
+      "Sick": "Sick",
+      "Off": "Off"
+    },
+    "months": {
+      "1": "January", "2": "February", "3": "March", "4": "April",
+      "5": "May", "6": "June", "7": "July", "8": "August",
+      "9": "September", "10": "October", "11": "November", "12": "December"
+    }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "useCompanyAccount": "Use your company account",
+    "email": "Email",
+    "password": "Password",
+    "couldNotLogIn": "Could not log in. Is the server running?",
+    "footerNotice": "Internal system, authorized staff only"
+  },
+  "nav": {
+    "myProfile": "My Profile",
+    "myDocuments": "My Documents",
+    "myAttendance": "My Attendance",
+    "myLeave": "My Leave",
+    "myRequests": "My Requests",
+    "visasAndDocuments": "Visas & Documents",
+    "myPayslips": "My Payslips",
+    "workspaceTitle": "My Workspace",
+    "footerLine1": "Al Jazeera ERP",
+    "footerLine2": "Employee self-service"
+  },
+  "header": {
+    "employee": "Employee",
+    "updateProfilePhoto": "Update profile photo",
+    "changePassword": "Change password",
+    "logOut": "Log out",
+    "notifications": "Notifications"
+  },
+  "changePasswordModal": {
+    "title": "Change password",
+    "currentPassword": "Current password *",
+    "newPassword": "New password *",
+    "confirmPassword": "Confirm new password *",
+    "signOutNotice": "You'll be signed out of every device and need to sign back in with the new password.",
+    "submit": "Change password",
+    "success": "Password changed. Please sign in again."
+  },
+  "avatarModal": {
+    "title": "Profile photo",
+    "chooseImage": "Choose image",
+    "removePhoto": "Remove photo",
+    "fileHint": "PNG, JPG, or WEBP — up to {{maxMb}} MB. Square images look best.",
+    "fileTooLarge": "Image is too large (maximum {{maxMb}} MB).",
+    "savePhoto": "Save photo",
+    "uploadSuccess": "Profile photo updated.",
+    "removeSuccess": "Profile photo removed."
+  },
+  "notificationsPanel": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications yet.",
+    "enablePush": "Enable push notifications",
+    "disablePush": "Turn off push notifications",
+    "pushEnabled": "Push notifications enabled.",
+    "pushDisabled": "Push notifications turned off.",
+    "pushError": "Could not update push notifications."
+  },
+  "profile": {
+    "title": "My profile",
+    "loadError": "Could not load your profile",
+    "personalDetails": "Personal details",
+    "nationality": "Nationality",
+    "mobile": "Mobile",
+    "email": "Email",
+    "joiningDate": "Joining date",
+    "employment": "Employment",
+    "designation": "Designation",
+    "department": "Department",
+    "monthlySalary": "Monthly salary",
+    "accommodation": "Accommodation",
+    "currentClient": "Current client",
+    "myCoordinator": "My coordinator",
+    "documentsOnFile": "Documents on file",
+    "documents": {
+      "passport": "Passport",
+      "visa": "Visa",
+      "iqama": "Iqama",
+      "medical": "Medical",
+      "drivingLicense": "Driving License"
+    },
+    "docNumber": "No. {{number}}",
+    "docNoNumber": "No number on file",
+    "docExpires": " · expires {{date}}",
+    "emergencyContact": "Emergency contact",
+    "contactName": "Name",
+    "contactPhone": "Phone",
+    "contactRelation": "Relation",
+    "employeeStatus": {
+      "Active": "Active",
+      "On Leave": "On Leave",
+      "Exited": "Exited"
+    }
+  },
+  "documents": {
+    "title": "My documents",
+    "description": "Passport, visa, iqama and other files on file for you.",
+    "loadError": "Could not load your documents",
+    "empty": "No documents yet",
+    "emptyDescription": "Your office hasn't uploaded any documents for you yet.",
+    "uploaded": "Uploaded {{date}}",
+    "preview": {
+      "cannotPreview": "This file type can't be previewed in the browser.",
+      "downloadToView": "Download it to view.",
+      "loadError": "Could not load the file."
+    }
+  },
+  "attendance": {
+    "title": "My attendance",
+    "description": "Sign in when you arrive and sign out when you leave — sign out and back in as many times as you need throughout the day.",
+    "todaySetByOffice": "Today: {{status}}",
+    "setByOfficeNotice": "Set by your office — contact HR to change it.",
+    "signedInAt": "Signed in at {{time}}",
+    "signedOutAt": "Signed out at {{time}}",
+    "hoursToday": "{{hours}} hrs today · {{verifiedBy}}",
+    "notSignedInYet": "You haven't signed in today.",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "signInAgain": "Sign in again",
+    "locationNotice": "You'll be asked for your location — you must be at the office (or on the office network) for this to work. Sign out and back in as many times as you need during the day; each session adds to today's hours.",
+    "recentHistory": "Recent history",
+    "loadError": "Could not load your attendance",
+    "empty": "No attendance yet",
+    "emptyDescription": "Your signed-in days will appear here.",
+    "hoursSuffix": "{{hours}} hrs",
+    "signedIn": "Signed in.",
+    "signedOutWithHours": "Signed out — {{hours}} hrs today.",
+    "verifiedBy": {
+      "geofence": "Verified by location",
+      "officeIp": "Verified by office network",
+      "selfMarked": "Self-marked"
+    },
+    "earlySignOut": {
+      "title": "Sign out early?",
+      "message": "You've been signed in for about {{hoursSoFar}} hrs — your expected shift is {{expected}} hrs. Sign out anyway?",
+      "confirmLabel": "Sign out anyway"
+    },
+    "timesheet": {
+      "title": "Weekly timesheet",
+      "submitPrompt": "Submit this week for your supervisor to approve.",
+      "alreadyStatus": "This week is already {{status}}.",
+      "submitButton": "Submit this week",
+      "submitted": "Timesheet submitted — {{hours}} hrs{{overtime}}.",
+      "overtimeSuffix": " ({{hours}} overtime)"
+    }
+  },
+  "leave": {
+    "title": "My leave",
+    "description": "Request leave and track its status.",
+    "upcomingHolidays": "Upcoming holidays",
+    "requestLeave": "Request leave",
+    "leaveType": "Leave type *",
+    "chooseLeaveType": "Choose a leave type…",
+    "startDate": "Start date *",
+    "endDate": "End date *",
+    "reason": "Reason",
+    "yourRequests": "Your requests",
+    "loadError": "Could not load your leave requests",
+    "empty": "No leave requests yet",
+    "emptyDescription": "Submit your first request above.",
+    "days": "{{count}} day",
+    "days_other": "{{count}} days",
+    "cancelButton": "Cancel",
+    "cancelDialog": {
+      "title": "Cancel leave request?",
+      "message": "Your {{type}} request for {{days}} day(s) will be cancelled."
+    },
+    "autoApprovedToast": "Leave request approved.",
+    "submittedToast": "Leave request submitted for review.",
+    "cancelledToast": "Leave request cancelled."
+  },
+  "requests": {
+    "title": "My requests",
+    "description": "Salary advances and expense reimbursement claims.",
+    "advances": {
+      "sectionTitle": "Request a salary advance",
+      "amount": "Amount (SAR) *",
+      "repaymentMonths": "Repay over (months) *",
+      "reason": "Reason",
+      "yourRequests": "Your advance requests",
+      "loadError": "Could not load your advance requests",
+      "empty": "No advance requests yet",
+      "emptyDescription": "Submit your first request above.",
+      "overMonths": "Over {{count}} month",
+      "overMonths_other": "Over {{count}} months",
+      "requestedOn": " · requested {{date}}",
+      "outstanding": "Outstanding: {{amount}}",
+      "submittedToast": "Advance request submitted.",
+      "cancelledToast": "Advance request cancelled.",
+      "cancelDialog": {
+        "title": "Cancel advance request?",
+        "message": "Your request for {{amount}} will be cancelled."
+      }
+    },
+    "reimbursements": {
+      "sectionTitle": "Claim an expense",
+      "category": "Category *",
+      "chooseCategory": "Choose a category…",
+      "amount": "Amount (SAR) *",
+      "expenseDate": "Expense date *",
+      "description": "Description",
+      "receipt": "Receipt *",
+      "chooseFile": "Choose file",
+      "changeFile": "Change file",
+      "fileHint": "PDF, JPG, PNG, or WEBP — up to {{maxMb}} MB.",
+      "fileTooLarge": "File is too large (maximum {{maxMb}} MB).",
+      "attachReceiptFirst": "Attach a receipt before submitting.",
+      "submitClaim": "Submit claim",
+      "yourClaims": "Your reimbursement claims",
+      "loadError": "Could not load your claims",
+      "empty": "No reimbursement claims yet",
+      "emptyDescription": "Submit your first claim above.",
+      "expenseOn": "Expense {{date}}",
+      "receiptButton": "Receipt",
+      "receiptDownloadError": "Could not download the receipt.",
+      "submittedToast": "Reimbursement claim submitted.",
+      "cancelledToast": "Reimbursement claim cancelled.",
+      "cancelDialog": {
+        "title": "Cancel reimbursement claim?",
+        "message": "Your {{category}} claim for {{amount}} will be cancelled."
+      },
+      "categories": {
+        "Travel": "Travel",
+        "Fuel": "Fuel",
+        "Meals": "Meals",
+        "Medical": "Medical",
+        "Tools": "Tools",
+        "Other": "Other"
+      }
+    }
+  },
+  "exitDocuments": {
+    "title": "Visas & Documents",
+    "description": "Exit re-entry visas, official certificates, and your assigned assets.",
+    "exitReentry": {
+      "sectionTitle": "Request an exit re-entry visa",
+      "visaType": "Visa type *",
+      "choose": "Choose…",
+      "departureDate": "Departure date *",
+      "expectedReturn": "Expected return by *",
+      "reason": "Reason",
+      "yourRequests": "Your visa requests",
+      "loadError": "Could not load your requests",
+      "empty": "No requests yet",
+      "emptyDescription": "Submit your first request above.",
+      "exitLabel": "{{type}} exit",
+      "departReturn": "Depart {{departure}} · return by {{returnDate}}",
+      "reference": "Ref: {{ref}}",
+      "submittedToast": "Exit re-entry request submitted.",
+      "cancelledToast": "Request cancelled.",
+      "cancelDialog": {
+        "title": "Cancel visa request?",
+        "message": "This exit re-entry visa request will be cancelled."
+      },
+      "visaTypes": {
+        "Single": "Single",
+        "Multiple": "Multiple"
+      }
+    },
+    "certificates": {
+      "sectionTitle": "Request a certificate",
+      "type": "Certificate type *",
+      "choose": "Choose…",
+      "purpose": "Purpose",
+      "purposePlaceholder": "e.g. Bank account opening, visa application",
+      "yourRequests": "Your certificate requests",
+      "loadError": "Could not load your requests",
+      "empty": "No requests yet",
+      "emptyDescription": "Submit your first request above.",
+      "forPurpose": "For: {{purpose}}",
+      "submittedToast": "Certificate request submitted.",
+      "cancelledToast": "Certificate request cancelled.",
+      "downloadError": "Could not generate the PDF.",
+      "cancelDialog": {
+        "title": "Cancel certificate request?",
+        "message": "Your {{type}} request will be cancelled."
+      },
+      "types": {
+        "SalaryCertificate": "Salary Certificate",
+        "ServiceCertificate": "Service Certificate",
+        "ChamberOfCommerceAttestation": "Chamber of Commerce Attestation"
+      }
+    },
+    "assets": {
+      "sectionTitle": "Your assigned assets",
+      "loadError": "Could not load your assets",
+      "empty": "No assets assigned",
+      "emptyDescription": "Company assets assigned to you will appear here.",
+      "currentlyWithYou": "Currently with you",
+      "returnedOn": "Returned {{date}}"
+    }
+  },
+  "payslips": {
+    "title": "My payslips",
+    "description": "Your finalized monthly pay.",
+    "loadError": "Could not load your payslips",
+    "empty": "No payslips yet",
+    "emptyDescription": "Your finalized monthly payslips will appear here.",
+    "netPay": "Net pay {{amount}}",
+    "download": "Download",
+    "downloadError": "Could not generate the payslip."
+  }
+}

@@ -22,6 +22,7 @@ import Input from '../../../components/ui/Input.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
+import RamadanPeriodsSection from '../../ramadan/components/RamadanPeriodsSection.jsx';
 
 export default function HolidayListPage() {
   const { user } = useAuth();
@@ -121,8 +122,8 @@ export default function HolidayListPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
-        title="Holidays"
-        description="The official public holiday calendar — days no one is marked absent for."
+        title="Holidays & Ramadan"
+        description="The official public holiday calendar, plus the Ramadan reduced-hours period used for overtime."
         actions={
           canManage && (
             <Button size="sm" onClick={openNew}>
@@ -195,6 +196,13 @@ export default function HolidayListPage() {
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}
       />
+
+      {/* P3-E: a second, related calendar-configuration section on the same
+          page — see RamadanPeriodsSection's own doc comment for why this
+          isn't a separate nav item. */}
+      <div className="mt-10 border-t border-border pt-8">
+        <RamadanPeriodsSection />
+      </div>
     </div>
   );
 }

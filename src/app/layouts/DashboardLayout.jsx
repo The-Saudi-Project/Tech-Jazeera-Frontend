@@ -15,6 +15,7 @@ import { useAuth } from '../../features/auth/AuthContext.jsx';
 import ChangePasswordModal from '../../features/auth/components/ChangePasswordModal.jsx';
 import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.jsx';
 import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
+import NotificationBell from '../../components/shared/NotificationBell.jsx';
 import { cn } from '../../lib/utils.js';
 import {
   STAFF_USER_VIEW_ROLES,
@@ -264,6 +265,7 @@ export default function DashboardLayout() {
               <p className="text-xs text-muted">{user.role}</p>
             </div>
             <ThemeToggle />
+            <NotificationBell />
             <button
               onClick={() => setAvatarModalOpen(true)}
               title="Update profile photo"

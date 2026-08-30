@@ -18,6 +18,7 @@
  */
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { punchMyAttendance, listMyAttendance, getMyProfile, listMyTimesheets, submitMyTimesheet } from '../ess.api.js';
 import { apiMessage, formatDate, formatHours, formatTime } from '../../../lib/utils.js';
 import { ATTENDANCE_STATUS_META, TIMESHEET_STATUS_VARIANT } from '../../../lib/constants.js';
@@ -30,8 +31,6 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 
-const VERIFIED_LABEL = { geofence: 'Verified by location', officeIp: 'Verified by office network' };
-
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -40,6 +39,7 @@ function todayKey() {
  *  doesn't re-enter hours, just summarizes what's already recorded (see
  *  timesheet.service.js). */
 function MyTimesheetsSection() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -51,7 +51,11 @@ function MyTimesheetsSection() {
   const submitMutation = useMutation({
     mutationFn: () => submitMyTimesheet({ periodStart: new Date().toISOString() }),
     onSuccess: (timesheet) => {
-      toast.success(`Timesheet submitted — ${formatHours(timesheet.totalHours)} hrs.`);
+      const overtime =
+        timesheet.overtimeHours > 0
+          ? t('attendance.timesheet.overtimeSuffix', { hours: formatHours(timesheet.overtimeHours) })
+          : '';
+      toast.success(t('attendance.timesheet.submitted', { hours: formatHours(timesheet.totalHours), overtime }));
       queryClient.invalidateQueries({ queryKey: ['me', 'timesheets'] });
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -63,32 +67,39 @@ function MyTimesheetsSection() {
 
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Weekly timesheet</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('attendance.timesheet.title')}</h2>
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted">
             {canSubmitThisWeek
-              ? 'Submit this week for your supervisor to approve.'
-              : `This week is already ${thisWeek.status.toLowerCase()}.`}
+              ? t('attendance.timesheet.submitPrompt')
+              : t('attendance.timesheet.alreadyStatus', { status: t(`common.status.${thisWeek.status}`, thisWeek.status).toLowerCase() })}
           </p>
           {canSubmitThisWeek && (
             <Button size="sm" isLoading={submitMutation.isPending} onClick={() => submitMutation.mutate()}>
-              Submit this week
+              {t('attendance.timesheet.submitButton')}
             </Button>
           )}
         </div>
 
         {!isPending && items.length > 0 && (
           <div className="mt-4 divide-y divide-border border-t border-border">
-            {items.map((t) => (
-              <div key={t._id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+            {items.map((t2) => (
+              <div key={t2._id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <div>
                   <p className="font-medium">
-                    {formatDate(t.periodStart)} – {formatDate(t.periodEnd)}
+                    {formatDate(t2.periodStart)} – {formatDate(t2.periodEnd)}
                   </p>
-                  <p className="text-xs text-muted">{formatHours(t.totalHours)} hrs</p>
+                  <p className="text-xs text-muted">
+                    {t('attendance.hoursSuffix', { hours: formatHours(t2.totalHours) })}
+                    {t2.overtimeHours > 0 && (
+                      <span className="text-warning">
+                        {t('attendance.timesheet.overtimeSuffix', { hours: formatHours(t2.overtimeHours) })}
+                      </span>
+                    )}
+                  </p>
                 </div>
-                <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
+                <Badge variant={TIMESHEET_STATUS_VARIANT[t2.status]}>{t(`common.status.${t2.status}`, t2.status)}</Badge>
               </div>
             ))}
           </div>
@@ -99,10 +110,16 @@ function MyTimesheetsSection() {
 }
 
 export default function MyAttendancePage() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [locating, setLocating] = useState(false);
   const [confirmEarlySignOut, setConfirmEarlySignOut] = useState(null); // { hoursSoFar, expected } | null
+
+  const VERIFIED_LABEL = {
+    geofence: t('attendance.verifiedBy.geofence'),
+    officeIp: t('attendance.verifiedBy.officeIp'),
+  };
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['me', 'attendance'],
@@ -147,7 +164,9 @@ export default function MyAttendancePage() {
     mutationFn: punchMyAttendance,
     onSuccess: ({ action, record }) => {
       toast.success(
-        action === 'checked-in' ? 'Signed in.' : `Signed out — ${formatHours(record.hoursWorked)} hrs today.`
+        action === 'checked-in'
+          ? t('attendance.signedIn')
+          : t('attendance.signedOutWithHours', { hours: formatHours(record.hoursWorked) })
       );
       queryClient.invalidateQueries({ queryKey: ['me', 'attendance'] });
     },
@@ -175,61 +194,56 @@ export default function MyAttendancePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader
-        title="My attendance"
-        description="Sign in when you arrive and sign out when you leave — sign out and back in as many times as you need throughout the day."
-      />
+      <PageHeader title={t('attendance.title')} description={t('attendance.description')} />
 
       <Card>
         <div className="flex flex-col items-center gap-4 py-4 text-center">
           {isStaffSet ? (
             <>
               <Badge variant={ATTENDANCE_STATUS_META[todayRecord.status]?.variant ?? 'default'} className="text-sm">
-                Today: {todayRecord.status}
+                {t('attendance.todaySetByOffice', { status: t(`common.status.${todayRecord.status}`, todayRecord.status) })}
               </Badge>
-              <p className="text-xs text-muted">Set by your office — contact HR to change it.</p>
+              <p className="text-xs text-muted">{t('attendance.setByOfficeNotice')}</p>
             </>
           ) : (
             <>
               {signedInNotOut ? (
                 <Badge variant="success" className="text-sm">
-                  Signed in at {formatTime(todayRecord.checkInTime)}
+                  {t('attendance.signedInAt', { time: formatTime(todayRecord.checkInTime) })}
                 </Badge>
               ) : hasPunchedToday ? (
                 <>
                   <Badge variant="default" className="text-sm">
-                    Signed out at {formatTime(todayRecord.checkOutTime)}
+                    {t('attendance.signedOutAt', { time: formatTime(todayRecord.checkOutTime) })}
                   </Badge>
                   <p className="text-xs text-muted">
-                    {formatHours(todayRecord.hoursWorked)} hrs today ·{' '}
-                    {VERIFIED_LABEL[todayRecord.verifiedBy] ?? 'Self-marked'}
+                    {t('attendance.hoursToday', {
+                      hours: formatHours(todayRecord.hoursWorked),
+                      verifiedBy: VERIFIED_LABEL[todayRecord.verifiedBy] ?? t('attendance.verifiedBy.selfMarked'),
+                    })}
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-muted">You haven't signed in today.</p>
+                <p className="text-sm text-muted">{t('attendance.notSignedInYet')}</p>
               )}
 
               {signedInNotOut ? (
                 <Button onClick={handleSignOutClick} isLoading={busy} size="lg" variant="secondary">
-                  Sign out
+                  {t('attendance.signOut')}
                 </Button>
               ) : (
                 <Button onClick={doPunch} isLoading={busy} size="lg">
-                  {hasPunchedToday ? 'Sign in again' : 'Sign in'}
+                  {hasPunchedToday ? t('attendance.signInAgain') : t('attendance.signIn')}
                 </Button>
               )}
-              <p className="max-w-sm text-xs text-muted">
-                You'll be asked for your location — you must be at the office (or on the office network) for this to
-                work. Sign out and back in as many times as you need during the day; each session adds to today's
-                hours.
-              </p>
+              <p className="max-w-sm text-xs text-muted">{t('attendance.locationNotice')}</p>
             </>
           )}
         </div>
       </Card>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Recent history</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('attendance.recentHistory')}</h2>
         {isPending ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }, (_, i) => (
@@ -238,12 +252,12 @@ export default function MyAttendancePage() {
           </div>
         ) : isError ? (
           <EmptyState
-            title="Could not load your attendance"
-            description="Check your connection and try again."
-            action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+            title={t('attendance.loadError')}
+            description={t('common.checkConnection')}
+            action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
           />
         ) : data.length === 0 ? (
-          <EmptyState title="No attendance yet" description="Your signed-in days will appear here." />
+          <EmptyState title={t('attendance.empty')} description={t('attendance.emptyDescription')} />
         ) : (
           <Card className="divide-y divide-border">
             {data.map((r) => (
@@ -252,7 +266,7 @@ export default function MyAttendancePage() {
                   <p className="font-medium">{formatDate(r.date)}</p>
                   {r.source === 'self' && (
                     <p className="text-xs text-muted">
-                      {VERIFIED_LABEL[r.verifiedBy] ?? 'Self-marked'}
+                      {VERIFIED_LABEL[r.verifiedBy] ?? t('attendance.verifiedBy.selfMarked')}
                       {r.checkInTime && r.checkOutTime && (
                         <> · {formatTime(r.checkInTime)}–{formatTime(r.checkOutTime)}</>
                       )}
@@ -260,8 +274,10 @@ export default function MyAttendancePage() {
                   )}
                 </div>
                 <div className="text-right">
-                  <Badge variant={ATTENDANCE_STATUS_META[r.status]?.variant ?? 'default'}>{r.status}</Badge>
-                  {r.hoursWorked != null && <p className="mt-0.5 text-xs text-muted">{formatHours(r.hoursWorked)} hrs</p>}
+                  <Badge variant={ATTENDANCE_STATUS_META[r.status]?.variant ?? 'default'}>{t(`common.status.${r.status}`, r.status)}</Badge>
+                  {r.hoursWorked != null && (
+                    <p className="mt-0.5 text-xs text-muted">{t('attendance.hoursSuffix', { hours: formatHours(r.hoursWorked) })}</p>
+                  )}
                 </div>
               </div>
             ))}
@@ -273,12 +289,15 @@ export default function MyAttendancePage() {
 
       <ConfirmDialog
         open={Boolean(confirmEarlySignOut)}
-        title="Sign out early?"
+        title={t('attendance.earlySignOut.title')}
         message={
           confirmEarlySignOut &&
-          `You've been signed in for about ${formatHours(confirmEarlySignOut.hoursSoFar)} hrs — your expected shift is ${formatHours(confirmEarlySignOut.expected)} hrs. Sign out anyway?`
+          t('attendance.earlySignOut.message', {
+            hoursSoFar: formatHours(confirmEarlySignOut.hoursSoFar),
+            expected: formatHours(confirmEarlySignOut.expected),
+          })
         }
-        confirmLabel="Sign out anyway"
+        confirmLabel={t('attendance.earlySignOut.confirmLabel')}
         loading={punchMutation.isPending}
         onCancel={() => setConfirmEarlySignOut(null)}
         onConfirm={() => {

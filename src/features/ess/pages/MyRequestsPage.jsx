@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   listMyAdvances,
   submitMyAdvance,
@@ -43,6 +44,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
 function MyAdvancesSection() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [toCancel, setToCancel] = useState(null);
@@ -62,7 +64,7 @@ function MyAdvancesSection() {
   const submitMutation = useMutation({
     mutationFn: submitMyAdvance,
     onSuccess: () => {
-      toast.success('Advance request submitted.');
+      toast.success(t('requests.advances.submittedToast'));
       reset(emptyAdvanceForm);
       queryClient.invalidateQueries({ queryKey: ['me', 'advances'] });
     },
@@ -72,7 +74,7 @@ function MyAdvancesSection() {
   const cancelMutation = useMutation({
     mutationFn: (id) => cancelMyAdvance(id),
     onSuccess: () => {
-      toast.success('Advance request cancelled.');
+      toast.success(t('requests.advances.cancelledToast'));
       setToCancel(null);
       queryClient.invalidateQueries({ queryKey: ['me', 'advances'] });
     },
@@ -85,33 +87,33 @@ function MyAdvancesSection() {
   return (
     <>
       <Card>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Request a salary advance</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('requests.advances.sectionTitle')}</h2>
         <form onSubmit={handleSubmit((values) => submitMutation.mutate(values))} noValidate className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Amount (SAR) *" type="number" step="0.01" min="1" error={errors.amount?.message} {...register('amount')} />
-            <Input label="Repay over (months) *" type="number" min="1" max="24" error={errors.repaymentMonths?.message} {...register('repaymentMonths')} />
+            <Input label={t('requests.advances.amount')} type="number" step="0.01" min="1" error={errors.amount?.message} {...register('amount')} />
+            <Input label={t('requests.advances.repaymentMonths')} type="number" min="1" max="24" error={errors.repaymentMonths?.message} {...register('repaymentMonths')} />
           </div>
-          <Textarea label="Reason" placeholder="Optional" error={errors.reason?.message} {...register('reason')} />
+          <Textarea label={t('requests.advances.reason')} placeholder={t('common.optional')} error={errors.reason?.message} {...register('reason')} />
           <div className="flex justify-end">
             <Button type="submit" isLoading={submitMutation.isPending}>
-              Submit request
+              {t('common.submitRequest')}
             </Button>
           </div>
         </form>
       </Card>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Your advance requests</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('requests.advances.yourRequests')}</h2>
         {isPending ? (
           <Skeleton className="h-20 w-full" />
         ) : isError ? (
           <EmptyState
-            title="Could not load your advance requests"
-            description="Check your connection and try again."
-            action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+            title={t('requests.advances.loadError')}
+            description={t('common.checkConnection')}
+            action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
           />
         ) : data.items.length === 0 ? (
-          <EmptyState title="No advance requests yet" description="Submit your first request above." />
+          <EmptyState title={t('requests.advances.empty')} description={t('requests.advances.emptyDescription')} />
         ) : (
           <Card className="divide-y divide-border">
             {data.items.map((a) => (
@@ -119,18 +121,19 @@ function MyAdvancesSection() {
                 <div className="min-w-0">
                   <p className="font-medium">{formatMoney(a.amount)}</p>
                   <p className="text-xs text-muted">
-                    Over {a.repaymentMonths} month{a.repaymentMonths > 1 ? 's' : ''} · requested {formatDate(a.createdAt)}
+                    {t('requests.advances.overMonths', { count: a.repaymentMonths })}
+                    {t('requests.advances.requestedOn', { date: formatDate(a.createdAt) })}
                   </p>
                   {(a.status === 'Approved' || a.status === 'Closed') && (
-                    <p className="mt-1 text-xs">Outstanding: <span className="font-semibold">{formatMoney(a.outstandingBalance)}</span></p>
+                    <p className="mt-1 text-xs font-semibold">{t('requests.advances.outstanding', { amount: formatMoney(a.outstandingBalance) })}</p>
                   )}
-                  {a.decisionNote && <p className="mt-1 text-xs italic text-muted">Note: {a.decisionNote}</p>}
+                  {a.decisionNote && <p className="mt-1 text-xs italic text-muted">{t('common.note')}: {a.decisionNote}</p>}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <Badge variant={ADVANCE_STATUS_VARIANT[a.status]}>{a.status}</Badge>
+                  <Badge variant={ADVANCE_STATUS_VARIANT[a.status]}>{t(`common.status.${a.status}`, a.status)}</Badge>
                   {a.status === 'Pending' && (
                     <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToCancel(a)}>
-                      Cancel
+                      {t('leave.cancelButton')}
                     </Button>
                   )}
                 </div>
@@ -142,8 +145,8 @@ function MyAdvancesSection() {
 
       <ConfirmDialog
         open={Boolean(toCancel)}
-        title="Cancel advance request?"
-        message={`Your request for ${toCancel ? formatMoney(toCancel.amount) : ''} will be cancelled.`}
+        title={t('requests.advances.cancelDialog.title')}
+        message={toCancel && t('requests.advances.cancelDialog.message', { amount: formatMoney(toCancel.amount) })}
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate(toCancel._id)}
         onCancel={() => setToCancel(null)}
@@ -153,6 +156,7 @@ function MyAdvancesSection() {
 }
 
 function MyReimbursementsSection() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
@@ -181,7 +185,7 @@ function MyReimbursementsSection() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > RECEIPT_MAX_MB * 1024 * 1024) {
-      toast.error(`File is too large (maximum ${RECEIPT_MAX_MB} MB).`);
+      toast.error(t('requests.reimbursements.fileTooLarge', { maxMb: RECEIPT_MAX_MB }));
       e.target.value = '';
       return;
     }
@@ -196,7 +200,7 @@ function MyReimbursementsSection() {
       return submitMyReimbursement(fd);
     },
     onSuccess: () => {
-      toast.success('Reimbursement claim submitted.');
+      toast.success(t('requests.reimbursements.submittedToast'));
       reset(emptyReimbursementForm);
       resetFile();
       queryClient.invalidateQueries({ queryKey: ['me', 'reimbursements'] });
@@ -207,7 +211,7 @@ function MyReimbursementsSection() {
   const cancelMutation = useMutation({
     mutationFn: (id) => cancelMyReimbursement(id),
     onSuccess: () => {
-      toast.success('Reimbursement claim cancelled.');
+      toast.success(t('requests.reimbursements.cancelledToast'));
       setToCancel(null);
       queryClient.invalidateQueries({ queryKey: ['me', 'reimbursements'] });
     },
@@ -219,7 +223,7 @@ function MyReimbursementsSection() {
 
   function onSubmit(values) {
     if (!pendingFile) {
-      toast.error('Attach a receipt before submitting.');
+      toast.error(t('requests.reimbursements.attachReceiptFirst'));
       return;
     }
     submitMutation.mutate(values);
@@ -230,7 +234,7 @@ function MyReimbursementsSection() {
     try {
       await downloadMyReceipt(claim._id, claim.receipt.originalName);
     } catch (error) {
-      toast.error(apiMessage(error, 'Could not download the receipt.'));
+      toast.error(apiMessage(error, t('requests.reimbursements.receiptDownloadError')));
     } finally {
       setDownloadingId(null);
     }
@@ -239,73 +243,73 @@ function MyReimbursementsSection() {
   return (
     <>
       <Card>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Claim an expense</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('requests.reimbursements.sectionTitle')}</h2>
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Select label="Category *" error={errors.category?.message} {...register('category')}>
-              <option value="">Choose a category…</option>
+            <Select label={t('requests.reimbursements.category')} error={errors.category?.message} {...register('category')}>
+              <option value="">{t('requests.reimbursements.chooseCategory')}</option>
               {REIMBURSEMENT_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {t(`requests.reimbursements.categories.${c}`, c)}
                 </option>
               ))}
             </Select>
-            <Input label="Amount (SAR) *" type="number" step="0.01" min="0.01" error={errors.amount?.message} {...register('amount')} />
+            <Input label={t('requests.reimbursements.amount')} type="number" step="0.01" min="0.01" error={errors.amount?.message} {...register('amount')} />
           </div>
-          <Input label="Expense date *" type="date" error={errors.expenseDate?.message} {...register('expenseDate')} />
-          <Textarea label="Description" placeholder="Optional" error={errors.description?.message} {...register('description')} />
+          <Input label={t('requests.reimbursements.expenseDate')} type="date" error={errors.expenseDate?.message} {...register('expenseDate')} />
+          <Textarea label={t('requests.reimbursements.description')} placeholder={t('common.optional')} error={errors.description?.message} {...register('description')} />
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Receipt *</label>
+            <label className="mb-1.5 block text-sm font-medium">{t('requests.reimbursements.receipt')}</label>
             <input ref={fileInputRef} type="file" accept={RECEIPT_ACCEPT} className="hidden" onChange={handleFileChange} />
             <div className="flex items-center gap-3">
               <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
-                {pendingFile ? 'Change file' : 'Choose file'}
+                {pendingFile ? t('requests.reimbursements.changeFile') : t('requests.reimbursements.chooseFile')}
               </Button>
               {pendingFile && <span className="truncate text-sm text-muted">{pendingFile.name}</span>}
             </div>
-            <p className="mt-1 text-xs text-muted">PDF, JPG, PNG, or WEBP — up to {RECEIPT_MAX_MB} MB.</p>
+            <p className="mt-1 text-xs text-muted">{t('requests.reimbursements.fileHint', { maxMb: RECEIPT_MAX_MB })}</p>
           </div>
 
           <div className="flex justify-end">
             <Button type="submit" isLoading={submitMutation.isPending}>
-              Submit claim
+              {t('requests.reimbursements.submitClaim')}
             </Button>
           </div>
         </form>
       </Card>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Your reimbursement claims</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('requests.reimbursements.yourClaims')}</h2>
         {isPending ? (
           <Skeleton className="h-20 w-full" />
         ) : isError ? (
           <EmptyState
-            title="Could not load your claims"
-            description="Check your connection and try again."
-            action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+            title={t('requests.reimbursements.loadError')}
+            description={t('common.checkConnection')}
+            action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
           />
         ) : data.items.length === 0 ? (
-          <EmptyState title="No reimbursement claims yet" description="Submit your first claim above." />
+          <EmptyState title={t('requests.reimbursements.empty')} description={t('requests.reimbursements.emptyDescription')} />
         ) : (
           <Card className="divide-y divide-border">
             {data.items.map((c) => (
               <div key={c._id} className="flex items-start justify-between gap-3 py-3 text-sm">
                 <div className="min-w-0">
                   <p className="font-medium">
-                    {c.category} · {formatMoney(c.amount)}
+                    {t(`requests.reimbursements.categories.${c.category}`, c.category)} · {formatMoney(c.amount)}
                   </p>
-                  <p className="text-xs text-muted">Expense {formatDate(c.expenseDate)}</p>
-                  {c.decisionNote && <p className="mt-1 text-xs italic text-muted">Note: {c.decisionNote}</p>}
+                  <p className="text-xs text-muted">{t('requests.reimbursements.expenseOn', { date: formatDate(c.expenseDate) })}</p>
+                  {c.decisionNote && <p className="mt-1 text-xs italic text-muted">{t('common.note')}: {c.decisionNote}</p>}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <Badge variant={REIMBURSEMENT_STATUS_VARIANT[c.status]}>{c.status}</Badge>
+                  <Badge variant={REIMBURSEMENT_STATUS_VARIANT[c.status]}>{t(`common.status.${c.status}`, c.status)}</Badge>
                   <Button size="sm" variant="ghost" isLoading={downloadingId === c._id} onClick={() => handleDownload(c)}>
-                    Receipt
+                    {t('requests.reimbursements.receiptButton')}
                   </Button>
                   {c.status === 'Pending' && (
                     <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToCancel(c)}>
-                      Cancel
+                      {t('leave.cancelButton')}
                     </Button>
                   )}
                 </div>
@@ -317,8 +321,14 @@ function MyReimbursementsSection() {
 
       <ConfirmDialog
         open={Boolean(toCancel)}
-        title="Cancel reimbursement claim?"
-        message={`Your ${toCancel?.category} claim for ${toCancel ? formatMoney(toCancel.amount) : ''} will be cancelled.`}
+        title={t('requests.reimbursements.cancelDialog.title')}
+        message={
+          toCancel &&
+          t('requests.reimbursements.cancelDialog.message', {
+            category: t(`requests.reimbursements.categories.${toCancel.category}`, toCancel.category),
+            amount: formatMoney(toCancel.amount),
+          })
+        }
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate(toCancel._id)}
         onCancel={() => setToCancel(null)}
@@ -328,9 +338,10 @@ function MyReimbursementsSection() {
 }
 
 export default function MyRequestsPage() {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader title="My requests" description="Salary advances and expense reimbursement claims." />
+      <PageHeader title={t('requests.title')} description={t('requests.description')} />
       <MyAdvancesSection />
       <MyReimbursementsSection />
     </div>

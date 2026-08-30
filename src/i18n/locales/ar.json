@@ -1,0 +1,343 @@
+{
+  "common": {
+    "appName": "الجزيرة - نظام إدارة الموارد",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "retry": "إعادة المحاولة",
+    "download": "تحميل",
+    "submitRequest": "إرسال الطلب",
+    "optional": "اختياري",
+    "note": "ملاحظة",
+    "checkConnection": "تحقق من اتصالك وحاول مرة أخرى.",
+    "notAssigned": "غير معيّن",
+    "language": "اللغة",
+    "expiry": {
+      "notSet": "غير محدد",
+      "expired": "منتهي",
+      "daysLeft": "باقي {{days}} يوم",
+      "valid": "ساري"
+    },
+    "status": {
+      "Pending": "قيد الانتظار",
+      "PendingReview": "قيد المراجعة",
+      "AutoApproved": "موافق عليه",
+      "Approved": "موافق عليه",
+      "Rejected": "مرفوض",
+      "Cancelled": "ملغى",
+      "Closed": "مغلق",
+      "Submitted": "مُرسل",
+      "Paid": "مدفوع",
+      "Issued": "صادر",
+      "Present": "حاضر",
+      "Absent": "غائب",
+      "Leave": "إجازة",
+      "Sick": "مرضي",
+      "Off": "عطلة"
+    },
+    "months": {
+      "1": "يناير", "2": "فبراير", "3": "مارس", "4": "أبريل",
+      "5": "مايو", "6": "يونيو", "7": "يوليو", "8": "أغسطس",
+      "9": "سبتمبر", "10": "أكتوبر", "11": "نوفمبر", "12": "ديسمبر"
+    }
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "useCompanyAccount": "استخدم حساب شركتك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "couldNotLogIn": "تعذر تسجيل الدخول. هل الخادم يعمل؟",
+    "footerNotice": "نظام داخلي، للموظفين المخوّلين فقط"
+  },
+  "nav": {
+    "myProfile": "ملفي الشخصي",
+    "myDocuments": "مستنداتي",
+    "myAttendance": "حضوري",
+    "myLeave": "إجازتي",
+    "myRequests": "طلباتي",
+    "visasAndDocuments": "التأشيرات والمستندات",
+    "myPayslips": "قسائم راتبي",
+    "workspaceTitle": "مساحة عملي",
+    "footerLine1": "الجزيرة - نظام إدارة الموارد",
+    "footerLine2": "الخدمة الذاتية للموظفين"
+  },
+  "header": {
+    "employee": "موظف",
+    "updateProfilePhoto": "تحديث صورة الملف الشخصي",
+    "changePassword": "تغيير كلمة المرور",
+    "logOut": "تسجيل الخروج",
+    "notifications": "الإشعارات"
+  },
+  "changePasswordModal": {
+    "title": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية *",
+    "newPassword": "كلمة المرور الجديدة *",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة *",
+    "signOutNotice": "سيتم تسجيل خروجك من جميع الأجهزة وستحتاج إلى تسجيل الدخول مرة أخرى بكلمة المرور الجديدة.",
+    "submit": "تغيير كلمة المرور",
+    "success": "تم تغيير كلمة المرور. الرجاء تسجيل الدخول مرة أخرى."
+  },
+  "avatarModal": {
+    "title": "صورة الملف الشخصي",
+    "chooseImage": "اختر صورة",
+    "removePhoto": "إزالة الصورة",
+    "fileHint": "PNG أو JPG أو WEBP — بحد أقصى {{maxMb}} ميجابايت. الصور المربعة تبدو أفضل.",
+    "fileTooLarge": "الصورة كبيرة جدًا (الحد الأقصى {{maxMb}} ميجابايت).",
+    "savePhoto": "حفظ الصورة",
+    "uploadSuccess": "تم تحديث صورة الملف الشخصي.",
+    "removeSuccess": "تمت إزالة صورة الملف الشخصي."
+  },
+  "notificationsPanel": {
+    "title": "الإشعارات",
+    "markAllRead": "تعليم الكل كمقروء",
+    "empty": "لا توجد إشعارات بعد.",
+    "enablePush": "تفعيل إشعارات الدفع",
+    "disablePush": "إيقاف إشعارات الدفع",
+    "pushEnabled": "تم تفعيل إشعارات الدفع.",
+    "pushDisabled": "تم إيقاف إشعارات الدفع.",
+    "pushError": "تعذر تحديث إشعارات الدفع."
+  },
+  "profile": {
+    "title": "ملفي الشخصي",
+    "loadError": "تعذر تحميل ملفك الشخصي",
+    "personalDetails": "البيانات الشخصية",
+    "nationality": "الجنسية",
+    "mobile": "الجوال",
+    "email": "البريد الإلكتروني",
+    "joiningDate": "تاريخ الالتحاق",
+    "employment": "التوظيف",
+    "designation": "المسمى الوظيفي",
+    "department": "القسم",
+    "monthlySalary": "الراتب الشهري",
+    "accommodation": "السكن",
+    "currentClient": "العميل الحالي",
+    "myCoordinator": "منسقي",
+    "documentsOnFile": "المستندات المسجلة",
+    "documents": {
+      "passport": "جواز السفر",
+      "visa": "التأشيرة",
+      "iqama": "الإقامة",
+      "medical": "الفحص الطبي",
+      "drivingLicense": "رخصة القيادة"
+    },
+    "docNumber": "رقم {{number}}",
+    "docNoNumber": "لا يوجد رقم مسجل",
+    "docExpires": " · تنتهي في {{date}}",
+    "emergencyContact": "جهة الاتصال في حالات الطوارئ",
+    "contactName": "الاسم",
+    "contactPhone": "الهاتف",
+    "contactRelation": "صلة القرابة",
+    "employeeStatus": {
+      "Active": "نشط",
+      "On Leave": "في إجازة",
+      "Exited": "منتهي الخدمة"
+    }
+  },
+  "documents": {
+    "title": "مستنداتي",
+    "description": "جواز السفر والتأشيرة والإقامة وملفات أخرى مسجلة باسمك.",
+    "loadError": "تعذر تحميل مستنداتك",
+    "empty": "لا توجد مستندات بعد",
+    "emptyDescription": "لم يقم مكتبك برفع أي مستندات لك حتى الآن.",
+    "uploaded": "تم الرفع في {{date}}",
+    "preview": {
+      "cannotPreview": "لا يمكن معاينة هذا النوع من الملفات في المتصفح.",
+      "downloadToView": "قم بتنزيله لعرضه.",
+      "loadError": "تعذر تحميل الملف."
+    }
+  },
+  "attendance": {
+    "title": "حضوري",
+    "description": "سجّل حضورك عند الوصول وسجّل انصرافك عند المغادرة — يمكنك تسجيل الانصراف والعودة عدة مرات حسب الحاجة خلال اليوم.",
+    "todaySetByOffice": "اليوم: {{status}}",
+    "setByOfficeNotice": "تم تحديده من قبل مكتبك — تواصل مع الموارد البشرية لتغييره.",
+    "signedInAt": "تم تسجيل الحضور في {{time}}",
+    "signedOutAt": "تم تسجيل الانصراف في {{time}}",
+    "hoursToday": "{{hours}} ساعة اليوم · {{verifiedBy}}",
+    "notSignedInYet": "لم تسجل حضورك اليوم بعد.",
+    "signOut": "تسجيل الانصراف",
+    "signIn": "تسجيل الحضور",
+    "signInAgain": "تسجيل الحضور مرة أخرى",
+    "locationNotice": "سيُطلب منك تحديد موقعك — يجب أن تكون في المكتب (أو متصلًا بشبكة المكتب) حتى يعمل هذا. سجّل الانصراف والعودة عدة مرات حسب الحاجة خلال اليوم؛ كل جلسة تُضاف إلى ساعات اليوم.",
+    "recentHistory": "السجل الأخير",
+    "loadError": "تعذر تحميل سجل حضورك",
+    "empty": "لا يوجد سجل حضور بعد",
+    "emptyDescription": "ستظهر هنا أيام حضورك المسجلة.",
+    "hoursSuffix": "{{hours}} ساعة",
+    "signedIn": "تم تسجيل الحضور.",
+    "signedOutWithHours": "تم تسجيل الانصراف — {{hours}} ساعة اليوم.",
+    "verifiedBy": {
+      "geofence": "تم التحقق عبر الموقع",
+      "officeIp": "تم التحقق عبر شبكة المكتب",
+      "selfMarked": "مسجّل ذاتيًا"
+    },
+    "earlySignOut": {
+      "title": "تسجيل الانصراف مبكرًا؟",
+      "message": "أنت مسجّل حضورك منذ حوالي {{hoursSoFar}} ساعة — ودوامك المتوقع {{expected}} ساعة. هل تريد تسجيل الانصراف على أي حال؟",
+      "confirmLabel": "تسجيل الانصراف على أي حال"
+    },
+    "timesheet": {
+      "title": "سجل الدوام الأسبوعي",
+      "submitPrompt": "أرسل هذا الأسبوع ليوافق عليه مشرفك.",
+      "alreadyStatus": "هذا الأسبوع بالفعل {{status}}.",
+      "submitButton": "إرسال هذا الأسبوع",
+      "submitted": "تم إرسال سجل الدوام — {{hours}} ساعة{{overtime}}.",
+      "overtimeSuffix": " ({{hours}} ساعة إضافية)"
+    }
+  },
+  "leave": {
+    "title": "إجازتي",
+    "description": "اطلب إجازة وتابع حالتها.",
+    "upcomingHolidays": "الإجازات القادمة",
+    "requestLeave": "طلب إجازة",
+    "leaveType": "نوع الإجازة *",
+    "chooseLeaveType": "اختر نوع الإجازة…",
+    "startDate": "تاريخ البدء *",
+    "endDate": "تاريخ الانتهاء *",
+    "reason": "السبب",
+    "yourRequests": "طلباتك",
+    "loadError": "تعذر تحميل طلبات إجازتك",
+    "empty": "لا توجد طلبات إجازة بعد",
+    "emptyDescription": "أرسل طلبك الأول أعلاه.",
+    "days": "{{count}} يوم",
+    "days_other": "{{count}} أيام",
+    "cancelButton": "إلغاء",
+    "cancelDialog": {
+      "title": "إلغاء طلب الإجازة؟",
+      "message": "سيتم إلغاء طلب {{type}} لمدة {{days}} يوم."
+    },
+    "autoApprovedToast": "تمت الموافقة على طلب الإجازة.",
+    "submittedToast": "تم إرسال طلب الإجازة للمراجعة.",
+    "cancelledToast": "تم إلغاء طلب الإجازة."
+  },
+  "requests": {
+    "title": "طلباتي",
+    "description": "السلف على الراتب ومطالبات استرداد المصروفات.",
+    "advances": {
+      "sectionTitle": "طلب سلفة على الراتب",
+      "amount": "المبلغ (ريال سعودي) *",
+      "repaymentMonths": "السداد على مدى (أشهر) *",
+      "reason": "السبب",
+      "yourRequests": "طلبات السلف الخاصة بك",
+      "loadError": "تعذر تحميل طلبات السلف الخاصة بك",
+      "empty": "لا توجد طلبات سلف بعد",
+      "emptyDescription": "أرسل طلبك الأول أعلاه.",
+      "overMonths": "على مدى {{count}} شهر",
+      "overMonths_other": "على مدى {{count}} أشهر",
+      "requestedOn": " · طُلب في {{date}}",
+      "outstanding": "المبلغ المتبقي: {{amount}}",
+      "submittedToast": "تم إرسال طلب السلفة.",
+      "cancelledToast": "تم إلغاء طلب السلفة.",
+      "cancelDialog": {
+        "title": "إلغاء طلب السلفة؟",
+        "message": "سيتم إلغاء طلبك بمبلغ {{amount}}."
+      }
+    },
+    "reimbursements": {
+      "sectionTitle": "المطالبة بمصروف",
+      "category": "الفئة *",
+      "chooseCategory": "اختر فئة…",
+      "amount": "المبلغ (ريال سعودي) *",
+      "expenseDate": "تاريخ المصروف *",
+      "description": "الوصف",
+      "receipt": "الإيصال *",
+      "chooseFile": "اختر ملفًا",
+      "changeFile": "تغيير الملف",
+      "fileHint": "PDF أو JPG أو PNG أو WEBP — بحد أقصى {{maxMb}} ميجابايت.",
+      "fileTooLarge": "الملف كبير جدًا (الحد الأقصى {{maxMb}} ميجابايت).",
+      "attachReceiptFirst": "أرفق إيصالًا قبل الإرسال.",
+      "submitClaim": "إرسال المطالبة",
+      "yourClaims": "مطالباتك",
+      "loadError": "تعذر تحميل مطالباتك",
+      "empty": "لا توجد مطالبات استرداد بعد",
+      "emptyDescription": "أرسل مطالبتك الأولى أعلاه.",
+      "expenseOn": "المصروف في {{date}}",
+      "receiptButton": "الإيصال",
+      "receiptDownloadError": "تعذر تنزيل الإيصال.",
+      "submittedToast": "تم إرسال مطالبة الاسترداد.",
+      "cancelledToast": "تم إلغاء مطالبة الاسترداد.",
+      "cancelDialog": {
+        "title": "إلغاء مطالبة الاسترداد؟",
+        "message": "سيتم إلغاء مطالبة {{category}} بمبلغ {{amount}}."
+      },
+      "categories": {
+        "Travel": "السفر",
+        "Fuel": "الوقود",
+        "Meals": "الوجبات",
+        "Medical": "طبي",
+        "Tools": "أدوات",
+        "Other": "أخرى"
+      }
+    }
+  },
+  "exitDocuments": {
+    "title": "التأشيرات والمستندات",
+    "description": "تأشيرات الخروج والعودة، الشهادات الرسمية، والأصول المخصصة لك.",
+    "exitReentry": {
+      "sectionTitle": "طلب تأشيرة خروج وعودة",
+      "visaType": "نوع التأشيرة *",
+      "choose": "اختر…",
+      "departureDate": "تاريخ المغادرة *",
+      "expectedReturn": "العودة المتوقعة بحلول *",
+      "reason": "السبب",
+      "yourRequests": "طلبات التأشيرة الخاصة بك",
+      "loadError": "تعذر تحميل طلباتك",
+      "empty": "لا توجد طلبات بعد",
+      "emptyDescription": "أرسل طلبك الأول أعلاه.",
+      "exitLabel": "خروج {{type}}",
+      "departReturn": "المغادرة {{departure}} · العودة بحلول {{returnDate}}",
+      "reference": "المرجع: {{ref}}",
+      "submittedToast": "تم إرسال طلب الخروج والعودة.",
+      "cancelledToast": "تم إلغاء الطلب.",
+      "cancelDialog": {
+        "title": "إلغاء طلب التأشيرة؟",
+        "message": "سيتم إلغاء طلب تأشيرة الخروج والعودة هذا."
+      },
+      "visaTypes": {
+        "Single": "مرة واحدة",
+        "Multiple": "متعدد"
+      }
+    },
+    "certificates": {
+      "sectionTitle": "طلب شهادة",
+      "type": "نوع الشهادة *",
+      "choose": "اختر…",
+      "purpose": "الغرض",
+      "purposePlaceholder": "مثال: فتح حساب بنكي، طلب تأشيرة",
+      "yourRequests": "طلبات الشهادات الخاصة بك",
+      "loadError": "تعذر تحميل طلباتك",
+      "empty": "لا توجد طلبات بعد",
+      "emptyDescription": "أرسل طلبك الأول أعلاه.",
+      "forPurpose": "للغرض: {{purpose}}",
+      "submittedToast": "تم إرسال طلب الشهادة.",
+      "cancelledToast": "تم إلغاء طلب الشهادة.",
+      "downloadError": "تعذر إنشاء ملف PDF.",
+      "cancelDialog": {
+        "title": "إلغاء طلب الشهادة؟",
+        "message": "سيتم إلغاء طلب {{type}}."
+      },
+      "types": {
+        "SalaryCertificate": "شهادة راتب",
+        "ServiceCertificate": "شهادة خبرة",
+        "ChamberOfCommerceAttestation": "تصديق الغرفة التجارية"
+      }
+    },
+    "assets": {
+      "sectionTitle": "الأصول المخصصة لك",
+      "loadError": "تعذر تحميل أصولك",
+      "empty": "لا توجد أصول مخصصة",
+      "emptyDescription": "ستظهر هنا أصول الشركة المخصصة لك.",
+      "currentlyWithYou": "بحوزتك حاليًا",
+      "returnedOn": "تم إرجاعه في {{date}}"
+    }
+  },
+  "payslips": {
+    "title": "قسائم راتبي",
+    "description": "رواتبك الشهرية المعتمدة نهائيًا.",
+    "loadError": "تعذر تحميل قسائم راتبك",
+    "empty": "لا توجد قسائم راتب بعد",
+    "emptyDescription": "ستظهر هنا قسائم راتبك الشهرية المعتمدة نهائيًا.",
+    "netPay": "صافي الراتب {{amount}}",
+    "download": "تحميل",
+    "downloadError": "تعذر إنشاء قسيمة الراتب."
+  }
+}

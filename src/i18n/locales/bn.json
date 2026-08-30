@@ -1,0 +1,343 @@
+{
+  "common": {
+    "appName": "আল জাজিরা ইআরপি",
+    "save": "সংরক্ষণ করুন",
+    "cancel": "বাতিল করুন",
+    "retry": "আবার চেষ্টা করুন",
+    "download": "ডাউনলোড করুন",
+    "submitRequest": "অনুরোধ পাঠান",
+    "optional": "ঐচ্ছিক",
+    "note": "মন্তব্য",
+    "checkConnection": "আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
+    "notAssigned": "নির্ধারিত নয়",
+    "language": "ভাষা",
+    "expiry": {
+      "notSet": "নির্ধারিত নয়",
+      "expired": "মেয়াদ শেষ",
+      "daysLeft": "{{days}} দিন বাকি",
+      "valid": "বৈধ"
+    },
+    "status": {
+      "Pending": "অপেক্ষমাণ",
+      "PendingReview": "পর্যালোচনা অপেক্ষমাণ",
+      "AutoApproved": "অনুমোদিত",
+      "Approved": "অনুমোদিত",
+      "Rejected": "প্রত্যাখ্যাত",
+      "Cancelled": "বাতিল",
+      "Closed": "বন্ধ",
+      "Submitted": "জমা দেওয়া হয়েছে",
+      "Paid": "পরিশোধিত",
+      "Issued": "ইস্যু করা হয়েছে",
+      "Present": "উপস্থিত",
+      "Absent": "অনুপস্থিত",
+      "Leave": "ছুটি",
+      "Sick": "অসুস্থ",
+      "Off": "বন্ধ"
+    },
+    "months": {
+      "1": "জানুয়ারি", "2": "ফেব্রুয়ারি", "3": "মার্চ", "4": "এপ্রিল",
+      "5": "মে", "6": "জুন", "7": "জুলাই", "8": "আগস্ট",
+      "9": "সেপ্টেম্বর", "10": "অক্টোবর", "11": "নভেম্বর", "12": "ডিসেম্বর"
+    }
+  },
+  "auth": {
+    "signIn": "সাইন ইন করুন",
+    "useCompanyAccount": "আপনার কোম্পানির অ্যাকাউন্ট ব্যবহার করুন",
+    "email": "ইমেইল",
+    "password": "পাসওয়ার্ড",
+    "couldNotLogIn": "লগইন করা যায়নি। সার্ভার কি চালু আছে?",
+    "footerNotice": "অভ্যন্তরীণ সিস্টেম, শুধুমাত্র অনুমোদিত কর্মীদের জন্য"
+  },
+  "nav": {
+    "myProfile": "আমার প্রোফাইল",
+    "myDocuments": "আমার নথিপত্র",
+    "myAttendance": "আমার উপস্থিতি",
+    "myLeave": "আমার ছুটি",
+    "myRequests": "আমার অনুরোধ",
+    "visasAndDocuments": "ভিসা ও নথিপত্র",
+    "myPayslips": "আমার বেতন স্লিপ",
+    "workspaceTitle": "আমার কর্মক্ষেত্র",
+    "footerLine1": "আল জাজিরা ইআরপি",
+    "footerLine2": "কর্মচারী স্ব-সেবা"
+  },
+  "header": {
+    "employee": "কর্মচারী",
+    "updateProfilePhoto": "প্রোফাইল ছবি আপডেট করুন",
+    "changePassword": "পাসওয়ার্ড পরিবর্তন করুন",
+    "logOut": "লগ আউট করুন",
+    "notifications": "বিজ্ঞপ্তি"
+  },
+  "changePasswordModal": {
+    "title": "পাসওয়ার্ড পরিবর্তন করুন",
+    "currentPassword": "বর্তমান পাসওয়ার্ড *",
+    "newPassword": "নতুন পাসওয়ার্ড *",
+    "confirmPassword": "নতুন পাসওয়ার্ড নিশ্চিত করুন *",
+    "signOutNotice": "আপনি প্রতিটি ডিভাইস থেকে সাইন আউট হয়ে যাবেন এবং নতুন পাসওয়ার্ড দিয়ে আবার সাইন ইন করতে হবে।",
+    "submit": "পাসওয়ার্ড পরিবর্তন করুন",
+    "success": "পাসওয়ার্ড পরিবর্তন হয়েছে। অনুগ্রহ করে আবার সাইন ইন করুন।"
+  },
+  "avatarModal": {
+    "title": "প্রোফাইল ছবি",
+    "chooseImage": "ছবি বেছে নিন",
+    "removePhoto": "ছবি সরান",
+    "fileHint": "PNG, JPG, বা WEBP — সর্বোচ্চ {{maxMb}} MB। বর্গাকার ছবি সবচেয়ে ভালো দেখায়।",
+    "fileTooLarge": "ছবিটি খুব বড় (সর্বোচ্চ {{maxMb}} MB)।",
+    "savePhoto": "ছবি সংরক্ষণ করুন",
+    "uploadSuccess": "প্রোফাইল ছবি আপডেট হয়েছে।",
+    "removeSuccess": "প্রোফাইল ছবি সরানো হয়েছে।"
+  },
+  "notificationsPanel": {
+    "title": "বিজ্ঞপ্তি",
+    "markAllRead": "সব পঠিত হিসেবে চিহ্নিত করুন",
+    "empty": "এখনো কোনো বিজ্ঞপ্তি নেই।",
+    "enablePush": "পুশ বিজ্ঞপ্তি চালু করুন",
+    "disablePush": "পুশ বিজ্ঞপ্তি বন্ধ করুন",
+    "pushEnabled": "পুশ বিজ্ঞপ্তি চালু করা হয়েছে।",
+    "pushDisabled": "পুশ বিজ্ঞপ্তি বন্ধ করা হয়েছে।",
+    "pushError": "পুশ বিজ্ঞপ্তি আপডেট করা যায়নি।"
+  },
+  "profile": {
+    "title": "আমার প্রোফাইল",
+    "loadError": "আপনার প্রোফাইল লোড করা যায়নি",
+    "personalDetails": "ব্যক্তিগত বিবরণ",
+    "nationality": "জাতীয়তা",
+    "mobile": "মোবাইল",
+    "email": "ইমেইল",
+    "joiningDate": "যোগদানের তারিখ",
+    "employment": "কর্মসংস্থান",
+    "designation": "পদবি",
+    "department": "বিভাগ",
+    "monthlySalary": "মাসিক বেতন",
+    "accommodation": "বাসস্থান",
+    "currentClient": "বর্তমান ক্লায়েন্ট",
+    "myCoordinator": "আমার সমন্বয়কারী",
+    "documentsOnFile": "রেকর্ডে থাকা নথিপত্র",
+    "documents": {
+      "passport": "পাসপোর্ট",
+      "visa": "ভিসা",
+      "iqama": "ইকামা",
+      "medical": "মেডিকেল",
+      "drivingLicense": "ড্রাইভিং লাইসেন্স"
+    },
+    "docNumber": "নং {{number}}",
+    "docNoNumber": "কোনো নম্বর রেকর্ডে নেই",
+    "docExpires": " · মেয়াদ শেষ {{date}}",
+    "emergencyContact": "জরুরি যোগাযোগ",
+    "contactName": "নাম",
+    "contactPhone": "ফোন",
+    "contactRelation": "সম্পর্ক",
+    "employeeStatus": {
+      "Active": "সক্রিয়",
+      "On Leave": "ছুটিতে",
+      "Exited": "কর্মচ্যুত"
+    }
+  },
+  "documents": {
+    "title": "আমার নথিপত্র",
+    "description": "পাসপোর্ট, ভিসা, ইকামা এবং আপনার জন্য রেকর্ডে থাকা অন্যান্য ফাইল।",
+    "loadError": "আপনার নথিপত্র লোড করা যায়নি",
+    "empty": "এখনো কোনো নথি নেই",
+    "emptyDescription": "আপনার অফিস এখনো আপনার জন্য কোনো নথি আপলোড করেনি।",
+    "uploaded": "{{date}} তারিখে আপলোড করা হয়েছে",
+    "preview": {
+      "cannotPreview": "এই ধরনের ফাইল ব্রাউজারে প্রিভিউ করা যায় না।",
+      "downloadToView": "দেখতে এটি ডাউনলোড করুন।",
+      "loadError": "ফাইলটি লোড করা যায়নি।"
+    }
+  },
+  "attendance": {
+    "title": "আমার উপস্থিতি",
+    "description": "পৌঁছালে সাইন ইন করুন এবং চলে যাওয়ার সময় সাইন আউট করুন — সারাদিনে যতবার প্রয়োজন ততবার সাইন আউট এবং আবার সাইন ইন করতে পারেন।",
+    "todaySetByOffice": "আজ: {{status}}",
+    "setByOfficeNotice": "আপনার অফিস দ্বারা নির্ধারিত — পরিবর্তনের জন্য HR-এর সাথে যোগাযোগ করুন।",
+    "signedInAt": "{{time}} টায় সাইন ইন করা হয়েছে",
+    "signedOutAt": "{{time}} টায় সাইন আউট করা হয়েছে",
+    "hoursToday": "আজ {{hours}} ঘণ্টা · {{verifiedBy}}",
+    "notSignedInYet": "আপনি আজ এখনো সাইন ইন করেননি।",
+    "signOut": "সাইন আউট করুন",
+    "signIn": "সাইন ইন করুন",
+    "signInAgain": "আবার সাইন ইন করুন",
+    "locationNotice": "আপনার অবস্থান জিজ্ঞাসা করা হবে — এটি কাজ করার জন্য আপনাকে অফিসে (বা অফিস নেটওয়ার্কে) থাকতে হবে। সারাদিনে যতবার প্রয়োজন ততবার সাইন আউট এবং আবার সাইন ইন করুন; প্রতিটি সেশন আজকের ঘণ্টার সাথে যোগ হয়।",
+    "recentHistory": "সাম্প্রতিক ইতিহাস",
+    "loadError": "আপনার উপস্থিতি লোড করা যায়নি",
+    "empty": "এখনো কোনো উপস্থিতি নেই",
+    "emptyDescription": "আপনার সাইন-ইন করা দিনগুলো এখানে দেখাবে।",
+    "hoursSuffix": "{{hours}} ঘণ্টা",
+    "signedIn": "সাইন ইন হয়েছে।",
+    "signedOutWithHours": "সাইন আউট হয়েছে — আজ {{hours}} ঘণ্টা।",
+    "verifiedBy": {
+      "geofence": "অবস্থান দ্বারা যাচাইকৃত",
+      "officeIp": "অফিস নেটওয়ার্ক দ্বারা যাচাইকৃত",
+      "selfMarked": "নিজে চিহ্নিত"
+    },
+    "earlySignOut": {
+      "title": "তাড়াতাড়ি সাইন আউট করবেন?",
+      "message": "আপনি প্রায় {{hoursSoFar}} ঘণ্টা ধরে সাইন ইন আছেন — আপনার প্রত্যাশিত শিফট {{expected}} ঘণ্টা। তবুও সাইন আউট করবেন?",
+      "confirmLabel": "তবুও সাইন আউট করুন"
+    },
+    "timesheet": {
+      "title": "সাপ্তাহিক টাইমশিট",
+      "submitPrompt": "আপনার সুপারভাইজারের অনুমোদনের জন্য এই সপ্তাহ পাঠান।",
+      "alreadyStatus": "এই সপ্তাহ ইতিমধ্যে {{status}}।",
+      "submitButton": "এই সপ্তাহ পাঠান",
+      "submitted": "টাইমশিট পাঠানো হয়েছে — {{hours}} ঘণ্টা{{overtime}}।",
+      "overtimeSuffix": " ({{hours}} ওভারটাইম)"
+    }
+  },
+  "leave": {
+    "title": "আমার ছুটি",
+    "description": "ছুটির অনুরোধ করুন এবং এর অবস্থা ট্র্যাক করুন।",
+    "upcomingHolidays": "আসন্ন ছুটির দিন",
+    "requestLeave": "ছুটির অনুরোধ করুন",
+    "leaveType": "ছুটির ধরন *",
+    "chooseLeaveType": "ছুটির ধরন বেছে নিন…",
+    "startDate": "শুরুর তারিখ *",
+    "endDate": "শেষের তারিখ *",
+    "reason": "কারণ",
+    "yourRequests": "আপনার অনুরোধ",
+    "loadError": "আপনার ছুটির অনুরোধ লোড করা যায়নি",
+    "empty": "এখনো কোনো ছুটির অনুরোধ নেই",
+    "emptyDescription": "উপরে আপনার প্রথম অনুরোধ পাঠান।",
+    "days": "{{count}} দিন",
+    "days_other": "{{count}} দিন",
+    "cancelButton": "বাতিল করুন",
+    "cancelDialog": {
+      "title": "ছুটির অনুরোধ বাতিল করবেন?",
+      "message": "আপনার {{type}} অনুরোধ {{days}} দিনের জন্য বাতিল করা হবে।"
+    },
+    "autoApprovedToast": "ছুটির অনুরোধ অনুমোদিত হয়েছে।",
+    "submittedToast": "ছুটির অনুরোধ পর্যালোচনার জন্য পাঠানো হয়েছে।",
+    "cancelledToast": "ছুটির অনুরোধ বাতিল করা হয়েছে।"
+  },
+  "requests": {
+    "title": "আমার অনুরোধ",
+    "description": "বেতন অগ্রিম এবং খরচ প্রতিদান দাবি।",
+    "advances": {
+      "sectionTitle": "বেতন অগ্রিমের অনুরোধ করুন",
+      "amount": "পরিমাণ (SAR) *",
+      "repaymentMonths": "পরিশোধের সময়কাল (মাস) *",
+      "reason": "কারণ",
+      "yourRequests": "আপনার অগ্রিম অনুরোধ",
+      "loadError": "আপনার অগ্রিম অনুরোধ লোড করা যায়নি",
+      "empty": "এখনো কোনো অগ্রিম অনুরোধ নেই",
+      "emptyDescription": "উপরে আপনার প্রথম অনুরোধ পাঠান।",
+      "overMonths": "{{count}} মাসে",
+      "overMonths_other": "{{count}} মাসে",
+      "requestedOn": " · {{date}} তারিখে অনুরোধ করা হয়েছে",
+      "outstanding": "বকেয়া: {{amount}}",
+      "submittedToast": "অগ্রিম অনুরোধ পাঠানো হয়েছে।",
+      "cancelledToast": "অগ্রিম অনুরোধ বাতিল করা হয়েছে।",
+      "cancelDialog": {
+        "title": "অগ্রিম অনুরোধ বাতিল করবেন?",
+        "message": "{{amount}} এর জন্য আপনার অনুরোধ বাতিল করা হবে।"
+      }
+    },
+    "reimbursements": {
+      "sectionTitle": "খরচের দাবি করুন",
+      "category": "বিভাগ *",
+      "chooseCategory": "একটি বিভাগ বেছে নিন…",
+      "amount": "পরিমাণ (SAR) *",
+      "expenseDate": "খরচের তারিখ *",
+      "description": "বিবরণ",
+      "receipt": "রসিদ *",
+      "chooseFile": "ফাইল বেছে নিন",
+      "changeFile": "ফাইল পরিবর্তন করুন",
+      "fileHint": "PDF, JPG, PNG, বা WEBP — সর্বোচ্চ {{maxMb}} MB।",
+      "fileTooLarge": "ফাইলটি খুব বড় (সর্বোচ্চ {{maxMb}} MB)।",
+      "attachReceiptFirst": "পাঠানোর আগে একটি রসিদ সংযুক্ত করুন।",
+      "submitClaim": "দাবি পাঠান",
+      "yourClaims": "আপনার দাবি",
+      "loadError": "আপনার দাবি লোড করা যায়নি",
+      "empty": "এখনো কোনো প্রতিদান দাবি নেই",
+      "emptyDescription": "উপরে আপনার প্রথম দাবি পাঠান।",
+      "expenseOn": "খরচ {{date}}",
+      "receiptButton": "রসিদ",
+      "receiptDownloadError": "রসিদ ডাউনলোড করা যায়নি।",
+      "submittedToast": "প্রতিদান দাবি পাঠানো হয়েছে।",
+      "cancelledToast": "প্রতিদান দাবি বাতিল করা হয়েছে।",
+      "cancelDialog": {
+        "title": "প্রতিদান দাবি বাতিল করবেন?",
+        "message": "আপনার {{category}} দাবি {{amount}} এর জন্য বাতিল করা হবে।"
+      },
+      "categories": {
+        "Travel": "ভ্রমণ",
+        "Fuel": "জ্বালানি",
+        "Meals": "খাবার",
+        "Medical": "চিকিৎসা",
+        "Tools": "সরঞ্জাম",
+        "Other": "অন্যান্য"
+      }
+    }
+  },
+  "exitDocuments": {
+    "title": "ভিসা ও নথিপত্র",
+    "description": "এক্সিট রি-এন্ট্রি ভিসা, সরকারি সার্টিফিকেট, এবং আপনাকে বরাদ্দকৃত সম্পদ।",
+    "exitReentry": {
+      "sectionTitle": "এক্সিট রি-এন্ট্রি ভিসার অনুরোধ করুন",
+      "visaType": "ভিসার ধরন *",
+      "choose": "বেছে নিন…",
+      "departureDate": "প্রস্থানের তারিখ *",
+      "expectedReturn": "প্রত্যাশিত প্রত্যাবর্তন *",
+      "reason": "কারণ",
+      "yourRequests": "আপনার ভিসা অনুরোধ",
+      "loadError": "আপনার অনুরোধ লোড করা যায়নি",
+      "empty": "এখনো কোনো অনুরোধ নেই",
+      "emptyDescription": "উপরে আপনার প্রথম অনুরোধ পাঠান।",
+      "exitLabel": "{{type}} এক্সিট",
+      "departReturn": "প্রস্থান {{departure}} · প্রত্যাবর্তন {{returnDate}} এর মধ্যে",
+      "reference": "রেফারেন্স: {{ref}}",
+      "submittedToast": "এক্সিট রি-এন্ট্রি অনুরোধ পাঠানো হয়েছে।",
+      "cancelledToast": "অনুরোধ বাতিল করা হয়েছে।",
+      "cancelDialog": {
+        "title": "ভিসা অনুরোধ বাতিল করবেন?",
+        "message": "এই এক্সিট রি-এন্ট্রি ভিসার অনুরোধ বাতিল করা হবে।"
+      },
+      "visaTypes": {
+        "Single": "একক",
+        "Multiple": "একাধিক"
+      }
+    },
+    "certificates": {
+      "sectionTitle": "একটি সার্টিফিকেটের অনুরোধ করুন",
+      "type": "সার্টিফিকেটের ধরন *",
+      "choose": "বেছে নিন…",
+      "purpose": "উদ্দেশ্য",
+      "purposePlaceholder": "যেমন: ব্যাংক অ্যাকাউন্ট খোলা, ভিসা আবেদন",
+      "yourRequests": "আপনার সার্টিফিকেট অনুরোধ",
+      "loadError": "আপনার অনুরোধ লোড করা যায়নি",
+      "empty": "এখনো কোনো অনুরোধ নেই",
+      "emptyDescription": "উপরে আপনার প্রথম অনুরোধ পাঠান।",
+      "forPurpose": "উদ্দেশ্য: {{purpose}}",
+      "submittedToast": "সার্টিফিকেট অনুরোধ পাঠানো হয়েছে।",
+      "cancelledToast": "সার্টিফিকেট অনুরোধ বাতিল করা হয়েছে।",
+      "downloadError": "PDF তৈরি করা যায়নি।",
+      "cancelDialog": {
+        "title": "সার্টিফিকেট অনুরোধ বাতিল করবেন?",
+        "message": "আপনার {{type}} অনুরোধ বাতিল করা হবে।"
+      },
+      "types": {
+        "SalaryCertificate": "বেতন সার্টিফিকেট",
+        "ServiceCertificate": "চাকরির সার্টিফিকেট",
+        "ChamberOfCommerceAttestation": "চেম্বার অফ কমার্স প্রত্যয়ন"
+      }
+    },
+    "assets": {
+      "sectionTitle": "আপনাকে বরাদ্দকৃত সম্পদ",
+      "loadError": "আপনার সম্পদ লোড করা যায়নি",
+      "empty": "কোনো সম্পদ বরাদ্দ করা হয়নি",
+      "emptyDescription": "আপনাকে বরাদ্দকৃত কোম্পানির সম্পদ এখানে দেখাবে।",
+      "currentlyWithYou": "বর্তমানে আপনার কাছে",
+      "returnedOn": "{{date}} তারিখে ফেরত দেওয়া হয়েছে"
+    }
+  },
+  "payslips": {
+    "title": "আমার বেতন স্লিপ",
+    "description": "আপনার চূড়ান্তভাবে অনুমোদিত মাসিক বেতন।",
+    "loadError": "আপনার বেতন স্লিপ লোড করা যায়নি",
+    "empty": "এখনো কোনো বেতন স্লিপ নেই",
+    "emptyDescription": "আপনার চূড়ান্তভাবে অনুমোদিত মাসিক বেতন স্লিপ এখানে দেখাবে।",
+    "netPay": "নিট বেতন {{amount}}",
+    "download": "ডাউনলোড করুন",
+    "downloadError": "বেতন স্লিপ তৈরি করা যায়নি।"
+  }
+}

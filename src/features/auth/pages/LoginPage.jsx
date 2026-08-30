@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../AuthContext.jsx';
 import { loginSchema } from '../auth.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
@@ -15,6 +16,7 @@ import Input from '../../../components/ui/Input.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { status, login } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState(null);
@@ -36,19 +38,19 @@ export default function LoginPage() {
     } catch (error) {
       // A client-side block (e.g. the P2-M1 worker web gate) carries a ready
       // message; otherwise fall back to the server's message.
-      setServerError(error.userMessage ?? apiMessage(error, 'Could not log in. Is the server running?'));
+      setServerError(error.userMessage ?? apiMessage(error, t('auth.couldNotLogIn')));
     }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       <div className="mb-2 text-center">
-        <h1 className="text-xl font-semibold">Sign in</h1>
-        <p className="mt-1 text-sm text-muted">Use your company account</p>
+        <h1 className="text-xl font-semibold">{t('auth.signIn')}</h1>
+        <p className="mt-1 text-sm text-muted">{t('auth.useCompanyAccount')}</p>
       </div>
 
       <Input
-        label="Email"
+        label={t('auth.email')}
         type="email"
         placeholder="you@company.com"
         autoComplete="email"
@@ -56,7 +58,7 @@ export default function LoginPage() {
         {...register('email')}
       />
       <Input
-        label="Password"
+        label={t('auth.password')}
         type="password"
         placeholder="••••••••"
         autoComplete="current-password"
@@ -71,7 +73,7 @@ export default function LoginPage() {
       )}
 
       <Button type="submit" isLoading={isSubmitting} className="mt-2 w-full">
-        Sign in
+        {t('auth.signIn')}
       </Button>
     </form>
   );

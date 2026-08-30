@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { changePasswordRequest } from '../auth.api.js';
 import { changePasswordSchema, emptyChangePasswordForm } from '../auth.schema.js';
 import { useAuth } from '../AuthContext.jsx';
@@ -20,6 +21,7 @@ import Input from '../../../components/ui/Input.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function ChangePasswordModal({ open, onClose }) {
+  const { t } = useTranslation();
   // logout() here re-sends POST /auth/logout, which is a harmless no-op —
   // the server already cleared the cookie and deleted every session row as
   // part of changePasswordRequest() succeeding. Reusing it (rather than
@@ -42,7 +44,7 @@ export default function ChangePasswordModal({ open, onClose }) {
       reset(emptyChangePasswordForm);
       onClose();
       await logout();
-      toast.success('Password changed. Please sign in again.');
+      toast.success(t('changePasswordModal.success'));
       navigate('/login', { replace: true });
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -54,42 +56,40 @@ export default function ChangePasswordModal({ open, onClose }) {
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="Change password">
+    <Modal open={open} onClose={handleClose} title={t('changePasswordModal.title')}>
       <form
         onSubmit={handleSubmit((values) => mutation.mutate(values))}
         noValidate
         className="space-y-4"
       >
         <Input
-          label="Current password *"
+          label={t('changePasswordModal.currentPassword')}
           type="password"
           autoComplete="current-password"
           error={errors.currentPassword?.message}
           {...register('currentPassword')}
         />
         <Input
-          label="New password *"
+          label={t('changePasswordModal.newPassword')}
           type="password"
           autoComplete="new-password"
           error={errors.newPassword?.message}
           {...register('newPassword')}
         />
         <Input
-          label="Confirm new password *"
+          label={t('changePasswordModal.confirmPassword')}
           type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
-        <p className="text-xs text-muted">
-          You'll be signed out of every device and need to sign back in with the new password.
-        </p>
+        <p className="text-xs text-muted">{t('changePasswordModal.signOutNotice')}</p>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={handleClose} disabled={mutation.isPending}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" isLoading={mutation.isPending}>
-            Change password
+            {t('changePasswordModal.submit')}
           </Button>
         </div>
       </form>

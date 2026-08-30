@@ -132,8 +132,11 @@ export default function TimesheetsPage() {
                           {t.employee?.fullName} <span className="font-normal text-muted">({t.employee?.employeeId})</span>
                         </p>
                         <p className="text-xs text-muted">
-                          {formatDate(t.periodStart)} – {formatDate(t.periodEnd)} · {formatHours(t.totalHours)} hrs ·{' '}
-                          {t.daysPresent} present, {t.daysAbsent} absent, {t.daysLeaveOrSick} leave/sick, {t.daysOff} off
+                          {formatDate(t.periodStart)} – {formatDate(t.periodEnd)} · {formatHours(t.totalHours)} hrs
+                          {t.overtimeHours > 0 && (
+                            <span className="text-warning"> ({formatHours(t.overtimeHours)} overtime)</span>
+                          )}{' '}
+                          · {t.daysPresent} present, {t.daysAbsent} absent, {t.daysLeaveOrSick} leave/sick, {t.daysOff} off
                         </p>
                         {incomplete && (
                           <p className="mt-1 text-xs text-warning">Only {t.recordedDays} of 7 days have attendance recorded.</p>

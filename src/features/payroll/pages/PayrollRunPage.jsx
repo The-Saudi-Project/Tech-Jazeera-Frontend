@@ -167,8 +167,16 @@ export default function PayrollRunPage() {
                   <span className="font-medium">{line.employeeName}</span>
                   <span className="block text-xs text-muted">{line.employeeCode}</span>
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatMoney(line.grossPay)}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-muted">{line.approvedHours || '—'}</td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {formatMoney(line.grossPay)}
+                  {line.overtimePay > 0 && (
+                    <span className="block text-xs font-normal text-warning">+{formatMoney(line.overtimePay)} OT</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums text-muted">
+                  {line.approvedHours || '—'}
+                  {line.overtimeHours > 0 && <span className="block text-xs text-warning">{line.overtimeHours}h OT</span>}
+                </td>
                 <td className="px-4 py-3 text-right tabular-nums">{formatMoney(line.totalDeductions)}</td>
                 <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatMoney(line.netPay)}</td>
                 <td className="px-4 py-3 text-right">

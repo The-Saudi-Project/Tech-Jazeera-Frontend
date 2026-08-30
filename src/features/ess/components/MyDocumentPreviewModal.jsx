@@ -6,6 +6,7 @@
  * the admin document center has).
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getMyDocumentFileBlob, downloadMyDocumentFile } from '../ess.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import Modal from '../../../components/ui/Modal.jsx';
@@ -19,6 +20,7 @@ function currentVersion(doc) {
 }
 
 export default function MyDocumentPreviewModal({ doc, open, onClose }) {
+  const { t } = useTranslation();
   const [url, setUrl] = useState(null);
   const [error, setError] = useState(null);
   const version = doc ? currentVersion(doc) : null;
@@ -35,7 +37,7 @@ export default function MyDocumentPreviewModal({ doc, open, onClose }) {
         objectUrl = URL.createObjectURL(blob);
         setUrl(objectUrl);
       })
-      .catch((e) => !cancelled && setError(apiMessage(e, 'Could not load the file.')));
+      .catch((e) => !cancelled && setError(apiMessage(e, t('documents.preview.loadError'))));
     return () => {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -61,9 +63,9 @@ export default function MyDocumentPreviewModal({ doc, open, onClose }) {
             <img src={url} alt={doc.title} className="max-h-full w-auto object-contain" />
           ) : (
             <p className="p-6 text-center text-sm text-muted">
-              This file type can’t be previewed in the browser.
+              {t('documents.preview.cannotPreview')}
               <br />
-              Download it to view.
+              {t('documents.preview.downloadToView')}
             </p>
           )}
         </div>
@@ -78,7 +80,7 @@ export default function MyDocumentPreviewModal({ doc, open, onClose }) {
             className="w-full"
             onClick={() => downloadMyDocumentFile(doc._id, version.version, version.originalName)}
           >
-            Download
+            {t('common.download')}
           </Button>
         </div>
       </div>

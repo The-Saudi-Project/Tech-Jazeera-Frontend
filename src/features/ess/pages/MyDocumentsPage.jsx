@@ -5,6 +5,7 @@
  */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { listMyDocuments } from '../ess.api.js';
 import MyDocumentPreviewModal from '../components/MyDocumentPreviewModal.jsx';
 import { formatDate } from '../../../lib/utils.js';
@@ -17,6 +18,7 @@ import Button from '../../../components/ui/Button.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
 export default function MyDocumentsPage() {
+  const { t } = useTranslation();
   const [preview, setPreview] = useState(null);
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['me', 'documents'],
@@ -25,7 +27,7 @@ export default function MyDocumentsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="My documents" description="Passport, visa, iqama and other files on file for you." />
+      <PageHeader title={t('documents.title')} description={t('documents.description')} />
 
       {isPending ? (
         <div className="space-y-3">
@@ -35,12 +37,12 @@ export default function MyDocumentsPage() {
         </div>
       ) : isError ? (
         <EmptyState
-          title="Could not load your documents"
-          description="Check your connection and try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('documents.loadError')}
+          description={t('common.checkConnection')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       ) : data.items.length === 0 ? (
-        <EmptyState title="No documents yet" description="Your office hasn't uploaded any documents for you yet." />
+        <EmptyState title={t('documents.empty')} description={t('documents.emptyDescription')} />
       ) : (
         <Card className="divide-y divide-border">
           {data.items.map((doc) => (
@@ -53,7 +55,7 @@ export default function MyDocumentsPage() {
                 <p className="font-medium">{doc.title}</p>
                 <p className="text-xs text-muted">
                   <Badge variant="default" className="mr-2">{doc.category}</Badge>
-                  Uploaded {formatDate(doc.createdAt)}
+                  {t('documents.uploaded', { date: formatDate(doc.createdAt) })}
                 </p>
               </div>
               <ExpiryBadge date={doc.expiryDate} />

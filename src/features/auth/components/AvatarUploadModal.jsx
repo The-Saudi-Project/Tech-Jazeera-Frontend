@@ -6,6 +6,7 @@
  */
 import { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { uploadAvatarRequest, removeAvatarRequest } from '../auth.api.js';
 import { useAuth } from '../AuthContext.jsx';
 import { apiMessage } from '../../../lib/utils.js';
@@ -15,6 +16,7 @@ import Modal from '../../../components/ui/Modal.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function AvatarUploadModal({ open, onClose }) {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
   const toast = useToast();
   const fileInputRef = useRef(null);
@@ -25,7 +27,7 @@ export default function AvatarUploadModal({ open, onClose }) {
     mutationFn: uploadAvatarRequest,
     onSuccess: ({ avatarUrl }) => {
       updateUser({ avatarUrl });
-      toast.success('Profile photo updated.');
+      toast.success(t('avatarModal.uploadSuccess'));
       resetLocal();
       onClose();
     },
@@ -36,7 +38,7 @@ export default function AvatarUploadModal({ open, onClose }) {
     mutationFn: removeAvatarRequest,
     onSuccess: () => {
       updateUser({ avatarUrl: null });
-      toast.success('Profile photo removed.');
+      toast.success(t('avatarModal.removeSuccess'));
       resetLocal();
       onClose();
     },
@@ -59,7 +61,7 @@ export default function AvatarUploadModal({ open, onClose }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > AVATAR_MAX_MB * 1024 * 1024) {
-      toast.error(`Image is too large (maximum ${AVATAR_MAX_MB} MB).`);
+      toast.error(t('avatarModal.fileTooLarge', { maxMb: AVATAR_MAX_MB }));
       e.target.value = '';
       return;
     }
@@ -72,7 +74,7 @@ export default function AvatarUploadModal({ open, onClose }) {
   const busy = uploadMutation.isPending || removeMutation.isPending;
 
   return (
-    <Modal open={open} onClose={busy ? () => {} : handleClose} title="Profile photo">
+    <Modal open={open} onClose={busy ? () => {} : handleClose} title={t('avatarModal.title')}>
       <div className="flex flex-col items-center gap-4">
         {displayUrl ? (
           <img
@@ -96,7 +98,7 @@ export default function AvatarUploadModal({ open, onClose }) {
 
         <div className="flex flex-wrap justify-center gap-2">
           <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={busy}>
-            Choose image
+            {t('avatarModal.chooseImage')}
           </Button>
           {user?.avatarUrl && !pendingFile && (
             <Button
@@ -107,18 +109,16 @@ export default function AvatarUploadModal({ open, onClose }) {
               isLoading={removeMutation.isPending}
               disabled={busy}
             >
-              Remove photo
+              {t('avatarModal.removePhoto')}
             </Button>
           )}
         </div>
 
-        <p className="text-center text-xs text-muted">
-          PNG, JPG, or WEBP — up to {AVATAR_MAX_MB} MB. Square images look best.
-        </p>
+        <p className="text-center text-xs text-muted">{t('avatarModal.fileHint', { maxMb: AVATAR_MAX_MB })}</p>
 
         <div className="flex w-full justify-end gap-2 border-t border-border pt-4">
           <Button type="button" variant="secondary" onClick={handleClose} disabled={busy}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"
@@ -126,7 +126,7 @@ export default function AvatarUploadModal({ open, onClose }) {
             isLoading={uploadMutation.isPending}
             disabled={!pendingFile || busy}
           >
-            Save photo
+            {t('avatarModal.savePhoto')}
           </Button>
         </div>
       </div>

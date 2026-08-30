@@ -1,0 +1,343 @@
+{
+  "common": {
+    "appName": "अल जज़ीरा ईआरपी",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "retry": "पुनः प्रयास करें",
+    "download": "डाउनलोड करें",
+    "submitRequest": "अनुरोध भेजें",
+    "optional": "वैकल्पिक",
+    "note": "टिप्पणी",
+    "checkConnection": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
+    "notAssigned": "नियुक्त नहीं",
+    "language": "भाषा",
+    "expiry": {
+      "notSet": "निर्धारित नहीं",
+      "expired": "समाप्त",
+      "daysLeft": "{{days}} दिन शेष",
+      "valid": "मान्य"
+    },
+    "status": {
+      "Pending": "लंबित",
+      "PendingReview": "समीक्षा लंबित",
+      "AutoApproved": "स्वीकृत",
+      "Approved": "स्वीकृत",
+      "Rejected": "अस्वीकृत",
+      "Cancelled": "रद्द",
+      "Closed": "बंद",
+      "Submitted": "भेजा गया",
+      "Paid": "भुगतान किया गया",
+      "Issued": "जारी",
+      "Present": "उपस्थित",
+      "Absent": "अनुपस्थित",
+      "Leave": "छुट्टी",
+      "Sick": "बीमार",
+      "Off": "अवकाश"
+    },
+    "months": {
+      "1": "जनवरी", "2": "फ़रवरी", "3": "मार्च", "4": "अप्रैल",
+      "5": "मई", "6": "जून", "7": "जुलाई", "8": "अगस्त",
+      "9": "सितंबर", "10": "अक्टूबर", "11": "नवंबर", "12": "दिसंबर"
+    }
+  },
+  "auth": {
+    "signIn": "साइन इन करें",
+    "useCompanyAccount": "अपने कंपनी खाते का उपयोग करें",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "couldNotLogIn": "लॉग इन नहीं हो सका। क्या सर्वर चल रहा है?",
+    "footerNotice": "आंतरिक प्रणाली, केवल अधिकृत कर्मचारियों के लिए"
+  },
+  "nav": {
+    "myProfile": "मेरी प्रोफ़ाइल",
+    "myDocuments": "मेरे दस्तावेज़",
+    "myAttendance": "मेरी उपस्थिति",
+    "myLeave": "मेरी छुट्टी",
+    "myRequests": "मेरे अनुरोध",
+    "visasAndDocuments": "वीज़ा और दस्तावेज़",
+    "myPayslips": "मेरी वेतन पर्ची",
+    "workspaceTitle": "मेरा कार्यक्षेत्र",
+    "footerLine1": "अल जज़ीरा ईआरपी",
+    "footerLine2": "कर्मचारी स्व-सेवा"
+  },
+  "header": {
+    "employee": "कर्मचारी",
+    "updateProfilePhoto": "प्रोफ़ाइल फ़ोटो अपडेट करें",
+    "changePassword": "पासवर्ड बदलें",
+    "logOut": "लॉग आउट करें",
+    "notifications": "सूचनाएं"
+  },
+  "changePasswordModal": {
+    "title": "पासवर्ड बदलें",
+    "currentPassword": "वर्तमान पासवर्ड *",
+    "newPassword": "नया पासवर्ड *",
+    "confirmPassword": "नए पासवर्ड की पुष्टि करें *",
+    "signOutNotice": "आप हर डिवाइस से साइन आउट हो जाएंगे और नए पासवर्ड से फिर से साइन इन करना होगा।",
+    "submit": "पासवर्ड बदलें",
+    "success": "पासवर्ड बदल दिया गया है। कृपया फिर से साइन इन करें।"
+  },
+  "avatarModal": {
+    "title": "प्रोफ़ाइल फ़ोटो",
+    "chooseImage": "छवि चुनें",
+    "removePhoto": "फ़ोटो हटाएं",
+    "fileHint": "PNG, JPG, या WEBP — अधिकतम {{maxMb}} MB। वर्गाकार छवियां सबसे अच्छी दिखती हैं।",
+    "fileTooLarge": "छवि बहुत बड़ी है (अधिकतम {{maxMb}} MB)।",
+    "savePhoto": "फ़ोटो सहेजें",
+    "uploadSuccess": "प्रोफ़ाइल फ़ोटो अपडेट कर दी गई है।",
+    "removeSuccess": "प्रोफ़ाइल फ़ोटो हटा दी गई है।"
+  },
+  "notificationsPanel": {
+    "title": "सूचनाएं",
+    "markAllRead": "सभी को पढ़ा हुआ चिह्नित करें",
+    "empty": "अभी तक कोई सूचना नहीं है।",
+    "enablePush": "पुश सूचनाएं सक्षम करें",
+    "disablePush": "पुश सूचनाएं बंद करें",
+    "pushEnabled": "पुश सूचनाएं सक्षम कर दी गई हैं।",
+    "pushDisabled": "पुश सूचनाएं बंद कर दी गई हैं।",
+    "pushError": "पुश सूचनाएं अपडेट नहीं हो सकीं।"
+  },
+  "profile": {
+    "title": "मेरी प्रोफ़ाइल",
+    "loadError": "आपकी प्रोफ़ाइल लोड नहीं हो सकी",
+    "personalDetails": "व्यक्तिगत विवरण",
+    "nationality": "राष्ट्रीयता",
+    "mobile": "मोबाइल",
+    "email": "ईमेल",
+    "joiningDate": "शामिल होने की तारीख",
+    "employment": "रोज़गार",
+    "designation": "पदनाम",
+    "department": "विभाग",
+    "monthlySalary": "मासिक वेतन",
+    "accommodation": "आवास",
+    "currentClient": "वर्तमान क्लाइंट",
+    "myCoordinator": "मेरा समन्वयक",
+    "documentsOnFile": "दर्ज दस्तावेज़",
+    "documents": {
+      "passport": "पासपोर्ट",
+      "visa": "वीज़ा",
+      "iqama": "इक़ामा",
+      "medical": "चिकित्सा",
+      "drivingLicense": "ड्राइविंग लाइसेंस"
+    },
+    "docNumber": "क्रमांक {{number}}",
+    "docNoNumber": "कोई नंबर दर्ज नहीं",
+    "docExpires": " · समाप्ति {{date}}",
+    "emergencyContact": "आपातकालीन संपर्क",
+    "contactName": "नाम",
+    "contactPhone": "फ़ोन",
+    "contactRelation": "संबंध",
+    "employeeStatus": {
+      "Active": "सक्रिय",
+      "On Leave": "छुट्टी पर",
+      "Exited": "सेवा समाप्त"
+    }
+  },
+  "documents": {
+    "title": "मेरे दस्तावेज़",
+    "description": "पासपोर्ट, वीज़ा, इक़ामा और आपके लिए दर्ज अन्य फ़ाइलें।",
+    "loadError": "आपके दस्तावेज़ लोड नहीं हो सके",
+    "empty": "अभी तक कोई दस्तावेज़ नहीं है",
+    "emptyDescription": "आपके कार्यालय ने अभी तक आपके लिए कोई दस्तावेज़ अपलोड नहीं किया है।",
+    "uploaded": "{{date}} को अपलोड किया गया",
+    "preview": {
+      "cannotPreview": "इस प्रकार की फ़ाइल का ब्राउज़र में पूर्वावलोकन नहीं किया जा सकता।",
+      "downloadToView": "देखने के लिए इसे डाउनलोड करें।",
+      "loadError": "फ़ाइल लोड नहीं हो सकी।"
+    }
+  },
+  "attendance": {
+    "title": "मेरी उपस्थिति",
+    "description": "पहुंचने पर साइन इन करें और जाते समय साइन आउट करें — दिन भर में जितनी बार ज़रूरत हो साइन आउट और वापस साइन इन कर सकते हैं।",
+    "todaySetByOffice": "आज: {{status}}",
+    "setByOfficeNotice": "आपके कार्यालय द्वारा निर्धारित — इसे बदलने के लिए HR से संपर्क करें।",
+    "signedInAt": "{{time}} बजे साइन इन किया",
+    "signedOutAt": "{{time}} बजे साइन आउट किया",
+    "hoursToday": "आज {{hours}} घंटे · {{verifiedBy}}",
+    "notSignedInYet": "आपने आज अभी तक साइन इन नहीं किया है।",
+    "signOut": "साइन आउट करें",
+    "signIn": "साइन इन करें",
+    "signInAgain": "फिर से साइन इन करें",
+    "locationNotice": "आपसे आपका स्थान पूछा जाएगा — इसके काम करने के लिए आपको कार्यालय में (या कार्यालय नेटवर्क पर) होना चाहिए। दिन भर में जितनी बार ज़रूरत हो साइन आउट और वापस साइन इन करें; हर सत्र आज के घंटों में जुड़ जाता है।",
+    "recentHistory": "हाल का इतिहास",
+    "loadError": "आपकी उपस्थिति लोड नहीं हो सकी",
+    "empty": "अभी तक कोई उपस्थिति नहीं है",
+    "emptyDescription": "आपके साइन-इन किए गए दिन यहां दिखाई देंगे।",
+    "hoursSuffix": "{{hours}} घंटे",
+    "signedIn": "साइन इन हो गया।",
+    "signedOutWithHours": "साइन आउट हो गया — आज {{hours}} घंटे।",
+    "verifiedBy": {
+      "geofence": "स्थान द्वारा सत्यापित",
+      "officeIp": "कार्यालय नेटवर्क द्वारा सत्यापित",
+      "selfMarked": "स्वयं द्वारा दर्ज"
+    },
+    "earlySignOut": {
+      "title": "जल्दी साइन आउट करें?",
+      "message": "आप लगभग {{hoursSoFar}} घंटे से साइन इन हैं — आपकी अपेक्षित शिफ्ट {{expected}} घंटे की है। फिर भी साइन आउट करें?",
+      "confirmLabel": "फिर भी साइन आउट करें"
+    },
+    "timesheet": {
+      "title": "साप्ताहिक टाइमशीट",
+      "submitPrompt": "अपने पर्यवेक्षक की स्वीकृति के लिए यह सप्ताह भेजें।",
+      "alreadyStatus": "यह सप्ताह पहले से ही {{status}} है।",
+      "submitButton": "यह सप्ताह भेजें",
+      "submitted": "टाइमशीट भेज दी गई — {{hours}} घंटे{{overtime}}।",
+      "overtimeSuffix": " ({{hours}} ओवरटाइम)"
+    }
+  },
+  "leave": {
+    "title": "मेरी छुट्टी",
+    "description": "छुट्टी का अनुरोध करें और उसकी स्थिति देखें।",
+    "upcomingHolidays": "आगामी छुट्टियां",
+    "requestLeave": "छुट्टी का अनुरोध करें",
+    "leaveType": "छुट्टी का प्रकार *",
+    "chooseLeaveType": "छुट्टी का प्रकार चुनें…",
+    "startDate": "प्रारंभ तिथि *",
+    "endDate": "समाप्ति तिथि *",
+    "reason": "कारण",
+    "yourRequests": "आपके अनुरोध",
+    "loadError": "आपके छुट्टी अनुरोध लोड नहीं हो सके",
+    "empty": "अभी तक कोई छुट्टी अनुरोध नहीं है",
+    "emptyDescription": "ऊपर अपना पहला अनुरोध भेजें।",
+    "days": "{{count}} दिन",
+    "days_other": "{{count}} दिन",
+    "cancelButton": "रद्द करें",
+    "cancelDialog": {
+      "title": "छुट्टी अनुरोध रद्द करें?",
+      "message": "आपका {{type}} अनुरोध {{days}} दिन(दिनों) के लिए रद्द कर दिया जाएगा।"
+    },
+    "autoApprovedToast": "छुट्टी अनुरोध स्वीकृत हो गया।",
+    "submittedToast": "छुट्टी अनुरोध समीक्षा के लिए भेज दिया गया।",
+    "cancelledToast": "छुट्टी अनुरोध रद्द कर दिया गया।"
+  },
+  "requests": {
+    "title": "मेरे अनुरोध",
+    "description": "वेतन अग्रिम और खर्च प्रतिपूर्ति दावे।",
+    "advances": {
+      "sectionTitle": "वेतन अग्रिम का अनुरोध करें",
+      "amount": "राशि (SAR) *",
+      "repaymentMonths": "चुकौती अवधि (महीने) *",
+      "reason": "कारण",
+      "yourRequests": "आपके अग्रिम अनुरोध",
+      "loadError": "आपके अग्रिम अनुरोध लोड नहीं हो सके",
+      "empty": "अभी तक कोई अग्रिम अनुरोध नहीं है",
+      "emptyDescription": "ऊपर अपना पहला अनुरोध भेजें।",
+      "overMonths": "{{count}} महीने में",
+      "overMonths_other": "{{count}} महीनों में",
+      "requestedOn": " · {{date}} को अनुरोध किया गया",
+      "outstanding": "बकाया: {{amount}}",
+      "submittedToast": "अग्रिम अनुरोध भेज दिया गया।",
+      "cancelledToast": "अग्रिम अनुरोध रद्द कर दिया गया।",
+      "cancelDialog": {
+        "title": "अग्रिम अनुरोध रद्द करें?",
+        "message": "{{amount}} का आपका अनुरोध रद्द कर दिया जाएगा।"
+      }
+    },
+    "reimbursements": {
+      "sectionTitle": "खर्च का दावा करें",
+      "category": "श्रेणी *",
+      "chooseCategory": "एक श्रेणी चुनें…",
+      "amount": "राशि (SAR) *",
+      "expenseDate": "खर्च की तारीख *",
+      "description": "विवरण",
+      "receipt": "रसीद *",
+      "chooseFile": "फ़ाइल चुनें",
+      "changeFile": "फ़ाइल बदलें",
+      "fileHint": "PDF, JPG, PNG, या WEBP — अधिकतम {{maxMb}} MB।",
+      "fileTooLarge": "फ़ाइल बहुत बड़ी है (अधिकतम {{maxMb}} MB)।",
+      "attachReceiptFirst": "भेजने से पहले एक रसीद संलग्न करें।",
+      "submitClaim": "दावा भेजें",
+      "yourClaims": "आपके दावे",
+      "loadError": "आपके दावे लोड नहीं हो सके",
+      "empty": "अभी तक कोई प्रतिपूर्ति दावा नहीं है",
+      "emptyDescription": "ऊपर अपना पहला दावा भेजें।",
+      "expenseOn": "खर्च {{date}}",
+      "receiptButton": "रसीद",
+      "receiptDownloadError": "रसीद डाउनलोड नहीं हो सकी।",
+      "submittedToast": "प्रतिपूर्ति दावा भेज दिया गया।",
+      "cancelledToast": "प्रतिपूर्ति दावा रद्द कर दिया गया।",
+      "cancelDialog": {
+        "title": "प्रतिपूर्ति दावा रद्द करें?",
+        "message": "आपका {{category}} दावा {{amount}} के लिए रद्द कर दिया जाएगा।"
+      },
+      "categories": {
+        "Travel": "यात्रा",
+        "Fuel": "ईंधन",
+        "Meals": "भोजन",
+        "Medical": "चिकित्सा",
+        "Tools": "उपकरण",
+        "Other": "अन्य"
+      }
+    }
+  },
+  "exitDocuments": {
+    "title": "वीज़ा और दस्तावेज़",
+    "description": "एग्ज़िट री-एंट्री वीज़ा, आधिकारिक प्रमाणपत्र, और आपको सौंपी गई संपत्तियां।",
+    "exitReentry": {
+      "sectionTitle": "एग्ज़िट री-एंट्री वीज़ा का अनुरोध करें",
+      "visaType": "वीज़ा प्रकार *",
+      "choose": "चुनें…",
+      "departureDate": "प्रस्थान तिथि *",
+      "expectedReturn": "अपेक्षित वापसी तिथि *",
+      "reason": "कारण",
+      "yourRequests": "आपके वीज़ा अनुरोध",
+      "loadError": "आपके अनुरोध लोड नहीं हो सके",
+      "empty": "अभी तक कोई अनुरोध नहीं है",
+      "emptyDescription": "ऊपर अपना पहला अनुरोध भेजें।",
+      "exitLabel": "{{type}} एग्ज़िट",
+      "departReturn": "प्रस्थान {{departure}} · वापसी {{returnDate}} तक",
+      "reference": "संदर्भ: {{ref}}",
+      "submittedToast": "एग्ज़िट री-एंट्री अनुरोध भेज दिया गया।",
+      "cancelledToast": "अनुरोध रद्द कर दिया गया।",
+      "cancelDialog": {
+        "title": "वीज़ा अनुरोध रद्द करें?",
+        "message": "यह एग्ज़िट री-एंट्री वीज़ा अनुरोध रद्द कर दिया जाएगा।"
+      },
+      "visaTypes": {
+        "Single": "एकल",
+        "Multiple": "बहु"
+      }
+    },
+    "certificates": {
+      "sectionTitle": "प्रमाणपत्र का अनुरोध करें",
+      "type": "प्रमाणपत्र प्रकार *",
+      "choose": "चुनें…",
+      "purpose": "उद्देश्य",
+      "purposePlaceholder": "जैसे: बैंक खाता खोलना, वीज़ा आवेदन",
+      "yourRequests": "आपके प्रमाणपत्र अनुरोध",
+      "loadError": "आपके अनुरोध लोड नहीं हो सके",
+      "empty": "अभी तक कोई अनुरोध नहीं है",
+      "emptyDescription": "ऊपर अपना पहला अनुरोध भेजें।",
+      "forPurpose": "उद्देश्य: {{purpose}}",
+      "submittedToast": "प्रमाणपत्र अनुरोध भेज दिया गया।",
+      "cancelledToast": "प्रमाणपत्र अनुरोध रद्द कर दिया गया।",
+      "downloadError": "PDF तैयार नहीं हो सका।",
+      "cancelDialog": {
+        "title": "प्रमाणपत्र अनुरोध रद्द करें?",
+        "message": "आपका {{type}} अनुरोध रद्द कर दिया जाएगा।"
+      },
+      "types": {
+        "SalaryCertificate": "वेतन प्रमाणपत्र",
+        "ServiceCertificate": "सेवा प्रमाणपत्र",
+        "ChamberOfCommerceAttestation": "चैंबर ऑफ कॉमर्स सत्यापन"
+      }
+    },
+    "assets": {
+      "sectionTitle": "आपको सौंपी गई संपत्तियां",
+      "loadError": "आपकी संपत्तियां लोड नहीं हो सकीं",
+      "empty": "कोई संपत्ति नियुक्त नहीं है",
+      "emptyDescription": "आपको सौंपी गई कंपनी की संपत्तियां यहां दिखाई देंगी।",
+      "currentlyWithYou": "वर्तमान में आपके पास",
+      "returnedOn": "{{date}} को वापस किया गया"
+    }
+  },
+  "payslips": {
+    "title": "मेरी वेतन पर्ची",
+    "description": "आपका अंतिम रूप से स्वीकृत मासिक वेतन।",
+    "loadError": "आपकी वेतन पर्चियां लोड नहीं हो सकीं",
+    "empty": "अभी तक कोई वेतन पर्ची नहीं है",
+    "emptyDescription": "आपकी अंतिम रूप से स्वीकृत मासिक वेतन पर्चियां यहां दिखाई देंगी।",
+    "netPay": "शुद्ध वेतन {{amount}}",
+    "download": "डाउनलोड करें",
+    "downloadError": "वेतन पर्ची तैयार नहीं हो सकी।"
+  }
+}

@@ -26,6 +26,19 @@
         } catch (e) {}
       })();
     </script>
+
+    <!-- P3-G: same reasoning as the theme script above — set dir/lang
+         before first paint so a returning Arabic-reading worker never sees
+         an LTR flash before React (and i18n/index.js) take over. -->
+    <script>
+      (function () {
+        try {
+          var lang = localStorage.getItem('language') || 'en';
+          document.documentElement.lang = lang;
+          document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
