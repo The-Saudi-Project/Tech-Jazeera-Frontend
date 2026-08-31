@@ -5,7 +5,7 @@
  * one of `allowedIps` — see docs/P2-M3-notes.md for why this replaces
  * "connect to the office WiFi" (browsers can't read a WiFi network's name).
  */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ import {
   officeLocationToForm,
   formToOfficeLocationPayload,
 } from '../officeLocation.schema.js';
+import { useDeviceLocation } from '../../../lib/useDeviceLocation.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -27,7 +28,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
 export default function OfficeLocationSettings() {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [locating, setLocating] = useState(false);
+  const { locating, getLocation } = useDeviceLocation();
 
   const { data: location, isPending } = useQuery({
     queryKey: ['office-location'],
@@ -55,25 +56,15 @@ export default function OfficeLocationSettings() {
     onError: (error) => toast.error(apiMessage(error)),
   });
 
-  function useMyLocation() {
-    if (!navigator.geolocation) {
-      toast.error('Your browser does not support geolocation.');
+  async function useMyLocation() {
+    const location = await getLocation();
+    if (!location) {
+      toast.error('Could not get your location. Check location permissions.');
       return;
     }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setValue('lat', String(pos.coords.latitude));
-        setValue('lng', String(pos.coords.longitude));
-        setLocating(false);
-        toast.success('Location filled in — stand at the office before clicking this.');
-      },
-      () => {
-        setLocating(false);
-        toast.error('Could not get your location. Check browser permissions.');
-      },
-      { enableHighAccuracy: true, timeout: 10_000 }
-    );
+    setValue('lat', String(location.lat));
+    setValue('lng', String(location.lng));
+    toast.success('Location filled in — stand at the office before clicking this.');
   }
 
   if (isPending) return <Skeleton className="h-64 w-full" />;

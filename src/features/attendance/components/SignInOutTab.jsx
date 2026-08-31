@@ -16,6 +16,7 @@ import { listAttendance } from '../attendance.api.js';
 import { listAllStaffAttendance, listMyStaffAttendance, punchStaffAttendance } from '../staffAttendance.api.js';
 import { todayKey } from '../attendance.dates.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
+import { useDeviceLocation } from '../../../lib/useDeviceLocation.js';
 import { ATTENDANCE_STATUS_META, ATTENDANCE_WRITE_ROLES, STAFF_SELF_ATTENDANCE_ROLES } from '../../../lib/constants.js';
 import { apiMessage, formatDate, formatHours, formatTime } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
@@ -32,7 +33,7 @@ const VERIFIED_LABEL = { geofence: 'Verified by location', officeIp: 'Verified b
 function PunchCard() {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [locating, setLocating] = useState(false);
+  const { locating, getLocation } = useDeviceLocation();
 
   const { data } = useQuery({
     queryKey: ['staffAttendance', 'mine'],
@@ -43,23 +44,8 @@ function PunchCard() {
   const hasPunchedToday = Boolean(todayRecord?.checkInTime);
   const signedInNotOut = hasPunchedToday && !todayRecord?.checkOutTime;
 
-  function withLocation(mutate) {
-    if (!navigator.geolocation) {
-      mutate({});
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocating(false);
-        mutate({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
-      },
-      () => {
-        setLocating(false);
-        mutate({});
-      },
-      { enableHighAccuracy: true, timeout: 10_000 }
-    );
+  async function punchWithLocation() {
+    punchMutation.mutate((await getLocation()) ?? {});
   }
 
   const punchMutation = useMutation({
@@ -96,11 +82,11 @@ function PunchCard() {
         )}
 
         {signedInNotOut ? (
-          <Button onClick={() => withLocation(punchMutation.mutate)} isLoading={busy} size="lg" variant="secondary">
+          <Button onClick={punchWithLocation} isLoading={busy} size="lg" variant="secondary">
             Sign out
           </Button>
         ) : (
-          <Button onClick={() => withLocation(punchMutation.mutate)} isLoading={busy} size="lg">
+          <Button onClick={punchWithLocation} isLoading={busy} size="lg">
             {hasPunchedToday ? 'Sign in again' : 'Sign in'}
           </Button>
         )}

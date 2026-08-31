@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { punchMyAttendance, listMyAttendance, getMyProfile, listMyTimesheets, submitMyTimesheet } from '../ess.api.js';
+import { useDeviceLocation } from '../../../lib/useDeviceLocation.js';
 import { apiMessage, formatDate, formatHours, formatTime } from '../../../lib/utils.js';
 import { ATTENDANCE_STATUS_META, TIMESHEET_STATUS_VARIANT } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
@@ -113,7 +114,7 @@ export default function MyAttendancePage() {
   const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [locating, setLocating] = useState(false);
+  const { locating, getLocation } = useDeviceLocation();
   const [confirmEarlySignOut, setConfirmEarlySignOut] = useState(null); // { hoursSoFar, expected } | null
 
   const VERIFIED_LABEL = {
@@ -138,28 +139,6 @@ export default function MyAttendancePage() {
   // out"; anything else (never punched, or already signed out) → "Sign in".
   const signedInNotOut = hasPunchedToday && !todayRecord?.checkOutTime;
 
-  function withLocation(mutate) {
-    if (!navigator.geolocation) {
-      // No GPS available at all — still try, so the office-IP path can work.
-      mutate({});
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocating(false);
-        mutate({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
-      },
-      () => {
-        setLocating(false);
-        // Permission denied or unavailable — still attempt it; the office-IP
-        // check is a real, independent path, not just a GPS fallback message.
-        mutate({});
-      },
-      { enableHighAccuracy: true, timeout: 10_000 }
-    );
-  }
-
   const punchMutation = useMutation({
     mutationFn: punchMyAttendance,
     onSuccess: ({ action, record }) => {
@@ -173,8 +152,10 @@ export default function MyAttendancePage() {
     onError: (error) => toast.error(apiMessage(error)),
   });
 
-  function doPunch() {
-    withLocation(punchMutation.mutate);
+  async function doPunch() {
+    // Permission denied or unavailable — still attempt it; the office-IP
+    // check is a real, independent verification path, not just a GPS fallback.
+    punchMutation.mutate((await getLocation()) ?? {});
   }
 
   /** The "Sign out" button — warns first if this looks like an early departure. */
