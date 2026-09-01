@@ -15,7 +15,7 @@ public class MainActivity extends BridgeActivity {
     // than the WebView's own https://localhost) as third-party and silently
     // drops it — breaking the httpOnly refresh-token cookie the whole
     // stay-logged-in flow depends on. Needed alongside capacitor.config.json's
-    // CapacitorHttp.enabled:true (see that file's comment) — confirmed by
+    // CapacitorHttp.enabled:true (see docs/P-MOBILE-notes.md) — confirmed by
     // direct testing that plain WebView networking alone does not reliably
     // deliver a cross-origin Set-Cookie into this CookieManager on this
     // Android/WebView combination; CapacitorHttp's native request path with

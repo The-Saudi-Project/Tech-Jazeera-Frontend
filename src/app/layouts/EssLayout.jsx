@@ -16,6 +16,7 @@ import ChangePasswordModal from '../../features/auth/components/ChangePasswordMo
 import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.jsx';
 import NotificationBell from '../../components/shared/NotificationBell.jsx';
 import LanguageSwitcher from '../../components/shared/LanguageSwitcher.jsx';
+import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
 import { cn } from '../../lib/utils.js';
 
 const NAV_ITEMS = [
@@ -68,7 +69,11 @@ function Sidebar({ onNavigate }) {
   const { t } = useTranslation();
   return (
     <div className="flex h-full flex-col border-r border-border bg-surface">
-      <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
+      {/* Same bg-surface/70 + backdrop-blur-xl treatment as the topbar below
+          — both are h-16 with a border-b; leaving one solid and one
+          blurred/translucent made the seam between them read as misaligned
+          even though the two border lines are pixel-identical. */}
+      <div className="flex h-16 items-center gap-2.5 border-b border-border bg-surface/70 px-5 backdrop-blur-xl">
         <img src="/logo.png" alt="Al Jazeera" className="h-9 w-9 rounded-xl shadow-glow" />
         <span className="font-semibold tracking-tight">{t('nav.workspaceTitle')}</span>
       </div>
@@ -154,6 +159,7 @@ export default function EssLayout() {
               <p className="text-xs text-muted">{t('header.employee')}</p>
             </div>
             <LanguageSwitcher className="hidden w-auto sm:flex" />
+            <ThemeToggle />
             <NotificationBell />
             <button
               onClick={() => setAvatarModalOpen(true)}

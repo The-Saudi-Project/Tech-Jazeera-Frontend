@@ -62,6 +62,10 @@ import MyRequestsPage from '../features/ess/pages/MyRequestsPage.jsx';
 import MyPayslipsPage from '../features/ess/pages/MyPayslipsPage.jsx';
 import MyExitDocumentsPage from '../features/ess/pages/MyExitDocumentsPage.jsx';
 import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
+import WorkforceHubPage from './pages/WorkforceHubPage.jsx';
+import SalesHubPage from './pages/SalesHubPage.jsx';
+import FinancialHubPage from './pages/FinancialHubPage.jsx';
+import AdminToolsHubPage from './pages/AdminToolsHubPage.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 function RequireAuth() {
@@ -81,7 +85,7 @@ function RequireAuth() {
 /**
  * P2-M2: a Worker's whole world is the ESS portal; every other role keeps
  * the full admin shell. Split here (not per-route guards) so a Worker never
- * even mounts the 20-item admin sidebar before being redirected.
+ * even mounts the admin sidebar before being redirected.
  */
 function RoleRouter() {
   const { user } = useAuth();
@@ -108,6 +112,10 @@ export const router = createBrowserRouter([
             element: <DashboardLayout />,
             children: [
               { path: '/', element: <DashboardPage /> },
+              { path: '/workforce', element: <WorkforceHubPage /> },
+              { path: '/sales', element: <SalesHubPage /> },
+              { path: '/financial', element: <FinancialHubPage /> },
+              { path: '/admin-tools', element: <AdminToolsHubPage /> },
               { path: '/employees', element: <EmployeeListPage /> },
               { path: '/employees/new', element: <EmployeeNewPage /> },
               { path: '/employees/:id', element: <EmployeeProfilePage /> },
