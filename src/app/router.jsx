@@ -55,6 +55,8 @@ import InvoiceListPage from '../features/invoices/pages/InvoiceListPage.jsx';
 import InvoiceViewPage from '../features/invoices/pages/InvoiceViewPage.jsx';
 import ExpenseListPage from '../features/expenses/pages/ExpenseListPage.jsx';
 import AuditLogPage from '../features/audit/pages/AuditLogPage.jsx';
+import ApprovalsPage from '../features/approvals/pages/ApprovalsPage.jsx';
+import ApprovalLogPage from '../features/approvals/pages/ApprovalLogPage.jsx';
 import MyProfilePage from '../features/ess/pages/MyProfilePage.jsx';
 import MyDocumentsPage from '../features/ess/pages/MyDocumentsPage.jsx';
 import MyLeavePage from '../features/ess/pages/MyLeavePage.jsx';
@@ -152,6 +154,8 @@ export const router = createBrowserRouter([
               { path: '/invoices/:id', element: <InvoiceViewPage /> },
               { path: '/expenses', element: <ExpenseListPage /> },
               { path: '/security-log', element: <AuditLogPage /> },
+              { path: '/approvals', element: <ApprovalsPage /> },
+              { path: '/approvals/log', element: <ApprovalLogPage /> },
               { path: '/nfc', element: <NfcCompanyListPage /> },
               { path: '/nfc/cards', element: <NfcCardListPage /> },
               { path: '/nfc/cards/:id', element: <NfcCardDetailPage /> },

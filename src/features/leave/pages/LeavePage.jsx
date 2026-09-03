@@ -13,10 +13,18 @@ import {
   createLeaveType,
   updateLeaveType,
   listLeaveRequests,
+  submitLeaveRequest,
   decideLeaveRequest,
   acknowledgeLeaveRequest,
 } from '../leave.api.js';
-import { leaveTypeFormSchema, emptyLeaveTypeForm, emptySickLeaveTypeForm, leaveTypeToForm } from '../leave.schema.js';
+import {
+  leaveTypeFormSchema,
+  emptyLeaveTypeForm,
+  emptySickLeaveTypeForm,
+  leaveTypeToForm,
+  submitLeaveFormSchema,
+  emptySubmitLeaveForm,
+} from '../leave.schema.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import {
@@ -31,11 +39,13 @@ import {
 import { useToast } from '../../../components/ui/Toast.jsx';
 import UpcomingHolidays from '../../holidays/components/UpcomingHolidays.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
+import Textarea from '../../../components/ui/Textarea.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
@@ -248,11 +258,71 @@ function LeaveTypesPanel() {
   );
 }
 
+/**
+ * SubmitLeavePanel — a STAFF member (Coordinator/HR/Manager/Accounts)
+ * submitting their OWN leave request. Admin has no Employee record and
+ * never sees this panel (see employee.model.js's doc comment — Admin is the
+ * one login with no workforce presence). Workers use MyLeavePage instead;
+ * this reuses the exact same form schema/fields.
+ */
+function SubmitLeavePanel() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: types } = useQuery({
+    queryKey: ['leave-types', { activeOnly: true }],
+    queryFn: () => listLeaveTypes({ activeOnly: 'true' }),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(submitLeaveFormSchema), defaultValues: emptySubmitLeaveForm });
+
+  const submitMutation = useMutation({
+    mutationFn: submitLeaveRequest,
+    onSuccess: (request) => {
+      toast.success(request.status === 'AutoApproved' ? 'Leave request approved.' : 'Leave request submitted for review.');
+      reset(emptySubmitLeaveForm);
+      queryClient.invalidateQueries({ queryKey: ['leave'] });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  return (
+    <Card>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Submit your own request</h2>
+      <form onSubmit={handleSubmit((values) => submitMutation.mutate(values))} noValidate className="space-y-4">
+        <Select label="Leave type" error={errors.leaveType?.message} {...register('leaveType')}>
+          <option value="">Choose a leave type…</option>
+          {(types ?? []).map((ty) => (
+            <option key={ty._id} value={ty._id}>
+              {ty.name}
+            </option>
+          ))}
+        </Select>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input label="Start date" type="date" error={errors.startDate?.message} {...register('startDate')} />
+          <Input label="End date" type="date" error={errors.endDate?.message} {...register('endDate')} />
+        </div>
+        <Textarea label="Reason" placeholder="Optional" error={errors.reason?.message} {...register('reason')} />
+        <div className="flex justify-end">
+          <Button type="submit" isLoading={submitMutation.isPending}>
+            Submit request
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
 function ReviewQueue() {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canDecide = LEAVE_DECIDE_ROLES.includes(user.role);
+  const canAcknowledge = LEAVE_DECIDE_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
 
   const { data, isPending, isError, refetch } = useQuery({
@@ -320,10 +390,11 @@ function ReviewQueue() {
                     {req.days > 1 ? 's' : ''}
                   </p>
                   <p className="mt-1 text-xs text-muted">{req.eligibility?.ruleApplied}</p>
+                  <ApprovalTrailView request={req} />
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{LEAVE_REQUEST_STATUS_LABELS[req.status]}</Badge>
-                  {canDecide && req.status === 'PendingReview' && (
+                  {req.canDecideCurrentStep && req.status === 'PendingReview' && (
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -344,7 +415,7 @@ function ReviewQueue() {
                       </Button>
                     </div>
                   )}
-                  {canDecide && needsAck && (
+                  {canAcknowledge && needsAck && (
                     <Button size="sm" variant="ghost" isLoading={ackMutation.isPending} onClick={() => ackMutation.mutate(req._id)}>
                       Mark as seen
                     </Button>
@@ -375,6 +446,7 @@ export default function LeavePage() {
       />
       <UpcomingHolidays />
       {canManageTypes && <LeaveTypesPanel />}
+      {user.role !== 'Admin' && <SubmitLeavePanel />}
       <ReviewQueue />
     </div>
   );

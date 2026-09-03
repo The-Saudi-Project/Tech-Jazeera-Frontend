@@ -17,6 +17,7 @@ import {
   EXIT_DOCUMENTS_ROLES,
   PAYROLL_VIEW_ROLES,
   EXPENSE_VIEW_ROLES,
+  APPROVALS_MANAGE_ROLES,
 } from '../lib/constants.js';
 
 // Inline SVG paths (24×24 outline, Heroicons-style) — an icon library isn't
@@ -60,6 +61,8 @@ const ICON = {
     'M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z',
   nfc: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z',
   activity: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  hierarchy:
+    'M3.375 19.5h6a1.125 1.125 0 001.125-1.125v-6a1.125 1.125 0 00-1.125-1.125h-6A1.125 1.125 0 002.25 12.375v6c0 .621.504 1.125 1.125 1.125zM3.375 6.75h6a1.125 1.125 0 001.125-1.125v-3a1.125 1.125 0 00-1.125-1.125h-6A1.125 1.125 0 002.25 2.625v3c0 .621.504 1.125 1.125 1.125zM13.5 19.5h6a1.125 1.125 0 001.125-1.125v-3a1.125 1.125 0 00-1.125-1.125h-6a1.125 1.125 0 00-1.125 1.125v3c0 .621.504 1.125 1.125 1.125zM13.5 6.75h6a1.125 1.125 0 001.125-1.125v-3A1.125 1.125 0 0019.5 1.5h-6a1.125 1.125 0 00-1.125 1.125v3c0 .621.504 1.125 1.125 1.125z',
 };
 
 export const DASHBOARD_ITEM = { to: '/', label: 'Dashboard', icon: ICON.dashboard };
@@ -116,6 +119,8 @@ export const NAV_GROUPS = [
       { to: '/documents', label: 'Documents', icon: ICON.document, description: 'Company & employee document store.' },
       { to: '/assets', label: 'Assets', icon: ICON.asset, description: 'Equipment issued to employees.' },
       { to: '/team', label: 'Team', icon: ICON.team, roles: STAFF_USER_VIEW_ROLES, description: 'Staff logins and roles.' },
+      { to: '/approvals', label: 'Approval Hierarchy', icon: ICON.hierarchy, roles: APPROVALS_MANAGE_ROLES, description: 'Approval roles and multi-step workflow chains.' },
+      { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order. Visible if you sit in the hierarchy.' },
       { to: '/timesheet-processor', label: 'Timesheet Processor', icon: ICON.clock, roles: ['Admin'], description: 'Bulk-import device attendance exports.' },
       { to: '/nfc', label: 'NFC Customers', icon: ICON.nfc, roles: ['Admin'], description: 'NFC business-card program.' },
       { to: '/security-log', label: 'Security Log', icon: ICON.check, roles: ['Admin'], description: 'Auth & CRUD audit trail.' },

@@ -10,6 +10,13 @@ export async function listAdvances(params) {
   return data.data; // { items, total, page, pages }
 }
 
+/** A STAFF member submitting their OWN advance request (Coordinator/HR/
+ *  Manager/Accounts). Workers use ess.api.js's submitMyAdvance instead. */
+export async function submitAdvance(payload) {
+  const { data } = await api.post('/financial-requests/advances', payload);
+  return data.data;
+}
+
 export async function decideAdvance(id, payload) {
   const { data } = await api.patch(`/financial-requests/advances/${id}/decide`, payload);
   return data.data;

@@ -201,6 +201,19 @@ export const CLIENT_DECIDE_ROLES = ['Admin', 'Manager'];
 /** Who sees the Coordinator Activity oversight page. */
 export const COORDINATOR_ACTIVITY_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
 
+/** Mirrors approvalWorkflow.model.js's APPROVAL_REQUEST_TYPES. */
+export const APPROVAL_REQUEST_TYPES = ['Leave', 'SalaryAdvance', 'Reimbursement', 'Timesheet'];
+export const APPROVAL_REQUEST_TYPE_LABELS = {
+  Leave: 'Leave',
+  SalaryAdvance: 'Salary Advance',
+  Reimbursement: 'Reimbursement',
+  Timesheet: 'Timesheet',
+};
+/** Configuring the hierarchy itself (roles/workflows) is Admin-only — the
+ *  server enforces this; the mirror only hides the nav link/route for
+ *  everyone else. */
+export const APPROVALS_MANAGE_ROLES = ['Admin'];
+
 /** Mirrors the Deployment model enums. */
 export const DEPLOYMENT_SHIFTS = ['Day', 'Night', 'Rotating'];
 export const DEPLOYMENT_STATUSES = ['Active', 'Ended'];

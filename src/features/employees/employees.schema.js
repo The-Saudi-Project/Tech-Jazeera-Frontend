@@ -87,6 +87,10 @@ export const employeeFormSchema = z
     // across both types (every 'Own' employee has one; a 'Client' employee
     // may have one alongside or instead of a coordinator).
     manager: z.string().optional().or(z.literal('')),
+    // Configurable Approval Hierarchy: overrides the company-wide default
+    // ApprovalWorkflow for this employee. '' means "no override" — sent to
+    // the API as null.
+    approvalWorkflow: z.string().optional().or(z.literal('')),
   })
   .superRefine((data, ctx) => {
     if (data.type !== 'Client') return;
@@ -126,6 +130,7 @@ export const emptyEmployeeForm = {
   notes: '',
   coordinator: '',
   manager: '',
+  approvalWorkflow: '',
 };
 
 /** API employee → form values (ISO dates become date-input strings). */
@@ -162,6 +167,7 @@ export function employeeToForm(employee) {
     notes: employee.notes ?? '',
     coordinator: employee.coordinator?._id ?? employee.coordinator ?? '',
     manager: employee.manager?._id ?? employee.manager ?? '',
+    approvalWorkflow: employee.approvalWorkflow?._id ?? employee.approvalWorkflow ?? '',
   };
 }
 
@@ -171,6 +177,7 @@ export function formToEmployeePayload(values) {
     ...values,
     coordinator: values.coordinator || null,
     manager: values.manager || null,
+    approvalWorkflow: values.approvalWorkflow || null,
     expectedDailyHours: values.expectedDailyHours || null,
     weeklyOffDay: values.weeklyOffDay === '' ? null : values.weeklyOffDay,
     basicSalary: values.basicSalary || null,

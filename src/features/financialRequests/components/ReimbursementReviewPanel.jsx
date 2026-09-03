@@ -3,30 +3,140 @@
  * reimbursement claims: approve/reject, download the receipt, then mark
  * paid once Accounts has actually reimbursed it.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listReimbursements, decideReimbursement, markReimbursementPaid, downloadReceipt } from '../reimbursements.api.js';
+import {
+  listReimbursements,
+  submitReimbursement,
+  decideReimbursement,
+  markReimbursementPaid,
+  downloadReceipt,
+} from '../reimbursements.api.js';
+import { reimbursementFormSchema, emptyReimbursementForm } from '../financialRequests.schema.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
 import {
   REIMBURSEMENT_STATUSES,
   REIMBURSEMENT_STATUS_VARIANT,
-  FINANCIAL_REQUEST_DECIDE_ROLES,
+  REIMBURSEMENT_CATEGORIES,
   FINANCIAL_REQUEST_MONEY_ROLES,
+  RECEIPT_ACCEPT,
+  RECEIPT_MAX_MB,
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Select from '../../../components/ui/Select.jsx';
+import Input from '../../../components/ui/Input.jsx';
+import Textarea from '../../../components/ui/Textarea.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
+
+/**
+ * SubmitReimbursementPanel — a STAFF member (Coordinator/HR/Manager/
+ * Accounts) submitting their OWN reimbursement claim. Admin has no Employee
+ * record and never sees this panel. Workers use MyRequestsPage instead;
+ * this reuses the exact same form schema/fields/file-upload pattern.
+ */
+function SubmitReimbursementPanel() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
+  const [pendingFile, setPendingFile] = useState(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(reimbursementFormSchema), defaultValues: emptyReimbursementForm });
+
+  function resetFile() {
+    setPendingFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > RECEIPT_MAX_MB * 1024 * 1024) {
+      toast.error(`File is too large — max ${RECEIPT_MAX_MB}MB.`);
+      e.target.value = '';
+      return;
+    }
+    setPendingFile(file);
+  }
+
+  const submitMutation = useMutation({
+    mutationFn: (values) => {
+      const fd = new FormData();
+      for (const [key, value] of Object.entries(values)) fd.append(key, value);
+      fd.append('file', pendingFile);
+      return submitReimbursement(fd);
+    },
+    onSuccess: () => {
+      toast.success('Reimbursement claim submitted.');
+      reset(emptyReimbursementForm);
+      resetFile();
+      queryClient.invalidateQueries({ queryKey: ['financial-requests', 'reimbursements'] });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  function onSubmit(values) {
+    if (!pendingFile) {
+      toast.error('Attach a receipt first.');
+      return;
+    }
+    submitMutation.mutate(values);
+  }
+
+  return (
+    <Card>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Submit your own reimbursement claim</h2>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Select label="Category *" error={errors.category?.message} {...register('category')}>
+            <option value="">Choose a category…</option>
+            {REIMBURSEMENT_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+          <Input label="Amount *" type="number" step="0.01" min="0.01" error={errors.amount?.message} {...register('amount')} />
+        </div>
+        <Input label="Expense date *" type="date" error={errors.expenseDate?.message} {...register('expenseDate')} />
+        <Textarea label="Description" placeholder="Optional" error={errors.description?.message} {...register('description')} />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium">Receipt *</label>
+          <input ref={fileInputRef} type="file" accept={RECEIPT_ACCEPT} className="hidden" onChange={handleFileChange} />
+          <div className="flex items-center gap-3">
+            <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
+              {pendingFile ? 'Change file' : 'Choose file'}
+            </Button>
+            {pendingFile && <span className="truncate text-sm text-muted">{pendingFile.name}</span>}
+          </div>
+          <p className="mt-1 text-xs text-muted">Max {RECEIPT_MAX_MB}MB.</p>
+        </div>
+        <div className="flex justify-end">
+          <Button type="submit" isLoading={submitMutation.isPending}>
+            Submit claim
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
 
 export default function ReimbursementReviewPanel() {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canDecide = FINANCIAL_REQUEST_DECIDE_ROLES.includes(user.role);
   const canPay = FINANCIAL_REQUEST_MONEY_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
   const [downloadingId, setDownloadingId] = useState(null);
@@ -68,7 +178,9 @@ export default function ReimbursementReviewPanel() {
   }
 
   return (
-    <Card>
+    <>
+      {user.role !== 'Admin' && <SubmitReimbursementPanel />}
+      <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Reimbursement claims</h2>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
@@ -103,13 +215,18 @@ export default function ReimbursementReviewPanel() {
                   {c.category} · {formatMoney(c.amount)} · expense {formatDate(c.expenseDate)}
                 </p>
                 {c.description && <p className="mt-1 text-xs text-muted">{c.description}</p>}
+                <ApprovalTrailView request={c} />
               </div>
               <div className="flex shrink-0 flex-col items-end gap-2">
                 <Badge variant={REIMBURSEMENT_STATUS_VARIANT[c.status]}>{c.status}</Badge>
-                <Button size="sm" variant="ghost" isLoading={downloadingId === c._id} onClick={() => handleDownload(c)}>
-                  Receipt
-                </Button>
-                {canDecide && c.status === 'Pending' && (
+                {/* Gated the same as the server's receipt route (no per-claim
+                    ownership check exists there — see financialRequests.routes.js) */}
+                {canPay && (
+                  <Button size="sm" variant="ghost" isLoading={downloadingId === c._id} onClick={() => handleDownload(c)}>
+                    Receipt
+                  </Button>
+                )}
+                {c.canDecideCurrentStep && c.status === 'Pending' && (
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: c._id, decision: 'Approved' })}>
                       Approve
@@ -129,6 +246,7 @@ export default function ReimbursementReviewPanel() {
           ))}
         </div>
       )}
-    </Card>
+      </Card>
+    </>
   );
 }

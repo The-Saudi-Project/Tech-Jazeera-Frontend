@@ -9,6 +9,14 @@ export async function listTimesheets(params) {
   return data.data; // { items, total, page, pages }
 }
 
+/** A STAFF member submitting their OWN timesheet (Coordinator/HR/Manager/
+ *  Accounts) — mirrors ess.api.js's submitMyTimesheet exactly (same single
+ *  "summarize this week" action, no free-form fields). */
+export async function submitTimesheet(payload) {
+  const { data } = await api.post('/timesheets', payload);
+  return data.data;
+}
+
 export async function decideTimesheet(id, payload) {
   const { data } = await api.patch(`/timesheets/${id}/decide`, payload);
   return data.data;
@@ -16,5 +24,5 @@ export async function decideTimesheet(id, payload) {
 
 export async function bulkApproveTimesheets(ids) {
   const { data } = await api.post('/timesheets/bulk-approve', { ids });
-  return data.data; // { requested, approved }
+  return data.data; // { requested, approved, skipped }
 }

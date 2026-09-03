@@ -1,0 +1,126 @@
+/**
+ * ApprovalLogPage — every request decided through a configured
+ * ApprovalWorkflow, merged across request types and ordered newest first.
+ * Visible to any staff user in the NAV (see navConfig.js — no static role
+ * gate, since eligibility here is dynamic), but the API applies the real
+ * rule: Admin, or an actual ApprovalRole member. A non-member sees this
+ * page's error state, not a route redirect — the same "let the real check
+ * run and render its result" approach the review screens use for
+ * canDecideCurrentStep.
+ *
+ * Only Leave is wired to workflows so far (Milestone 4) — Salary Advance /
+ * Reimbursement / Timesheet appear here automatically once their own
+ * milestones add `workflow`/`approvalTrail` fields (see
+ * approvals.service.js's LOG_SOURCES).
+ */
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { listApprovalLog } from '../approvals.api.js';
+import { APPROVAL_REQUEST_TYPES, APPROVAL_REQUEST_TYPE_LABELS } from '../../../lib/constants.js';
+import { apiMessage, formatDate } from '../../../lib/utils.js';
+import PageHeader from '../../../components/shared/PageHeader.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
+import Card from '../../../components/ui/Card.jsx';
+import Badge from '../../../components/ui/Badge.jsx';
+import Button from '../../../components/ui/Button.jsx';
+import Input from '../../../components/ui/Input.jsx';
+import Select from '../../../components/ui/Select.jsx';
+import EmptyState from '../../../components/ui/EmptyState.jsx';
+import Skeleton from '../../../components/ui/Skeleton.jsx';
+
+const STATUS_OPTIONS = ['PendingReview', 'Approved', 'Rejected'];
+const STATUS_VARIANT = { PendingReview: 'warning', Approved: 'success', Rejected: 'danger' };
+const statusLabel = (s) => (s === 'PendingReview' ? 'Pending review' : s);
+
+export default function ApprovalLogPage() {
+  const [type, setType] = useState('');
+  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+
+  const { data, isPending, isError, error, refetch } = useQuery({
+    queryKey: ['approval-log', { type, status }],
+    queryFn: () => listApprovalLog({ limit: 100, ...(type && { type }), ...(status && { status }) }),
+  });
+
+  // Employee search is client-side, scoped to the currently loaded page —
+  // a real limitation at large scale, but this app's request volume is
+  // modest and a full server-side employee picker isn't worth the extra
+  // surface for that gain today.
+  const items = useMemo(() => {
+    if (!data) return [];
+    if (!search.trim()) return data.items;
+    const q = search.trim().toLowerCase();
+    return data.items.filter(
+      (item) => item.employee?.fullName?.toLowerCase().includes(q) || item.employee?.employeeId?.toLowerCase().includes(q)
+    );
+  }, [data, search]);
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-6">
+      <PageHeader
+        title="Approval Log"
+        description="Every request decided through a configured approval workflow, in order — for anyone in the hierarchy to see."
+      />
+
+      <Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Select label="Request type" value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="">All types</option>
+            {APPROVAL_REQUEST_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {APPROVAL_REQUEST_TYPE_LABELS[t]}
+              </option>
+            ))}
+          </Select>
+          <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">All statuses</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {statusLabel(s)}
+              </option>
+            ))}
+          </Select>
+          <Input label="Employee" placeholder="Search name or ID" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+      </Card>
+
+      <Card>
+        {isPending ? (
+          <Skeleton className="h-32 w-full" />
+        ) : isError ? (
+          <EmptyState
+            title="Could not load the approval log"
+            description={apiMessage(error)}
+            action={
+              <Button variant="secondary" onClick={() => refetch()}>
+                Retry
+              </Button>
+            }
+          />
+        ) : items.length === 0 ? (
+          <EmptyState title="No decisions yet" description="Nothing matches this filter." />
+        ) : (
+          <div className="divide-y divide-border">
+            {items.map((item) => (
+              <div key={`${item.requestType}-${item._id}`} className="py-3 text-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {item.employee?.fullName}{' '}
+                      <span className="font-normal text-muted">({item.employee?.employeeId})</span>
+                    </p>
+                    <p className="text-xs text-muted">
+                      {APPROVAL_REQUEST_TYPE_LABELS[item.requestType]} · {item.typeName} · {formatDate(item.createdAt)}
+                    </p>
+                  </div>
+                  <Badge variant={STATUS_VARIANT[item.status] ?? 'default'}>{statusLabel(item.status)}</Badge>
+                </div>
+                <ApprovalTrailView request={item} />
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}

@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
 import { listStaffUsers } from '../../users/users.api.js';
+import { listApprovalWorkflows } from '../../approvals/approvals.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { EMPLOYEE_STATUSES, EMPLOYEE_TYPES, WEEKDAY_LABELS, MANAGER_ELIGIBLE_ROLES } from '../../../lib/constants.js';
 import { COUNTRIES } from '../../../lib/countries.js';
@@ -81,6 +82,14 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   });
   const managers = (staffUsers ?? []).filter((u) => MANAGER_ELIGIBLE_ROLES.includes(u.role));
 
+  // Configurable Approval Hierarchy: which workflow governs THIS employee's
+  // own requests, overriding the company-wide default for its request
+  // type(s). Only active workflows are offered — an inactive one can't be
+  // newly assigned, though an employee already pointed at one keeps showing
+  // it (see the reapply effect below) rather than silently blanking the field.
+  const { data: workflows } = useQuery({ queryKey: ['approval-workflows'], queryFn: listApprovalWorkflows });
+  const activeWorkflows = (workflows ?? []).filter((w) => w.isActive || w._id === defaultValues.approvalWorkflow);
+
   // The <select>s mount (via register's ref) before these async lists
   // resolve, so setting their value to an id with no matching <option> yet
   // silently fails — a native select doesn't retroactively select an option
@@ -97,6 +106,12 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [staffUsers]);
+  useEffect(() => {
+    if (workflows && defaultValues.approvalWorkflow) {
+      setValue('approvalWorkflow', defaultValues.approvalWorkflow);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workflows]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
@@ -239,6 +254,21 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
             {type === 'Own'
               ? 'Who this employee reports to.'
               : "Optional — alongside or instead of a coordinator, if they report to a manager directly."}
+          </p>
+        </div>
+        <div>
+          <Select label="Approval workflow override" error={errors.approvalWorkflow?.message} {...register('approvalWorkflow')}>
+            <option value="">Use the company default</option>
+            {activeWorkflows.map((w) => (
+              <option key={w._id} value={w._id}>
+                {w.name}
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-xs text-muted">
+            Which approval chain this employee's Leave/Salary Advance/Reimbursement/Timesheet requests route
+            through. Leave as the default unless this person needs a different chain — configure roles and
+            workflows under Admin &amp; Tools → Approval Hierarchy.
           </p>
         </div>
       </Section>

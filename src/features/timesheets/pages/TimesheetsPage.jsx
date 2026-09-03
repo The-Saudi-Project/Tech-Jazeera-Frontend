@@ -5,12 +5,13 @@
  */
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listTimesheets, decideTimesheet, bulkApproveTimesheets } from '../timesheets.api.js';
+import { listTimesheets, submitTimesheet, decideTimesheet, bulkApproveTimesheets } from '../timesheets.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate, formatHours } from '../../../lib/utils.js';
-import { TIMESHEET_STATUSES, TIMESHEET_STATUS_VARIANT, TIMESHEET_DECIDE_ROLES } from '../../../lib/constants.js';
+import { TIMESHEET_STATUSES, TIMESHEET_STATUS_VARIANT } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -18,11 +19,55 @@ import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
+/** Only the FINAL step of a workflow-governed timesheet is eligible for
+ *  bulk-approve — a mid-chain one is skipped server-side rather than
+ *  silently advanced by one step (see timesheet.service.js). Individual
+ *  Approve/Reject (below) has no such restriction. */
+function canBulkApprove(t) {
+  if (!t.canDecideCurrentStep || t.status !== 'Submitted') return false;
+  if (!t.workflow) return true;
+  return t.currentStep === (t.steps?.length ?? 0) - 1;
+}
+
+/**
+ * SubmitTimesheetPanel — a STAFF member (Coordinator/HR/Manager/Accounts)
+ * submitting their OWN timesheet. Admin has no Employee record and never
+ * sees this panel. Mirrors MyAttendancePage's single "summarize this week"
+ * button exactly — no free-form fields, since Attendance is the one place
+ * hours are actually entered.
+ */
+function SubmitTimesheetPanel() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const submitMutation = useMutation({
+    mutationFn: () => submitTimesheet({ periodStart: new Date().toISOString() }),
+    onSuccess: (timesheet) => {
+      toast.success(`Timesheet submitted — ${formatHours(timesheet.totalHours)} hrs this week.`);
+      queryClient.invalidateQueries({ queryKey: ['timesheets'] });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  return (
+    <Card className="mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Submit your own timesheet</h2>
+          <p className="mt-1 text-xs text-muted">Summarizes this week's attendance so far and sends it for approval.</p>
+        </div>
+        <Button isLoading={submitMutation.isPending} onClick={() => submitMutation.mutate()}>
+          Submit this week
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 export default function TimesheetsPage() {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canDecide = TIMESHEET_DECIDE_ROLES.includes(user.role);
   const [status, setStatus] = useState('Submitted');
   const [selected, setSelected] = useState(new Set());
 
@@ -48,16 +93,17 @@ export default function TimesheetsPage() {
   const bulkMutation = useMutation({
     mutationFn: (ids) => bulkApproveTimesheets(ids),
     onSuccess: (result) => {
-      toast.success(`${result.approved} timesheet(s) approved.`);
+      toast.success(
+        result.skipped > 0
+          ? `${result.approved} approved, ${result.skipped} skipped (not yet at their final step, or not yours to decide).`
+          : `${result.approved} timesheet(s) approved.`
+      );
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
   });
 
-  const submittedIds = useMemo(
-    () => (data?.items ?? []).filter((t) => t.status === 'Submitted').map((t) => t._id),
-    [data]
-  );
+  const submittedIds = useMemo(() => (data?.items ?? []).filter(canBulkApprove).map((t) => t._id), [data]);
   const allSelected = submittedIds.length > 0 && submittedIds.every((id) => selected.has(id));
 
   function toggleAll() {
@@ -78,7 +124,6 @@ export default function TimesheetsPage() {
         title="Timesheets"
         description="Weekly hours submitted by workers, summarized from their attendance."
         actions={
-          canDecide &&
           selected.size > 0 && (
             <Button isLoading={bulkMutation.isPending} onClick={() => bulkMutation.mutate([...selected])}>
               Approve {selected.size} selected
@@ -86,6 +131,8 @@ export default function TimesheetsPage() {
           )
         }
       />
+
+      {user.role !== 'Admin' && <SubmitTimesheetPanel />}
 
       <div className="mb-4">
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
@@ -107,7 +154,7 @@ export default function TimesheetsPage() {
           <EmptyState title="No timesheets" description="Nothing matches this filter." />
         ) : (
           <>
-            {canDecide && submittedIds.length > 0 && (
+            {submittedIds.length > 0 && (
               <label className="mb-3 flex items-center gap-2 border-b border-border pb-3 text-xs text-muted">
                 <input type="checkbox" className="h-4 w-4 rounded border-border" checked={allSelected} onChange={toggleAll} />
                 Select all submitted
@@ -119,7 +166,7 @@ export default function TimesheetsPage() {
                 return (
                   <div key={t._id} className="flex flex-wrap items-start justify-between gap-3 py-3 text-sm">
                     <div className="flex min-w-0 items-start gap-3">
-                      {canDecide && t.status === 'Submitted' && (
+                      {canBulkApprove(t) && (
                         <input
                           type="checkbox"
                           className="mt-1 h-4 w-4 rounded border-border"
@@ -143,11 +190,12 @@ export default function TimesheetsPage() {
                         )}
                         {t.notes && <p className="mt-1 text-xs text-muted">{t.notes}</p>}
                         {t.decisionNote && <p className="mt-1 text-xs italic text-muted">Note: {t.decisionNote}</p>}
+                        <ApprovalTrailView request={t} />
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
-                      {canDecide && t.status === 'Submitted' && (
+                      {t.canDecideCurrentStep && t.status === 'Submitted' && (
                         <div className="flex gap-2">
                           <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: t._id, decision: 'Approved' })}>
                             Approve

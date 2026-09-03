@@ -8,17 +8,22 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listAdvances, decideAdvance, addAdvanceRepayment } from '../advances.api.js';
-import { repaymentFormSchema, emptyRepaymentForm } from '../financialRequests.schema.js';
+import { listAdvances, submitAdvance, decideAdvance, addAdvanceRepayment } from '../advances.api.js';
+import {
+  repaymentFormSchema,
+  emptyRepaymentForm,
+  advanceFormSchema,
+  emptyAdvanceForm,
+} from '../financialRequests.schema.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
 import {
   ADVANCE_STATUSES,
   ADVANCE_STATUS_VARIANT,
-  FINANCIAL_REQUEST_DECIDE_ROLES,
   FINANCIAL_REQUEST_MONEY_ROLES,
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -29,11 +34,62 @@ import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
+/**
+ * SubmitAdvancePanel — a STAFF member (Coordinator/HR/Manager/Accounts)
+ * submitting their OWN advance request. Admin has no Employee record and
+ * never sees this panel. Workers use MyRequestsPage instead; this reuses
+ * the exact same form schema/fields.
+ */
+function SubmitAdvancePanel() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(advanceFormSchema), defaultValues: emptyAdvanceForm });
+
+  const submitMutation = useMutation({
+    mutationFn: submitAdvance,
+    onSuccess: () => {
+      toast.success('Advance request submitted.');
+      reset(emptyAdvanceForm);
+      queryClient.invalidateQueries({ queryKey: ['financial-requests', 'advances'] });
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  return (
+    <Card>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Submit your own advance request</h2>
+      <form onSubmit={handleSubmit((values) => submitMutation.mutate(values))} noValidate className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input label="Amount *" type="number" step="0.01" min="1" error={errors.amount?.message} {...register('amount')} />
+          <Input
+            label="Repay over (months) *"
+            type="number"
+            min="1"
+            max="24"
+            error={errors.repaymentMonths?.message}
+            {...register('repaymentMonths')}
+          />
+        </div>
+        <Textarea label="Reason" placeholder="Optional" error={errors.reason?.message} {...register('reason')} />
+        <div className="flex justify-end">
+          <Button type="submit" isLoading={submitMutation.isPending}>
+            Submit request
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
 export default function AdvanceReviewPanel() {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canDecide = FINANCIAL_REQUEST_DECIDE_ROLES.includes(user.role);
   const canRecordRepayment = FINANCIAL_REQUEST_MONEY_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
   const [repaying, setRepaying] = useState(null); // the advance being repaid, or null
@@ -79,7 +135,9 @@ export default function AdvanceReviewPanel() {
   }
 
   return (
-    <Card>
+    <>
+      {user.role !== 'Admin' && <SubmitAdvancePanel />}
+      <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Salary advances</h2>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
@@ -121,10 +179,11 @@ export default function AdvanceReviewPanel() {
                     <span className="font-semibold">{formatMoney(a.outstandingBalance)}</span>
                   </p>
                 )}
+                <ApprovalTrailView request={a} />
               </div>
               <div className="flex shrink-0 flex-col items-end gap-2">
                 <Badge variant={ADVANCE_STATUS_VARIANT[a.status]}>{a.status}</Badge>
-                {canDecide && a.status === 'Pending' && (
+                {a.canDecideCurrentStep && a.status === 'Pending' && (
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: a._id, decision: 'Approved' })}>
                       Approve
@@ -169,6 +228,7 @@ export default function AdvanceReviewPanel() {
           </form>
         )}
       </Modal>
-    </Card>
+      </Card>
+    </>
   );
 }

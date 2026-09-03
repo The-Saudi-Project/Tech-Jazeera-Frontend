@@ -10,6 +10,15 @@ export async function listReimbursements(params) {
   return data.data; // { items, total, page, pages }
 }
 
+/** A STAFF member submitting their OWN reimbursement claim (Coordinator/HR/
+ *  Manager/Accounts). Workers use ess.api.js's submitMyReimbursement
+ *  instead. `formData` must include the receipt file (see
+ *  MyRequestsPage.jsx's FormData-building pattern). */
+export async function submitReimbursement(formData) {
+  const { data } = await api.post('/financial-requests/reimbursements', formData);
+  return data.data;
+}
+
 export async function decideReimbursement(id, payload) {
   const { data } = await api.patch(`/financial-requests/reimbursements/${id}/decide`, payload);
   return data.data;

@@ -25,6 +25,14 @@ export async function listLeaveRequests(params) {
   return data.data; // { items, total, page, pages }
 }
 
+/** A STAFF member submitting their OWN leave request (Coordinator/HR/
+ *  Manager/Accounts). Workers use ess.api.js's submitMyLeave (/api/me/leave)
+ *  instead. */
+export async function submitLeaveRequest(payload) {
+  const { data } = await api.post('/leave', payload);
+  return data.data;
+}
+
 export async function decideLeaveRequest(id, payload) {
   const { data } = await api.patch(`/leave/${id}/decide`, payload);
   return data.data;
