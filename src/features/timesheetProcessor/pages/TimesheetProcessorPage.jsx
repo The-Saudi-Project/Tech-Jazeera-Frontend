@@ -31,6 +31,7 @@ import Button from '../../../components/ui/Button.jsx';
 import Spinner from '../../../components/ui/Spinner.jsx';
 import TimesheetResults from '../components/TimesheetResults.jsx';
 import HolidayCalendar from '../components/HolidayCalendar.jsx';
+import CompanyLogoCard from '../../companySettings/components/CompanyLogoCard.jsx';
 
 const MAX_MB = 5;
 const now = new Date();
@@ -122,6 +123,8 @@ export default function TimesheetProcessorPage() {
         title="Timesheet Processor"
         description="Upload an employee's monthly door-access log to generate a salary-ready timesheet."
       />
+
+      <CompanyLogoCard />
 
       <Card>
         <form onSubmit={handleProcess} noValidate className="space-y-4">
