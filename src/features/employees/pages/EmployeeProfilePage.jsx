@@ -141,11 +141,9 @@ export default function EmployeeProfilePage() {
       <PageHeader
         title={employee.fullName}
         description={`${employee.employeeId} · ${employee.designation}`}
+        onBack={() => navigate(-1)}
         actions={
           <>
-            <Button variant="secondary" onClick={() => navigate(-1)}>
-              Back
-            </Button>
             <Badge variant="default" className="mr-1">
               {employee.type}
             </Badge>

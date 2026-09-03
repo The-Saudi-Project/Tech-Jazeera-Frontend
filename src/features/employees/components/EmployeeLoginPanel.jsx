@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createEmployeeLogin, resetEmployeeLoginPassword } from '../employees.api.js';
+import { createEmployeeLogin, resetEmployeeLoginPassword, updateEmployeeLoginRole } from '../employees.api.js';
 import { EMPLOYEE_LOGIN_ROLES } from '../../../lib/constants.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
@@ -28,6 +28,9 @@ export default function EmployeeLoginPanel({ employee }) {
   const [created, setCreated] = useState(null);
   const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
+  // Holds the in-progress new role while the "Change role" modal is open —
+  // separate from `role` above, which is only for the no-login-yet form.
+  const [editingRole, setEditingRole] = useState(null);
 
   const mutation = useMutation({
     mutationFn: () => createEmployeeLogin(employee._id, { role, ...(email ? { email } : {}) }),
@@ -46,6 +49,16 @@ export default function EmployeeLoginPanel({ employee }) {
   const resetMutation = useMutation({
     mutationFn: () => resetEmployeeLoginPassword(employee._id),
     onSuccess: (data) => setCreated({ user: { email: employee.login.email }, ...data, reset: true }),
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  const changeRoleMutation = useMutation({
+    mutationFn: () => updateEmployeeLoginRole(employee._id, editingRole),
+    onSuccess: () => {
+      toast.success('Role updated. They will need to sign in again.');
+      setEditingRole(null);
+      queryClient.invalidateQueries({ queryKey: ['employee', employee._id] });
+    },
     onError: (error) => toast.error(apiMessage(error)),
   });
 
@@ -85,9 +98,14 @@ export default function EmployeeLoginPanel({ employee }) {
               <Badge variant="primary">{login.role}</Badge>
             </div>
           </div>
-          <Button size="sm" variant="secondary" onClick={() => resetMutation.mutate()} isLoading={resetMutation.isPending}>
-            Reset password
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="secondary" onClick={() => setEditingRole(login.role)}>
+              Change role
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => resetMutation.mutate()} isLoading={resetMutation.isPending}>
+              Reset password
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -154,6 +172,38 @@ export default function EmployeeLoginPanel({ employee }) {
                 Copy password
               </Button>
               <Button onClick={() => setCreated(null)}>Done</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Change role — the role picked at provisioning time (e.g. Worker vs
+          Staff for an internal employee) isn't always the right one. */}
+      <Modal open={editingRole !== null} onClose={() => setEditingRole(null)} title="Change role">
+        {login && (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted">
+              Changing <span className="font-medium text-text">{employee.fullName}</span>'s role signs them
+              out everywhere — they'll need to log in again for the new role to take effect.
+            </p>
+            <Select label="Role" value={editingRole ?? ''} onChange={(e) => setEditingRole(e.target.value)}>
+              {EMPLOYEE_LOGIN_ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setEditingRole(null)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => changeRoleMutation.mutate()}
+                isLoading={changeRoleMutation.isPending}
+                disabled={!editingRole || editingRole === login.role}
+              >
+                Save
+              </Button>
             </div>
           </div>
         )}

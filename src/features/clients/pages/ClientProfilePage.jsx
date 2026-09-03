@@ -237,11 +237,9 @@ export default function ClientProfilePage() {
       <PageHeader
         title={client.companyName}
         description={client.industry}
+        onBack={() => navigate(-1)}
         actions={
           <>
-            <Button variant="secondary" onClick={() => navigate(-1)}>
-              Back
-            </Button>
             <Badge variant={STATUS_VARIANT[client.status]} className="mr-1">
               {client.status}
             </Badge>

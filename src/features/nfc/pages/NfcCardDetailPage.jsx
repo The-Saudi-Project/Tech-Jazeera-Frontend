@@ -139,14 +139,8 @@ export default function NfcCardDetailPage() {
       <PageHeader
         title={<span className="font-mono">{card.token}</span>}
         description={card.batch?.label ? `Batch: ${card.batch.label}` : 'NFC card'}
-        actions={
-          <>
-            <Button variant="secondary" onClick={() => navigate(-1)}>
-              Back
-            </Button>
-            <Badge variant={meta.variant}>{meta.label}</Badge>
-          </>
-        }
+        onBack={() => navigate(-1)}
+        actions={<Badge variant={meta.variant}>{meta.label}</Badge>}
       />
 
       <div className="space-y-6">

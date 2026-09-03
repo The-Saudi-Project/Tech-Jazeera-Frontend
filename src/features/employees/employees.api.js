@@ -44,3 +44,10 @@ export async function resetEmployeeLoginPassword(id) {
   const { data } = await api.post(`/employees/${id}/user/reset-password`);
   return data.data;
 }
+
+/** PATCH /employees/:id/user/role — corrects an existing login's role.
+ *  Revokes its sessions server-side, so the employee needs to sign in again. */
+export async function updateEmployeeLoginRole(id, role) {
+  const { data } = await api.patch(`/employees/${id}/user/role`, { role });
+  return data.data;
+}

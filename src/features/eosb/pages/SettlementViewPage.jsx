@@ -92,11 +92,9 @@ export default function SettlementViewPage() {
       <PageHeader
         title={s.employeeName}
         description={`${s.employeeCode} · exited ${formatDate(s.exitDate)}`}
+        onBack={() => navigate(-1)}
         actions={
           <>
-            <Button variant="secondary" onClick={() => navigate(-1)}>
-              Back
-            </Button>
             <Badge variant={s.exitReason === 'Resignation' ? 'warning' : 'default'} className="mr-1">
               {EXIT_REASON_LABELS[s.exitReason]}
             </Badge>

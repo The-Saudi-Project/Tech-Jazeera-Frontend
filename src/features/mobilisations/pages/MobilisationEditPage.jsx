@@ -90,7 +90,11 @@ export default function MobilisationEditPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Edit mobilisation" description={`${mobilisation.workerName} — ${mobilisation.clientName}`} />
+      <PageHeader
+        title="Edit mobilisation"
+        description={`${mobilisation.workerName} — ${mobilisation.clientName}`}
+        onBack={() => navigate(-1)}
+      />
       <Card>
         <MobilisationForm
           workers={workers}

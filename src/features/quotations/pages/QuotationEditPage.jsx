@@ -49,7 +49,11 @@ export default function QuotationEditPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title={`Edit ${quotation.quotationNumber}`} description={quotation.clientName} />
+      <PageHeader
+        title={`Edit ${quotation.quotationNumber}`}
+        description={quotation.clientName}
+        onBack={() => navigate(-1)}
+      />
       <QuotationForm
         defaultValues={quotationToForm(quotation)}
         onSubmit={(values) => mutation.mutate(values)}

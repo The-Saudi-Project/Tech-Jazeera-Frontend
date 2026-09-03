@@ -4,7 +4,10 @@
 import { forwardRef, useId } from 'react';
 import { cn } from '../../lib/utils.js';
 
-const Textarea = forwardRef(function Textarea({ label, error, className, rows = 4, ...props }, ref) {
+const Textarea = forwardRef(function Textarea(
+  { label, error, className, rows = 4, autoComplete = 'off', ...props },
+  ref
+) {
   const id = useId();
   const errorId = `${id}-error`;
 
@@ -19,6 +22,8 @@ const Textarea = forwardRef(function Textarea({ label, error, className, rows = 
         id={id}
         ref={ref}
         rows={rows}
+        // Off by default — see Input.jsx's identical default for why.
+        autoComplete={autoComplete}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(

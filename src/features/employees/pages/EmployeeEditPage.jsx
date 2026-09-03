@@ -55,7 +55,11 @@ export default function EmployeeEditPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={`Edit ${employee.fullName}`} description={employee.employeeId} />
+      <PageHeader
+        title={`Edit ${employee.fullName}`}
+        description={employee.employeeId}
+        onBack={() => navigate(-1)}
+      />
       <EmployeeForm
         defaultValues={employeeToForm(employee)}
         onSubmit={(values) => mutation.mutate(formToEmployeePayload(values))}

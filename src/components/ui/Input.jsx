@@ -10,7 +10,10 @@
 import { forwardRef, useId } from 'react';
 import { cn } from '../../lib/utils.js';
 
-const Input = forwardRef(function Input({ label, error, type = 'text', className, ...props }, ref) {
+const Input = forwardRef(function Input(
+  { label, error, type = 'text', className, autoComplete = 'off', ...props },
+  ref
+) {
   const id = useId(); // stable unique id so the label targets this input
   const errorId = `${id}-error`;
 
@@ -25,6 +28,14 @@ const Input = forwardRef(function Input({ label, error, type = 'text', className
         id={id}
         ref={ref}
         type={type}
+        // Off by default — Chrome keys autofill suggestions by `name` alone,
+        // shared across the whole origin, so a generic field name like
+        // "name" (every entity's name field) or "reason" surfaces unrelated
+        // saved values from completely different forms. Fields that
+        // genuinely want browser/password-manager autofill (login, change
+        // password) pass their own explicit token (e.g. autoComplete="email")
+        // which overrides this default.
+        autoComplete={autoComplete}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(

@@ -49,7 +49,7 @@ export default function ClientEditPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={`Edit ${client.companyName}`} />
+      <PageHeader title={`Edit ${client.companyName}`} onBack={() => navigate(-1)} />
       <ClientForm
         defaultValues={clientToForm(client)}
         onSubmit={(values) => mutation.mutate(values)}

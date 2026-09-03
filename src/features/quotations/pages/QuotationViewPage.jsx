@@ -115,11 +115,9 @@ export default function QuotationViewPage() {
       <PageHeader
         title={q.quotationNumber}
         description={q.clientName}
+        onBack={() => navigate(-1)}
         actions={
           <>
-            <Button variant="secondary" onClick={() => navigate(-1)}>
-              Back
-            </Button>
             <Badge variant={STATUS_VARIANT[q.status]} className="mr-1">
               {q.status}
             </Badge>
