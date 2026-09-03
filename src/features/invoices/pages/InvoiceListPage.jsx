@@ -3,6 +3,7 @@
  * client name). Same shape as the quotations list.
  */
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listInvoices } from '../invoices.api.js';
 import { buildInvoiceColumns } from '../components/invoiceColumns.jsx';
@@ -15,6 +16,7 @@ import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function InvoiceListPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [params, setParams] = useState({ page: 1, limit: 20, search: '', status: '' });
 
@@ -42,7 +44,11 @@ export default function InvoiceListPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Invoices" description="Billed amounts and payments received, created from approved quotations." />
+      <PageHeader
+        title="Invoices"
+        description="Billed amounts and payments received, created from approved quotations."
+        onBack={() => navigate(-1)}
+      />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
         <Input

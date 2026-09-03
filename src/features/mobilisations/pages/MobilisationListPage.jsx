@@ -73,6 +73,7 @@ export default function MobilisationListPage() {
       <PageHeader
         title="Mobilisations"
         description="Worker placements with client billing terms."
+        onBack={() => navigate(-1)}
         actions={
           <Button size="sm" onClick={() => navigate('/mobilisations/new')}>
             New mobilisation

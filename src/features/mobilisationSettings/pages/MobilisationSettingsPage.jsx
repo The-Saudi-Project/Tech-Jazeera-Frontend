@@ -8,6 +8,7 @@
  *    primary coordinator, in addition to any Coordinator login.
  */
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getMobilisationSettings, updateMobilisationSettings } from '../mobilisationSettings.api.js';
 import { listApprovalRoles } from '../../approvals/approvals.api.js';
@@ -45,6 +46,7 @@ function RoleChecklist({ roles, selected, onToggle }) {
 }
 
 export default function MobilisationSettingsPage() {
+  const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -86,6 +88,7 @@ export default function MobilisationSettingsPage() {
       <PageHeader
         title="Mobilisation settings"
         description="Which approval roles can view every mobilisation, and which can create one directly."
+        onBack={() => navigate(-1)}
       />
 
       {loading ? (

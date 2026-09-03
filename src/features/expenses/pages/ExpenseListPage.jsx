@@ -6,6 +6,7 @@
  * payments/PDF), just records.
  */
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -70,6 +71,7 @@ function SummaryBar() {
 }
 
 export default function ExpenseListPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -250,6 +252,7 @@ export default function ExpenseListPage() {
       <PageHeader
         title="Expenses"
         description="Company costs — rent, fuel, purchases, utilities — the other half of profit alongside invoices."
+        onBack={() => navigate(-1)}
         actions={
           canWrite && (
             <Button size="sm" onClick={openNew}>

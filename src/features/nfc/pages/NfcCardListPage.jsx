@@ -74,6 +74,7 @@ export default function NfcCardListPage() {
       <PageHeader
         title="NFC Cards"
         description="Card inventory: tokens, status, and who holds each card."
+        onBack={() => navigate(-1)}
         actions={
           <>
             <Link to="/nfc/analytics">

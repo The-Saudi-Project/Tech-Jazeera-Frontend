@@ -8,7 +8,7 @@
  * instead of hunting through both lists.
  */
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { listEmployees } from '../../employees/employees.api.js';
 import { listClients } from '../../clients/clients.api.js';
@@ -26,6 +26,7 @@ import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function CoordinatorActivityPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [tab, setTab] = useState('clients');
   const [coordinatorId, setCoordinatorId] = useState('');
@@ -109,6 +110,7 @@ export default function CoordinatorActivityPage() {
       <PageHeader
         title="Coordinator Activity"
         description="Employees and clients your Coordinators have added themselves."
+        onBack={() => navigate(-1)}
       />
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

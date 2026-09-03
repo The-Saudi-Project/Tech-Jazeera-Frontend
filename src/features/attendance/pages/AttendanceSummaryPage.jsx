@@ -3,22 +3,22 @@
  * Reached from the dashboard's "Marked today" stat, not from the Attendance
  * tab bar — it's a monthly/reporting view, not a daily-operations one.
  */
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
-import Button from '../../../components/ui/Button.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
 
 export default function AttendanceSummaryPage() {
+  const navigate = useNavigate();
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Attendance Summary"
         description="Per-worker status counts over a date range, with Excel/PDF export."
-        actions={
-          <Link to="/attendance">
-            <Button variant="secondary">Back to Attendance</Button>
-          </Link>
-        }
+        // Fixed destination, not browser history — this page is only ever
+        // reached from the Dashboard's "Marked today" stat (see the file
+        // comment), so "back" here means the related Attendance page, not
+        // wherever the visitor actually came from.
+        onBack={() => navigate('/attendance')}
       />
       <SummaryTab />
     </div>

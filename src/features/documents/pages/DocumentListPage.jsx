@@ -5,6 +5,7 @@
  * the company-wide view.
  */
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listDocuments } from '../documents.api.js';
 import { buildDocumentColumns } from '../components/documentColumns.jsx';
@@ -19,6 +20,7 @@ import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function DocumentListPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const canWrite = DOCUMENT_WRITE_ROLES.includes(user.role);
   const [uploading, setUploading] = useState(false);
@@ -62,6 +64,7 @@ export default function DocumentListPage() {
       <PageHeader
         title="Documents"
         description="Every uploaded document across employees and clients."
+        onBack={() => navigate(-1)}
         actions={canWrite && <Button onClick={() => setUploading(true)}>Upload document</Button>}
       />
 

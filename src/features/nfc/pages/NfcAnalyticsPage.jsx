@@ -45,6 +45,7 @@ export default function NfcAnalyticsPage() {
     <PageHeader
       title="Card activity"
       description="How the NFC cards are being used."
+      onBack={() => navigate(-1)}
       actions={
         <>
           <RangePicker days={days} onChange={setDays} disabled={isPending} />

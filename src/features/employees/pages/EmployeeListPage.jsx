@@ -202,6 +202,7 @@ export default function EmployeeListPage() {
       <PageHeader
         title="Employees"
         description="The company's workforce register."
+        onBack={() => navigate(-1)}
         actions={canCreate && <Button onClick={() => navigate('/employees/new')}>Add employee</Button>}
       />
 

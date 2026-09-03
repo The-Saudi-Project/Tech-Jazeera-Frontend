@@ -5,6 +5,7 @@
  * deactivate/reactivate, delete. No "create" flow lives here anymore.
  */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listStaffUsers, updateStaffUser, resetStaffPassword, deleteStaffUser } from '../users.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
@@ -20,6 +21,7 @@ import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function UserListPage() {
+  const navigate = useNavigate();
   const { user: viewer } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -133,6 +135,7 @@ export default function UserListPage() {
       <PageHeader
         title="Team"
         description="Every staff and worker login. To create a new one, open the person's Employee profile."
+        onBack={() => navigate(-1)}
       />
 
       {isError ? (

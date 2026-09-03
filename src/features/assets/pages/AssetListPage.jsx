@@ -4,6 +4,7 @@
  * Admin/Manager/HR; everyone on staff can view.
  */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +44,7 @@ import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function AssetListPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -222,6 +224,7 @@ export default function AssetListPage() {
       <PageHeader
         title="Assets"
         description="Vehicles, laptops, phones, and tools — who has what."
+        onBack={() => navigate(-1)}
         actions={canWrite && <Button onClick={openNew}>Add asset</Button>}
       />
 

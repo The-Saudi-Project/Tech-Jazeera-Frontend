@@ -5,7 +5,7 @@
  * same data; this is the complete record — who did what, when, from where.
  */
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listAuditLog } from '../audit.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
@@ -33,6 +33,7 @@ function MetaSummary({ meta }) {
 }
 
 export default function AuditLogPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user.role === 'Admin';
   const queryClient = useQueryClient();
@@ -106,6 +107,7 @@ export default function AuditLogPage() {
       <PageHeader
         title="Security Log"
         description="Complete, unfiltered record of authentication and CRUD activity across the company — never edited or deleted."
+        onBack={() => navigate(-1)}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">

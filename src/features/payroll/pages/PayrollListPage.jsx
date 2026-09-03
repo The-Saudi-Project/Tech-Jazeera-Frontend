@@ -70,6 +70,7 @@ export default function PayrollListPage() {
       <PageHeader
         title="Payroll"
         description="Monthly payroll runs for the supplied workforce."
+        onBack={() => navigate(-1)}
         actions={canWrite && <Button onClick={() => setCreating(true)}>Run payroll</Button>}
       />
 

@@ -7,7 +7,7 @@
  * configuration only.
  */
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -368,6 +368,7 @@ function ApprovalWorkflowsPanel() {
 }
 
 export default function ApprovalsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   if (!APPROVALS_MANAGE_ROLES.includes(user.role)) return <Navigate to="/" replace />;
 
@@ -376,6 +377,7 @@ export default function ApprovalsPage() {
       <PageHeader
         title="Approval Hierarchy"
         description="Define your company's approval roles and the multi-step chains Leave, Salary Advance, Reimbursement and Timesheet requests route through."
+        onBack={() => navigate(-1)}
       />
       <ApprovalRolesPanel />
       <ApprovalWorkflowsPanel />

@@ -4,6 +4,7 @@
  * HolidayListPage — no sub-workflow here, just records.
  */
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +31,7 @@ import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function SubcontractorListPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -140,6 +142,7 @@ export default function SubcontractorListPage() {
       <PageHeader
         title="Subcontractors"
         description="Companies a mobilisation is sometimes routed through."
+        onBack={() => navigate(-1)}
         actions={
           canWrite && (
             <Button size="sm" onClick={openNew}>

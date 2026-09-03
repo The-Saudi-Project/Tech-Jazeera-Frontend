@@ -5,6 +5,7 @@
  * the server). Workers use MyLeavePage (/me/leave) instead.
  */
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -431,6 +432,7 @@ function ReviewQueue() {
 }
 
 export default function LeavePage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const canManageTypes = LEAVE_TYPE_MANAGE_ROLES.includes(user.role);
 
@@ -438,6 +440,7 @@ export default function LeavePage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Leave"
+        onBack={() => navigate(-1)}
         description={
           user.role === 'Coordinator'
             ? 'Requests from your assigned employees.'

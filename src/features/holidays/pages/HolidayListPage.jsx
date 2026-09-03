@@ -4,6 +4,7 @@
  * Admin/Manager/HR can add, edit, or remove an entry.
  */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +26,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 import RamadanPeriodsSection from '../../ramadan/components/RamadanPeriodsSection.jsx';
 
 export default function HolidayListPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -124,6 +126,7 @@ export default function HolidayListPage() {
       <PageHeader
         title="Holidays & Ramadan"
         description="The official public holiday calendar, plus the Ramadan reduced-hours period used for overtime."
+        onBack={() => navigate(-1)}
         actions={
           canManage && (
             <Button size="sm" onClick={openNew}>

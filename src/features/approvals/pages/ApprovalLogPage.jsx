@@ -14,6 +14,7 @@
  * approvals.service.js's LOG_SOURCES).
  */
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { listApprovalLog } from '../approvals.api.js';
 import { APPROVAL_REQUEST_TYPES, APPROVAL_REQUEST_TYPE_LABELS } from '../../../lib/constants.js';
@@ -33,6 +34,7 @@ const STATUS_VARIANT = { PendingReview: 'warning', Approved: 'success', Rejected
 const statusLabel = (s) => (s === 'PendingReview' ? 'Pending review' : s);
 
 export default function ApprovalLogPage() {
+  const navigate = useNavigate();
   const [type, setType] = useState('');
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
@@ -60,6 +62,7 @@ export default function ApprovalLogPage() {
       <PageHeader
         title="Approval Log"
         description="Every request decided through a configured approval workflow, in order — for anyone in the hierarchy to see."
+        onBack={() => navigate(-1)}
       />
 
       <Card>

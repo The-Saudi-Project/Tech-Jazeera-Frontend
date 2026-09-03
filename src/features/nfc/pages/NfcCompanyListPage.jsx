@@ -75,6 +75,7 @@ export default function NfcCompanyListPage() {
       <PageHeader
         title="NFC Customers"
         description="Companies and their people, with the NFC card assigned to each."
+        onBack={() => navigate(-1)}
         actions={
           <>
             <Link to="/nfc/analytics">

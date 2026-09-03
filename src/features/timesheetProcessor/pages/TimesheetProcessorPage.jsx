@@ -10,7 +10,7 @@
  * regenerates from identical data even if the form is edited afterwards.
  */
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
@@ -50,6 +50,7 @@ function buildFormData({ file, employeeId, month, year, requiredMinutes, holiday
 }
 
 export default function TimesheetProcessorPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const isAdmin = user.role === 'Admin';
@@ -122,6 +123,7 @@ export default function TimesheetProcessorPage() {
       <PageHeader
         title="Timesheet Processor"
         description="Upload an employee's monthly door-access log to generate a salary-ready timesheet."
+        onBack={() => navigate(-1)}
       />
 
       <CompanyLogoCard />

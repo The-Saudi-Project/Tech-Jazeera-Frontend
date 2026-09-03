@@ -182,6 +182,7 @@ export default function ClientListPage() {
       <PageHeader
         title="Clients"
         description="Companies we supply manpower and trade to."
+        onBack={() => navigate(-1)}
         actions={canCreate && <Button onClick={() => navigate('/clients/new')}>Add client</Button>}
       />
 

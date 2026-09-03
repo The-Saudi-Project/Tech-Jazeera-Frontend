@@ -7,6 +7,7 @@
  * reachable from the dashboard, not in this tab bar.
  */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { cn } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -15,6 +16,7 @@ import SignInOutTab from '../components/SignInOutTab.jsx';
 import OfficeLocationSettings from '../components/OfficeLocationSettings.jsx';
 
 export default function AttendancePage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user.role === 'Admin';
 
@@ -28,7 +30,11 @@ export default function AttendancePage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Attendance" description="Mark daily attendance and review sign-in/sign-out." />
+      <PageHeader
+        title="Attendance"
+        description="Mark daily attendance and review sign-in/sign-out."
+        onBack={() => navigate(-1)}
+      />
 
       <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
         {tabs.map((t) => (

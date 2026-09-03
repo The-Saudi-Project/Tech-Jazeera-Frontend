@@ -51,6 +51,7 @@ export default function QuotationListPage() {
       <PageHeader
         title="Quotations"
         description="Priced offers to clients."
+        onBack={() => navigate(-1)}
         actions={canWrite && <Button onClick={() => navigate('/quotations/new')}>New quotation</Button>}
       />
 

@@ -57,6 +57,7 @@ export default function SettlementListPage() {
       <PageHeader
         title="End of service settlements"
         description="Article 84/85 EOSB and vacation-pay calculations for exiting employees."
+        onBack={() => navigate(-1)}
         actions={canCompute && <Button onClick={() => navigate('/eosb/new')}>New settlement</Button>}
       />
 

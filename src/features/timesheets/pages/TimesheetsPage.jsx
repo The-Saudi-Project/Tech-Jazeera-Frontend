@@ -4,6 +4,7 @@
  * and bulk-approve (the plan's "bulk approve a week").
  */
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   listTimesheets,
@@ -158,6 +159,7 @@ function SubmitTimesheetPanel() {
 }
 
 export default function TimesheetsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -216,6 +218,7 @@ export default function TimesheetsPage() {
       <PageHeader
         title="Timesheets"
         description="Weekly hours submitted by workers, summarized from their attendance."
+        onBack={() => navigate(-1)}
         actions={
           selected.size > 0 && (
             <Button isLoading={bulkMutation.isPending} onClick={() => bulkMutation.mutate([...selected])}>

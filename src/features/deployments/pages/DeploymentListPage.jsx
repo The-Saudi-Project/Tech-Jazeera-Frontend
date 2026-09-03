@@ -103,6 +103,7 @@ export default function DeploymentListPage() {
       <PageHeader
         title="Deployments"
         description="Where every worker is placed — current and past."
+        onBack={() => navigate(-1)}
         actions={canWrite && <Button onClick={() => navigate('/deployments/new')}>Assign worker</Button>}
       />
 
