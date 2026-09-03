@@ -25,6 +25,12 @@ import ClientProfilePage from '../features/clients/pages/ClientProfilePage.jsx';
 import ClientEditPage from '../features/clients/pages/ClientEditPage.jsx';
 import DeploymentListPage from '../features/deployments/pages/DeploymentListPage.jsx';
 import DeploymentNewPage from '../features/deployments/pages/DeploymentNewPage.jsx';
+import MobilisationListPage from '../features/mobilisations/pages/MobilisationListPage.jsx';
+import MobilisationNewPage from '../features/mobilisations/pages/MobilisationNewPage.jsx';
+import MobilisationDetailPage from '../features/mobilisations/pages/MobilisationDetailPage.jsx';
+import MobilisationEditPage from '../features/mobilisations/pages/MobilisationEditPage.jsx';
+import MobilisationSettingsPage from '../features/mobilisationSettings/pages/MobilisationSettingsPage.jsx';
+import SubcontractorListPage from '../features/subcontractors/pages/SubcontractorListPage.jsx';
 import AttendancePage from '../features/attendance/pages/AttendancePage.jsx';
 import AttendanceSummaryPage from '../features/attendance/pages/AttendanceSummaryPage.jsx';
 import DocumentListPage from '../features/documents/pages/DocumentListPage.jsx';
@@ -128,6 +134,12 @@ export const router = createBrowserRouter([
               { path: '/clients/:id/edit', element: <ClientEditPage /> },
               { path: '/deployments', element: <DeploymentListPage /> },
               { path: '/deployments/new', element: <DeploymentNewPage /> },
+              { path: '/mobilisations', element: <MobilisationListPage /> },
+              { path: '/mobilisations/new', element: <MobilisationNewPage /> },
+              { path: '/mobilisations/:id', element: <MobilisationDetailPage /> },
+              { path: '/mobilisations/:id/edit', element: <MobilisationEditPage /> },
+              { path: '/mobilisation-settings', element: <MobilisationSettingsPage /> },
+              { path: '/subcontractors', element: <SubcontractorListPage /> },
               { path: '/attendance', element: <AttendancePage /> },
               { path: '/attendance/summary', element: <AttendanceSummaryPage /> },
               { path: '/documents', element: <DocumentListPage /> },

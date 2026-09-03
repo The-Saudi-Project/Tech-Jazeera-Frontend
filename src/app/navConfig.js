@@ -18,6 +18,7 @@ import {
   PAYROLL_VIEW_ROLES,
   EXPENSE_VIEW_ROLES,
   APPROVALS_MANAGE_ROLES,
+  MOBILISATION_SETTINGS_MANAGE_ROLES,
 } from '../lib/constants.js';
 
 // Inline SVG paths (24×24 outline, Heroicons-style) — an icon library isn't
@@ -94,6 +95,8 @@ export const NAV_GROUPS = [
       { to: '/clients', label: 'Clients', icon: ICON.building, description: 'Companies your workers are placed with.' },
       { to: '/deployments', label: 'Deployments', icon: ICON.map, description: 'Which worker is placed where.' },
       { to: '/quotations', label: 'Quotations', icon: ICON.quotation, description: 'Pricing sent to clients, pre-invoice.' },
+      { to: '/mobilisations', label: 'Mobilisations', icon: ICON.team, description: 'Worker placements with client billing terms.' },
+      { to: '/subcontractors', label: 'Subcontractors', icon: ICON.building, description: 'Companies a mobilisation is sometimes routed through.' },
     ],
   },
   {
@@ -120,6 +123,7 @@ export const NAV_GROUPS = [
       { to: '/assets', label: 'Assets', icon: ICON.asset, description: 'Equipment issued to employees.' },
       { to: '/team', label: 'Team', icon: ICON.team, roles: STAFF_USER_VIEW_ROLES, description: 'Staff logins and roles.' },
       { to: '/approvals', label: 'Approval Hierarchy', icon: ICON.hierarchy, roles: APPROVALS_MANAGE_ROLES, description: 'Approval roles and multi-step workflow chains.' },
+      { to: '/mobilisation-settings', label: 'Mobilisation Settings', icon: ICON.cog, roles: MOBILISATION_SETTINGS_MANAGE_ROLES, description: 'Which roles can view every mobilisation or self-mobilise.' },
       { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order. Visible if you sit in the hierarchy.' },
       { to: '/timesheet-processor', label: 'Timesheet Processor', icon: ICON.clock, roles: ['Admin'], description: 'Bulk-import device attendance exports.' },
       { to: '/nfc', label: 'NFC Customers', icon: ICON.nfc, roles: ['Admin'], description: 'NFC business-card program.' },

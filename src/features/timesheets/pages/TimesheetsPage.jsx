@@ -5,7 +5,14 @@
  */
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { listTimesheets, submitTimesheet, decideTimesheet, bulkApproveTimesheets } from '../timesheets.api.js';
+import {
+  listTimesheets,
+  submitTimesheet,
+  decideTimesheet,
+  bulkApproveTimesheets,
+  generateMonthlyReport,
+} from '../timesheets.api.js';
+import { listEmployees } from '../../employees/employees.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate, formatHours } from '../../../lib/utils.js';
 import { TIMESHEET_STATUSES, TIMESHEET_STATUS_VARIANT } from '../../../lib/constants.js';
@@ -18,6 +25,92 @@ import Button from '../../../components/ui/Button.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/**
+ * MonthlyReportPanel — a full day-by-day monthly report built from real
+ * Attendance records (phone self-punch or staff-marked), in the same
+ * formatted style as the Timesheet Processor's export. Shown to every
+ * staff viewer (like the Approval Log, whoever isn't actually eligible —
+ * Admin or a real Approval Role member — gets a clear error from the
+ * server rather than the control being hidden, since the client has no
+ * reliable way to know that in advance).
+ */
+function MonthlyReportPanel() {
+  const toast = useToast();
+  const now = new Date();
+  const [employeeId, setEmployeeId] = useState('');
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(now.getFullYear());
+  const years = Array.from({ length: 4 }, (_, i) => now.getFullYear() - i);
+
+  const { data: employeeData } = useQuery({
+    queryKey: ['employees', 'monthly-report-picker'],
+    queryFn: () => listEmployees({ limit: 100, sortBy: 'fullName', sortOrder: 'asc' }),
+  });
+  const employees = employeeData?.items ?? [];
+
+  const reportMutation = useMutation({
+    mutationFn: () => {
+      const employee = employees.find((e) => e._id === employeeId);
+      const filename = `timesheet-report_${employee?.employeeId ?? employeeId}_${year}-${String(month).padStart(2, '0')}.xlsx`;
+      return generateMonthlyReport({ employeeId, month: Number(month), year: Number(year) }, filename);
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  return (
+    <Card className="mb-6">
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Generate monthly report</h2>
+      <p className="mb-4 text-xs text-muted">
+        A full day-by-day report for one employee's whole month, built from their real attendance — same format as
+        the Timesheet Processor's export. Available to Admin and anyone set up in the Approval Hierarchy.
+      </p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <Select
+          label="Employee"
+          value={employeeId}
+          onChange={(e) => setEmployeeId(e.target.value)}
+          className="sm:col-span-2"
+        >
+          <option value="">Select employee…</option>
+          {employees.map((emp) => (
+            <option key={emp._id} value={emp._id}>
+              {emp.fullName} ({emp.employeeId})
+            </option>
+          ))}
+        </Select>
+        <Select label="Month" value={month} onChange={(e) => setMonth(e.target.value)}>
+          {MONTHS.map((name, i) => (
+            <option key={name} value={i + 1}>
+              {name}
+            </option>
+          ))}
+        </Select>
+        <Select label="Year" value={year} onChange={(e) => setYear(e.target.value)}>
+          {years.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="mt-4 flex justify-end">
+        <Button
+          disabled={!employeeId}
+          isLoading={reportMutation.isPending}
+          onClick={() => reportMutation.mutate()}
+        >
+          Generate report
+        </Button>
+      </div>
+    </Card>
+  );
+}
 
 /** Only the FINAL step of a workflow-governed timesheet is eligible for
  *  bulk-approve — a mid-chain one is skipped server-side rather than
@@ -131,6 +224,8 @@ export default function TimesheetsPage() {
           )
         }
       />
+
+      <MonthlyReportPanel />
 
       {user.role !== 'Admin' && <SubmitTimesheetPanel />}
 
