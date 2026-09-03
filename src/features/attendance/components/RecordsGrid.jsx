@@ -78,10 +78,12 @@ export default function RecordsGrid() {
 
   const { data: employeeData, isPending: employeesLoading } = useQuery({
     queryKey: ['employees', { forAttendance: true }],
-    // type: 'Client' — the grid tracks the supplied workforce; Own-type
-    // employees (Manager/HR/Coordinator/Accounts) already have their own
-    // section below, sourced from StaffAttendance, not this Attendance query.
-    queryFn: () => listEmployees({ limit: 100, type: 'Client', sortBy: 'fullName', sortOrder: 'asc' }),
+    // Not filtered by type server-side — the grid tracks the supplied
+    // workforce (Client + Subcontracted), filtered client-side below.
+    // Own-type employees (Manager/HR/Coordinator/Accounts) already have
+    // their own section below, sourced from StaffAttendance, not this
+    // Attendance query.
+    queryFn: () => listEmployees({ limit: 100, sortBy: 'fullName', sortOrder: 'asc' }),
   });
   const { data: records, isPending: recordsLoading } = useQuery({
     queryKey: ['attendance', 'range', range.from, range.to],
@@ -134,7 +136,7 @@ export default function RecordsGrid() {
     return map;
   }, [staffRecords]);
 
-  const workers = (employeeData?.items ?? []).filter((e) => e.status !== 'Exited');
+  const workers = (employeeData?.items ?? []).filter((e) => e.type !== 'Own' && e.status !== 'Exited');
   const staffRows = canSeeStaffRows
     ? (staffUsers ?? []).filter((u) => STAFF_SELF_ATTENDANCE_ROLES.includes(u.role) && u.isActive)
     : [];

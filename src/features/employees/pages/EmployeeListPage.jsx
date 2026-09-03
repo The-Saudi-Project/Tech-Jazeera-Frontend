@@ -232,7 +232,7 @@ export default function EmployeeListPage() {
           className="sm:max-w-[180px]"
           aria-label="Filter by type"
         >
-          <option value="">Own &amp; Client</option>
+          <option value="">All types</option>
           {EMPLOYEE_TYPES.map((t) => (
             <option key={t} value={t}>
               {t}

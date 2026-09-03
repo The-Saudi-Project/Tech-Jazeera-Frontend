@@ -205,8 +205,9 @@ export default function EmployeeProfilePage() {
 
         {/* Current deployment, actions (transfer/end/assign) and history —
             owns its own data; populates from the M6 deployment workflow.
-            Client-type only — an internal Own-type employee is never deployed. */}
-        {employee.type === 'Client' && <WorkerDeploymentPanel employee={employee} />}
+            Workforce types only (Client or Subcontracted) — an internal
+            Own-type employee is never deployed. */}
+        {employee.type !== 'Own' && <WorkerDeploymentPanel employee={employee} />}
 
         <AssignedAssetsPanel employeeId={id} />
 

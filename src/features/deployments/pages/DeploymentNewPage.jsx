@@ -26,13 +26,14 @@ export default function DeploymentNewPage() {
   const [searchParams] = useSearchParams();
   const preselectedWorker = searchParams.get('worker') ?? '';
 
-  // Assignable = unassigned, type: 'Client' employees who haven't exited the
-  // company (an internal Own-type employee is never deployed to a client).
-  // We filter Exited out client-side (the server also rejects them); On
-  // Leave workers stay eligible, matching the server's rule.
+  // Assignable = unassigned workforce employees (Client or Subcontracted)
+  // who haven't exited the company (an internal Own-type employee is never
+  // deployed to a client). Type isn't filtered server-side — filtered
+  // client-side below alongside the Exited filter (the server also rejects
+  // Exited); On Leave workers stay eligible, matching the server's rule.
   const { data: workerData, isPending: workersLoading } = useQuery({
     queryKey: ['employees', { assignable: true }],
-    queryFn: () => listEmployees({ unassigned: 'true', type: 'Client', limit: 100 }),
+    queryFn: () => listEmployees({ unassigned: 'true', limit: 100 }),
   });
   // Only active, approved clients can receive deployments — a
   // Coordinator-submitted client not yet approved isn't real enough to
@@ -68,7 +69,7 @@ export default function DeploymentNewPage() {
     );
   }
 
-  const workers = (workerData?.items ?? []).filter((w) => w.status !== 'Exited');
+  const workers = (workerData?.items ?? []).filter((w) => w.type !== 'Own' && w.status !== 'Exited');
   const clients = clientData?.items ?? [];
 
   return (

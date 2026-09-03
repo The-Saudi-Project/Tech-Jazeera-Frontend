@@ -10,9 +10,19 @@ export const EXPIRY_WARNING_DAYS = 30;
 
 /** Mirrors the Employee model's status enum. */
 export const EMPLOYEE_STATUSES = ['Active', 'On Leave', 'Exited'];
-/** 'Own' = internal staff (reports to a Manager). 'Client' = the workforce
- *  supplied to clients (mapped to a Coordinator and/or a Manager). */
-export const EMPLOYEE_TYPES = ['Own', 'Client'];
+/** 'Own' = internal staff (reports to a Manager). 'Client' = this company's
+ *  own workforce supplied to clients (mapped to a Coordinator and/or a
+ *  Manager). 'Subcontracted' = a worker sourced from an outside
+ *  Subcontractor (their employer of record) and placed with a client — full
+ *  compliance/attendance record, but never this company's own Payroll. */
+export const EMPLOYEE_TYPES = ['Own', 'Client', 'Subcontracted'];
+export const EMPLOYEE_TYPE_LABELS = {
+  Own: 'Own — internal staff',
+  Client: 'Client — supplied workforce',
+  Subcontracted: 'Subcontracted — sourced from a subcontractor',
+};
+/** The "not internal staff" set — mirrors employee.model.js's WORKFORCE_TYPES. */
+export const WORKFORCE_TYPES = ['Client', 'Subcontracted'];
 
 /** Mirror of the server's route guards — used only to hide UI the API would
  *  reject anyway. The server is the real enforcement. */
@@ -26,8 +36,10 @@ export const EMPLOYEE_CREATE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
  *  POST /employees/:id/user — the server enforces. */
 export const ACCOUNT_PROVISION_ROLES = ['Admin', 'HR'];
 /** Every role a login can be provisioned with from an Employee's profile —
- *  any role except Admin, which has no Employee. */
-export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Worker'];
+ *  any role except Admin, which has no Employee. Server-side this list is
+ *  derived from ROLES automatically; kept as an explicit array here since
+ *  this file isn't shared with the server. */
+export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Staff', 'Worker'];
 
 /** P2-M2: roles this app assigns to a Coordinator's team-scoped queries. */
 export const COORDINATOR_ROLE = 'Coordinator';

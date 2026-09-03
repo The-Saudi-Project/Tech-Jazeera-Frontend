@@ -12,8 +12,15 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeFormSchema } from '../employees.schema.js';
 import { listStaffUsers } from '../../users/users.api.js';
 import { listApprovalWorkflows } from '../../approvals/approvals.api.js';
+import { listSubcontractors } from '../../subcontractors/subcontractors.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { EMPLOYEE_STATUSES, EMPLOYEE_TYPES, WEEKDAY_LABELS, MANAGER_ELIGIBLE_ROLES } from '../../../lib/constants.js';
+import {
+  EMPLOYEE_STATUSES,
+  EMPLOYEE_TYPES,
+  EMPLOYEE_TYPE_LABELS,
+  WEEKDAY_LABELS,
+  MANAGER_ELIGIBLE_ROLES,
+} from '../../../lib/constants.js';
 import { COUNTRIES } from '../../../lib/countries.js';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
@@ -57,10 +64,20 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   } = useForm({ resolver: zodResolver(employeeFormSchema), defaultValues });
 
   // Drives which fields below render as required — nationality/mobile/
-  // joining date/salary are compliance & payroll fields that only make sense
-  // for 'Client' (the supplied workforce); an 'Own' (internal staff) record
-  // may have none of that.
+  // joining date are compliance fields both workforce types need; salary is
+  // narrower still (only 'Client', since a Subcontracted worker's pay is
+  // the subcontractor's business); an 'Own' (internal staff) record needs
+  // none of it.
   const type = watch('type');
+  const isWorkforce = type !== 'Own';
+
+  // Only fetched/shown once 'Subcontracted' is picked — who supplied this worker.
+  const { data: subcontractorData } = useQuery({
+    queryKey: ['subcontractors', { active: true }],
+    queryFn: () => listSubcontractors({ status: 'Active', limit: 100 }),
+    enabled: type === 'Subcontracted',
+  });
+  const subcontractors = subcontractorData?.items ?? [];
 
   // P2-M2: who this employee's day-to-day (leave, expiry follow-up) reports
   // to. The list call itself is the access check — Accounts can't reach it
@@ -130,30 +147,46 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           <Select label="Type *" error={errors.type?.message} {...register('type')}>
             {EMPLOYEE_TYPES.map((t) => (
               <option key={t} value={t}>
-                {t === 'Client' ? 'Client — supplied workforce' : 'Own — internal staff'}
+                {EMPLOYEE_TYPE_LABELS[t]}
               </option>
             ))}
           </Select>
           <p className="mt-1 text-xs text-muted">
-            {type === 'Own'
-              ? 'Internal staff (Manager/HR/Coordinator/IT/Office). Nationality, mobile, joining date and salary are optional.'
-              : 'Workforce supplied to clients — visa/iqama tracking and payroll apply.'}
+            {type === 'Own' &&
+              'Internal staff (Manager/HR/Coordinator/IT/Office). Nationality, mobile, joining date and salary are optional.'}
+            {type === 'Client' &&
+              'This company’s own workforce, supplied to clients — visa/iqama tracking and payroll both apply.'}
+            {type === 'Subcontracted' &&
+              'Sourced from an outside subcontractor, placed with a client — visa/iqama tracking applies, but payroll does not: the subcontractor pays them, not this company.'}
           </p>
         </div>
+        {type === 'Subcontracted' && (
+          <div className="sm:col-span-2">
+            <Select label="Subcontractor *" error={errors.subcontractor?.message} {...register('subcontractor')}>
+              <option value="">Select a subcontractor…</option>
+              {subcontractors.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.name}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-muted">Who this worker is actually employed by.</p>
+          </div>
+        )}
       </Section>
 
       <Section title="Personal details">
         <Input label="Employee ID *" placeholder="AJ-001" error={errors.employeeId?.message} {...register('employeeId')} />
         <Input label="Full name *" error={errors.fullName?.message} {...register('fullName')} />
         <Input
-          label={`Nationality${type === 'Client' ? ' *' : ''}`}
+          label={`Nationality${isWorkforce ? ' *' : ''}`}
           list="country-list"
           autoComplete="off"
           error={errors.nationality?.message}
           {...register('nationality')}
         />
         <Input
-          label={`Mobile${type === 'Client' ? ' *' : ''}`}
+          label={`Mobile${isWorkforce ? ' *' : ''}`}
           placeholder="+966 5x xxx xxxx"
           error={errors.mobile?.message}
           {...register('mobile')}
@@ -163,7 +196,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
 
       <Section title="Employment">
         <Input
-          label={`Joining date${type === 'Client' ? ' *' : ''}`}
+          label={`Joining date${isWorkforce ? ' *' : ''}`}
           type="date"
           error={errors.joiningDate?.message}
           {...register('joiningDate')}

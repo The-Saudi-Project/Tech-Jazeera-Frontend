@@ -90,19 +90,26 @@ function RequireAuth() {
   return <Outlet />;
 }
 
+// Self-service-only logins: Worker (P2-M2) and Staff — both get ONLY the
+// ESS portal, never the admin shell. Kept as a plain array rather than an
+// import from constants.js since this is purely a routing concern, not a
+// permission list any module needs to reference.
+const SELF_SERVICE_ROLES = ['Worker', 'Staff'];
+
 /**
- * P2-M2: a Worker's whole world is the ESS portal; every other role keeps
- * the full admin shell. Split here (not per-route guards) so a Worker never
- * even mounts the admin sidebar before being redirected.
+ * P2-M2: a Worker's (and, since the Subcontracted/Staff work, a Staff
+ * login's) whole world is the ESS portal; every other role keeps the full
+ * admin shell. Split here (not per-route guards) so a self-service login
+ * never even mounts the admin sidebar before being redirected.
  */
 function RoleRouter() {
   const { user } = useAuth();
-  return user.role === 'Worker' ? <Navigate to="/me" replace /> : <Outlet />;
+  return SELF_SERVICE_ROLES.includes(user.role) ? <Navigate to="/me" replace /> : <Outlet />;
 }
 
 function WorkerRouter() {
   const { user } = useAuth();
-  return user.role === 'Worker' ? <Outlet /> : <Navigate to="/" replace />;
+  return SELF_SERVICE_ROLES.includes(user.role) ? <Outlet /> : <Navigate to="/" replace />;
 }
 
 export const router = createBrowserRouter([
