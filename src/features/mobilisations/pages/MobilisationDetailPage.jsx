@@ -243,6 +243,9 @@ export default function MobilisationDetailPage() {
         description={m.jobTitle}
         actions={
           <div className="flex items-center gap-2">
+            <Button size="sm" variant="secondary" onClick={() => navigate(-1)}>
+              Back
+            </Button>
             <Badge variant={MOBILISATION_STATUS_VARIANT[m.status]}>{m.status}</Badge>
             {canManage && (
               <Button size="sm" variant="secondary" onClick={() => navigate(`/mobilisations/${id}/edit`)}>

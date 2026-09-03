@@ -117,6 +117,9 @@ export default function QuotationViewPage() {
         description={q.clientName}
         actions={
           <>
+            <Button variant="secondary" onClick={() => navigate(-1)}>
+              Back
+            </Button>
             <Badge variant={STATUS_VARIANT[q.status]} className="mr-1">
               {q.status}
             </Badge>

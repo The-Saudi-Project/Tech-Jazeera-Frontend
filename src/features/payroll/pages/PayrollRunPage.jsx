@@ -133,6 +133,9 @@ export default function PayrollRunPage() {
         description={`${run.lines.length} employee${run.lines.length === 1 ? '' : 's'} · total net ${formatMoney(run.totalNet)}`}
         actions={
           <>
+            <Button variant="secondary" onClick={() => navigate(-1)}>
+              Back
+            </Button>
             <Badge variant={PAYROLL_STATUS_VARIANT[run.status]} className="mr-1">
               {run.status}
             </Badge>

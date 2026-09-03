@@ -111,6 +111,9 @@ export default function InvoiceViewPage() {
         description={inv.clientName}
         actions={
           <>
+            <Button variant="secondary" onClick={() => navigate(-1)}>
+              Back
+            </Button>
             <Badge variant={INVOICE_STATUS_VARIANT[inv.status]} className="mr-1">
               {inv.status}
             </Badge>

@@ -182,6 +182,9 @@ export default function NfcCompanyProfilePage() {
         description={company.city || 'NFC customer'}
         actions={
           <>
+            <Button variant="secondary" onClick={() => navigate(-1)}>
+              Back
+            </Button>
             <Button variant="secondary" onClick={() => setEditingCompany(true)}>
               Edit
             </Button>
