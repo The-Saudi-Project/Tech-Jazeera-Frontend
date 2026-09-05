@@ -44,6 +44,7 @@ import Input from '../../../components/ui/Input.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
+import { PillChecklist } from '../../../components/ui/TogglePill.jsx';
 
 function ApprovalRolesPanel() {
   const toast = useToast();
@@ -130,22 +131,14 @@ function ApprovalRolesPanel() {
           <Input label="Description" error={errors.description?.message} {...register('description')} />
           <div>
             <label className="mb-2 block text-sm font-medium">Members</label>
-            <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
-              {(staffUsers ?? []).length === 0 ? (
-                <p className="px-1.5 py-1 text-sm text-muted">No staff accounts found.</p>
-              ) : (
-                (staffUsers ?? []).map((u) => (
-                  <label key={u._id} className="flex items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-bg/60">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-border"
-                      checked={members.includes(u._id)}
-                      onChange={() => toggleMember(u._id)}
-                    />
-                    {u.name} <span className="text-xs text-muted">({u.role})</span>
-                  </label>
-                ))
-              )}
+            <div className="max-h-48 overflow-y-auto rounded-lg border border-border p-2">
+              <PillChecklist
+                items={staffUsers ?? []}
+                selected={members}
+                onToggle={toggleMember}
+                getLabel={(u) => `${u.name} (${u.role})`}
+                emptyMessage="No staff accounts found."
+              />
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -164,27 +157,6 @@ function ApprovalRolesPanel() {
         </form>
       </Modal>
     </Card>
-  );
-}
-
-/** A toggle-able pill — the shared visual for both "applies to" and
- *  per-step role selection, so a multi-select reads the same everywhere in
- *  this form instead of pills in one place and checkboxes in another. */
-function TogglePill({ selected, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={cn(
-        'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-        selected
-          ? 'bg-primary text-white'
-          : 'border border-border text-muted hover:border-muted/50 hover:text-text'
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -265,13 +237,7 @@ function SortableStepCard({ id, index, register, roleError, roles, stepRoles, on
         </Button>
       </div>
       <p className="mb-1 text-xs text-muted">Any ONE member of any role checked below can decide this step:</p>
-      <div className="flex flex-wrap gap-1.5">
-        {roles.map((r) => (
-          <TogglePill key={r._id} selected={stepRoles.includes(r._id)} onClick={() => onToggleRole(r._id)}>
-            {r.name}
-          </TogglePill>
-        ))}
-      </div>
+      <PillChecklist items={roles} selected={stepRoles} onToggle={onToggleRole} />
       {roleError && <p className="mt-1 text-sm text-danger">{roleError}</p>}
     </div>
   );
@@ -434,13 +400,13 @@ function ApprovalWorkflowsPanel() {
 
           <div>
             <label className="mb-2 block text-sm font-medium">Default for request types</label>
-            <div className="flex flex-wrap gap-1.5">
-              {APPROVAL_REQUEST_TYPES.map((t) => (
-                <TogglePill key={t} selected={appliesTo.includes(t)} onClick={() => toggleAppliesTo(t)}>
-                  {APPROVAL_REQUEST_TYPE_LABELS[t]}
-                </TogglePill>
-              ))}
-            </div>
+            <PillChecklist
+              items={APPROVAL_REQUEST_TYPES}
+              selected={appliesTo}
+              onToggle={toggleAppliesTo}
+              getId={(t) => t}
+              getLabel={(t) => APPROVAL_REQUEST_TYPE_LABELS[t]}
+            />
             <p className="mt-1 text-xs text-muted">
               Only one active workflow may default to a given request type — an individual employee's profile can
               still override this.

@@ -28,35 +28,11 @@ import Input from '../../../components/ui/Input.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
+import { PillChecklist } from '../../../components/ui/TogglePill.jsx';
 import CompanyLogoCard from '../components/CompanyLogoCard.jsx';
 
 function Field({ name, label, register, errors, type = 'text' }) {
   return <Input label={label} type={type} error={errors[name]?.message} {...register(name)} />;
-}
-
-function RoleChecklist({ roles, selected, onToggle }) {
-  if (roles.length === 0) {
-    return (
-      <p className="px-1.5 py-1 text-sm text-muted">
-        No approval roles configured yet — add one on the Approval Hierarchy page first.
-      </p>
-    );
-  }
-  return (
-    <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
-      {roles.map((r) => (
-        <label key={r._id} className="flex items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-bg/60">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-border"
-            checked={selected.includes(r._id)}
-            onChange={() => onToggle(r._id)}
-          />
-          {r.name}
-        </label>
-      ))}
-    </div>
-  );
 }
 
 /** Admin-only — who else, besides Admin/Manager, can edit this page. */
@@ -98,7 +74,12 @@ function ManageAccessCard() {
       {rolesLoading ? (
         <Skeleton className="h-24 w-full" />
       ) : (
-        <RoleChecklist roles={roles ?? []} selected={manageRoles} onToggle={toggle} />
+        <PillChecklist
+          items={roles ?? []}
+          selected={manageRoles}
+          onToggle={toggle}
+          emptyMessage="No approval roles configured yet — add one on the Approval Hierarchy page first."
+        />
       )}
       <div className="mt-3 flex justify-end">
         <Button size="sm" onClick={() => saveMutation.mutate()} isLoading={saveMutation.isPending}>

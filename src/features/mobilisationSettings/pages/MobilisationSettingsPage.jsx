@@ -19,31 +19,7 @@ import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
-
-function RoleChecklist({ roles, selected, onToggle }) {
-  if (roles.length === 0) {
-    return (
-      <p className="px-1.5 py-1 text-sm text-muted">
-        No approval roles configured yet — add one on the Approval Hierarchy page first.
-      </p>
-    );
-  }
-  return (
-    <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
-      {roles.map((r) => (
-        <label key={r._id} className="flex items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-bg/60">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-border"
-            checked={selected.includes(r._id)}
-            onChange={() => onToggle(r._id)}
-          />
-          {r.name}
-        </label>
-      ))}
-    </div>
-  );
-}
+import { PillChecklist } from '../../../components/ui/TogglePill.jsx';
 
 export default function MobilisationSettingsPage() {
   const navigate = useNavigate();
@@ -106,7 +82,12 @@ export default function MobilisationSettingsPage() {
               These roles see every mobilisation once it's submitted (not while still a Draft), including all
               commercial fields — e.g. BDM, Marketing Manager, Financial Manager, COO, GM.
             </p>
-            <RoleChecklist roles={roles} selected={viewerRoles} onToggle={(id) => toggle(setViewerRoles, viewerRoles, id)} />
+            <PillChecklist
+              items={roles}
+              selected={viewerRoles}
+              onToggle={(id) => toggle(setViewerRoles, viewerRoles, id)}
+              emptyMessage="No approval roles configured yet — add one on the Approval Hierarchy page first."
+            />
           </div>
 
           <div>
@@ -115,10 +96,11 @@ export default function MobilisationSettingsPage() {
               Members of these roles can create a mobilisation directly as its primary coordinator — in addition to
               any Coordinator login.
             </p>
-            <RoleChecklist
-              roles={roles}
+            <PillChecklist
+              items={roles}
               selected={selfMobiliseRoles}
               onToggle={(id) => toggle(setSelfMobiliseRoles, selfMobiliseRoles, id)}
+              emptyMessage="No approval roles configured yet — add one on the Approval Hierarchy page first."
             />
           </div>
 
