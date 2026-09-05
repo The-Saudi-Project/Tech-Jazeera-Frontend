@@ -21,7 +21,7 @@ import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.
 import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
 import NotificationBell from '../../components/shared/NotificationBell.jsx';
 import { cn } from '../../lib/utils.js';
-import { DASHBOARD_ITEM, NAV_GROUPS } from '../navConfig.js';
+import { DASHBOARD_ITEM, NAV_GROUPS, EXECUTIVE_NAV_ITEMS } from '../navConfig.js';
 
 function NavIcon({ d }) {
   return (
@@ -33,14 +33,23 @@ function NavIcon({ d }) {
 
 function Sidebar({ onNavigate }) {
   const { user } = useAuth();
-  // A group is shown if the user can reach at least one item inside it —
-  // otherwise it'd be a link to an empty hub page. Individual role-gating
-  // (e.g. the Admin-only Timesheet Processor) still applies on the hub page
-  // itself, same check as before, just applied at two levels now.
-  const groups = NAV_GROUPS.filter((group) =>
-    group.items.some((item) => !item.roles || item.roles.includes(user.role))
-  );
-  const items = [DASHBOARD_ITEM, ...groups];
+  // Executive gets its own short, explicit nav — see EXECUTIVE_NAV_ITEMS's
+  // doc comment for why this can't just be another `roles`-filtered slice
+  // of the grouped nav below (every unguarded group item, which is most of
+  // them, would otherwise show up for free).
+  let items;
+  if (user.role === 'Executive') {
+    items = [DASHBOARD_ITEM, ...EXECUTIVE_NAV_ITEMS];
+  } else {
+    // A group is shown if the user can reach at least one item inside it —
+    // otherwise it'd be a link to an empty hub page. Individual role-gating
+    // (e.g. the Admin-only Timesheet Processor) still applies on the hub page
+    // itself, same check as before, just applied at two levels now.
+    const groups = NAV_GROUPS.filter((group) =>
+      group.items.some((item) => !item.roles || item.roles.includes(user.role))
+    );
+    items = [DASHBOARD_ITEM, ...groups];
+  }
 
   return (
     <div className="flex h-full flex-col border-r border-border bg-surface">

@@ -41,6 +41,7 @@ import { useToast } from '../../../components/ui/Toast.jsx';
 import UpcomingHolidays from '../../holidays/components/UpcomingHolidays.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -325,6 +326,9 @@ function ReviewQueue() {
   const queryClient = useQueryClient();
   const canAcknowledge = LEAVE_DECIDE_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
+  // { req, decision } while the "are you sure?" dialog is open — a stray
+  // click on Approve/Reject shouldn't be able to decide anything by itself.
+  const [confirming, setConfirming] = useState(null);
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['leave', { status }],
@@ -347,6 +351,7 @@ function ReviewQueue() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirming(null),
   });
 
   const ackMutation = useMutation({
@@ -404,21 +409,10 @@ function ReviewQueue() {
                   <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{LEAVE_REQUEST_STATUS_LABELS[req.status]}</Badge>
                   {req.canDecideCurrentStep && req.status === 'PendingReview' && (
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        isLoading={decideMutation.isPending}
-                        onClick={() => decideMutation.mutate({ id: req._id, decision: 'Approved' })}
-                      >
+                      <Button size="sm" variant="secondary" onClick={() => setConfirming({ req, decision: 'Approved' })}>
                         Approve
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="hover:text-danger"
-                        isLoading={decideMutation.isPending}
-                        onClick={() => decideMutation.mutate({ id: req._id, decision: 'Rejected' })}
-                      >
+                      <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ req, decision: 'Rejected' })}>
                         Reject
                       </Button>
                     </div>
@@ -434,6 +428,20 @@ function ReviewQueue() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming?.decision === 'Approved' ? 'Approve leave request?' : 'Reject leave request?'}
+        message={
+          confirming &&
+          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.req.employee?.fullName}'s ${confirming.req.leaveTypeName} request (${formatDate(confirming.req.startDate)} – ${formatDate(confirming.req.endDate)})? This cannot be undone.`
+        }
+        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
+        loading={decideMutation.isPending}
+        onConfirm={() => decideMutation.mutate({ id: confirming.req._id, decision: confirming.decision })}
+        onCancel={() => setConfirming(null)}
+      />
     </Card>
   );
 }

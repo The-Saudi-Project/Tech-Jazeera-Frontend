@@ -68,6 +68,24 @@ const ICON = {
 
 export const DASHBOARD_ITEM = { to: '/', label: 'Dashboard', icon: ICON.dashboard };
 
+/**
+ * The Executive (GM/COO) sidebar — deliberately NOT a filtered slice of
+ * NAV_GROUPS. Every other role's nav is "opt-out": an item with no `roles`
+ * array is visible to anyone who reaches DashboardLayout at all, which is
+ * exactly how Manager ended up seeing nearly everything. Executive is the
+ * opposite, "opt-in" shape on purpose — a short, explicit, flat list (no
+ * hub pages to drill into) of the few screens they actually have: company-
+ * wide visibility plus whatever they're an ApprovalRole member for. See
+ * DashboardLayout.jsx's Sidebar, which renders this instead of the grouped
+ * nav specifically for this role.
+ */
+export const EXECUTIVE_NAV_ITEMS = [
+  { to: '/leave', label: 'Leave', icon: ICON.calendarOff, description: 'Requests awaiting your review.' },
+  { to: '/timesheets', label: 'Timesheets', icon: ICON.list, description: 'Weekly hours awaiting your review.' },
+  { to: '/financial-requests', label: 'Financial Requests', icon: ICON.financialRequest, description: 'Salary advances and reimbursements.' },
+  { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order.' },
+];
+
 export const NAV_GROUPS = [
   {
     key: 'workforce',

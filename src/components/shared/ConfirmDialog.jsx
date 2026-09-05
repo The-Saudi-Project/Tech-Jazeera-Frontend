@@ -1,6 +1,10 @@
 /**
- * ConfirmDialog — the mandatory gate in front of every destructive action.
- * Never wire a delete button straight to a mutation; route it through here.
+ * ConfirmDialog — the mandatory gate in front of every destructive action,
+ * and (confirmVariant='primary') the "are you sure?" precautionary gate in
+ * front of an Approve/Reject decision — cheap insurance against a stray
+ * click on an action that can't be undone from the UI.
+ * Never wire a delete or decide button straight to a mutation; route it
+ * through here.
  */
 import Modal from '../ui/Modal.jsx';
 import Button from '../ui/Button.jsx';
@@ -10,6 +14,7 @@ export default function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Delete',
+  confirmVariant = 'danger',
   onConfirm,
   onCancel,
   loading = false,
@@ -21,7 +26,7 @@ export default function ConfirmDialog({
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="danger" onClick={onConfirm} isLoading={loading}>
+        <Button variant={confirmVariant} onClick={onConfirm} isLoading={loading}>
           {confirmLabel}
         </Button>
       </div>

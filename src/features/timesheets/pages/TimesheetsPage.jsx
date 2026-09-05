@@ -20,6 +20,7 @@ import { TIMESHEET_STATUSES, TIMESHEET_STATUS_VARIANT } from '../../../lib/const
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -165,6 +166,10 @@ export default function TimesheetsPage() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('Submitted');
   const [selected, setSelected] = useState(new Set());
+  // { timesheet, decision } while the single-decide "are you sure?" dialog
+  // is open; confirmingBulk while the bulk-approve one is.
+  const [confirming, setConfirming] = useState(null);
+  const [confirmingBulk, setConfirmingBulk] = useState(false);
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['timesheets', { status }],
@@ -187,6 +192,7 @@ export default function TimesheetsPage() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirming(null),
   });
 
   const bulkMutation = useMutation({
@@ -200,6 +206,7 @@ export default function TimesheetsPage() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirmingBulk(false),
   });
 
   const submittedIds = useMemo(() => (data?.items ?? []).filter(canBulkApprove).map((t) => t._id), [data]);
@@ -225,7 +232,7 @@ export default function TimesheetsPage() {
         onBack={() => navigate(-1)}
         actions={
           selected.size > 0 && (
-            <Button isLoading={bulkMutation.isPending} onClick={() => bulkMutation.mutate([...selected])}>
+            <Button onClick={() => setConfirmingBulk(true)}>
               Approve {selected.size} selected
             </Button>
           )
@@ -299,10 +306,10 @@ export default function TimesheetsPage() {
                       <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
                       {t.canDecideCurrentStep && t.status === 'Submitted' && (
                         <div className="flex gap-2">
-                          <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: t._id, decision: 'Approved' })}>
+                          <Button size="sm" variant="secondary" onClick={() => setConfirming({ timesheet: t, decision: 'Approved' })}>
                             Approve
                           </Button>
-                          <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: t._id, decision: 'Rejected' })}>
+                          <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ timesheet: t, decision: 'Rejected' })}>
                             Reject
                           </Button>
                         </div>
@@ -315,6 +322,31 @@ export default function TimesheetsPage() {
           </>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming?.decision === 'Approved' ? 'Approve timesheet?' : 'Reject timesheet?'}
+        message={
+          confirming &&
+          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.timesheet.employee?.fullName}'s timesheet for ${formatDate(confirming.timesheet.periodStart)} – ${formatDate(confirming.timesheet.periodEnd)}? This cannot be undone.`
+        }
+        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
+        loading={decideMutation.isPending}
+        onConfirm={() => decideMutation.mutate({ id: confirming.timesheet._id, decision: confirming.decision })}
+        onCancel={() => setConfirming(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmingBulk}
+        title="Approve selected timesheets?"
+        message={`Approve ${selected.size} selected timesheet(s)? Any not yet at their final step, or not yours to decide, will be skipped. This cannot be undone.`}
+        confirmLabel="Approve"
+        confirmVariant="primary"
+        loading={bulkMutation.isPending}
+        onConfirm={() => bulkMutation.mutate([...selected])}
+        onCancel={() => setConfirmingBulk(false)}
+      />
     </div>
   );
 }

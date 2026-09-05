@@ -39,7 +39,7 @@ export const ACCOUNT_PROVISION_ROLES = ['Admin', 'HR'];
  *  any role except Admin, which has no Employee. Server-side this list is
  *  derived from ROLES automatically; kept as an explicit array here since
  *  this file isn't shared with the server. */
-export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Staff', 'Worker'];
+export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Executive', 'Staff', 'Worker'];
 
 /** P2-M2: roles this app assigns to a Coordinator's team-scoped queries. */
 export const COORDINATOR_ROLE = 'Coordinator';
@@ -85,12 +85,16 @@ export const LEAVE_STATUS_VARIANT = {
   Rejected: 'danger',
   Cancelled: 'default',
 };
-/** Mirror of leave.routes.js guards — who configures policy vs who decides requests. */
-export const LEAVE_TYPE_MANAGE_ROLES = ['Admin', 'Manager'];
+/** Mirror of leave.routes.js guards — who configures policy vs who decides requests.
+ *  Policy config is Admin/HR only (moved off Manager — company leave policy
+ *  isn't a day-to-day operational manager's job, see docs/RBAC-notes.md). */
+export const LEAVE_TYPE_MANAGE_ROLES = ['Admin', 'HR'];
 export const LEAVE_DECIDE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
 
-/** Mirror of holiday.routes.js guards — read-open to everyone authenticated. */
-export const HOLIDAY_MANAGE_ROLES = ['Admin', 'Manager', 'HR'];
+/** Mirror of holiday.routes.js guards — read-open to everyone authenticated.
+ *  Admin/HR only (moved off Manager — company calendar policy, not a
+ *  day-to-day operational manager's job). */
+export const HOLIDAY_MANAGE_ROLES = ['Admin', 'HR'];
 
 /** Mirror of settlement.model.js. */
 export const EXIT_REASONS = ['Resignation', 'TerminationByEmployer', 'EndOfContract'];

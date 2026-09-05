@@ -27,6 +27,7 @@ import {
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -140,6 +141,7 @@ export default function ReimbursementReviewPanel() {
   const canPay = FINANCIAL_REQUEST_MONEY_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
   const [downloadingId, setDownloadingId] = useState(null);
+  const [confirming, setConfirming] = useState(null); // { claim, decision } or null
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['financial-requests', 'reimbursements', { status }],
@@ -159,6 +161,7 @@ export default function ReimbursementReviewPanel() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirming(null),
   });
 
   const payMutation = useMutation({
@@ -232,10 +235,10 @@ export default function ReimbursementReviewPanel() {
                 )}
                 {c.canDecideCurrentStep && c.status === 'Pending' && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: c._id, decision: 'Approved' })}>
+                    <Button size="sm" variant="secondary" onClick={() => setConfirming({ claim: c, decision: 'Approved' })}>
                       Approve
                     </Button>
-                    <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: c._id, decision: 'Rejected' })}>
+                    <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ claim: c, decision: 'Rejected' })}>
                       Reject
                     </Button>
                   </div>
@@ -250,6 +253,20 @@ export default function ReimbursementReviewPanel() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming?.decision === 'Approved' ? 'Approve reimbursement claim?' : 'Reject reimbursement claim?'}
+        message={
+          confirming &&
+          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.claim.employee?.fullName}'s ${formatMoney(confirming.claim.amount)} ${confirming.claim.category} claim? This cannot be undone.`
+        }
+        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
+        loading={decideMutation.isPending}
+        onConfirm={() => decideMutation.mutate({ id: confirming.claim._id, decision: confirming.decision })}
+        onCancel={() => setConfirming(null)}
+      />
       </Card>
     </>
   );

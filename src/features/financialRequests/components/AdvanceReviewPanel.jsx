@@ -24,6 +24,7 @@ import {
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -93,6 +94,7 @@ export default function AdvanceReviewPanel() {
   const canRecordRepayment = FINANCIAL_REQUEST_MONEY_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
   const [repaying, setRepaying] = useState(null); // the advance being repaid, or null
+  const [confirming, setConfirming] = useState(null); // { advance, decision } or null
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['financial-requests', 'advances', { status }],
@@ -112,6 +114,7 @@ export default function AdvanceReviewPanel() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirming(null),
   });
 
   const {
@@ -189,10 +192,10 @@ export default function AdvanceReviewPanel() {
                 <Badge variant={ADVANCE_STATUS_VARIANT[a.status]}>{a.status}</Badge>
                 {a.canDecideCurrentStep && a.status === 'Pending' && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: a._id, decision: 'Approved' })}>
+                    <Button size="sm" variant="secondary" onClick={() => setConfirming({ advance: a, decision: 'Approved' })}>
                       Approve
                     </Button>
-                    <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: a._id, decision: 'Rejected' })}>
+                    <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ advance: a, decision: 'Rejected' })}>
                       Reject
                     </Button>
                   </div>
@@ -232,6 +235,20 @@ export default function AdvanceReviewPanel() {
           </form>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming?.decision === 'Approved' ? 'Approve advance request?' : 'Reject advance request?'}
+        message={
+          confirming &&
+          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.advance.employee?.fullName}'s ${formatMoney(confirming.advance.amount)} advance request? This cannot be undone.`
+        }
+        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
+        loading={decideMutation.isPending}
+        onConfirm={() => decideMutation.mutate({ id: confirming.advance._id, decision: confirming.decision })}
+        onCancel={() => setConfirming(null)}
+      />
       </Card>
     </>
   );
