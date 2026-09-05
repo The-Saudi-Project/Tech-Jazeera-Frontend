@@ -288,9 +288,9 @@ export const WEEKDAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thur
 /** Mirror of the attendance write guard (server enforces). */
 export const ATTENDANCE_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
 /** Who clocks their own attendance in/out (mirrors staffAttendance.routes.js).
- *  Admin/Manager are exempt by design; Workers have their own equivalent via
- *  the ESS portal. */
-export const STAFF_SELF_ATTENDANCE_ROLES = ['Coordinator', 'HR', 'Accounts'];
+ *  Admin is exempt by design; Workers have their own equivalent via the ESS
+ *  portal. Manager is included so a BDM-titled login can self-mark too. */
+export const STAFF_SELF_ATTENDANCE_ROLES = ['Coordinator', 'HR', 'Accounts', 'Manager'];
 
 /** Mirrors the Document model enums. */
 export const DOCUMENT_OWNER_TYPES = ['Employee', 'Client'];

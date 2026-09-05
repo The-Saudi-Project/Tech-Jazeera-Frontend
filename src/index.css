@@ -94,4 +94,12 @@
   input[type='number'] {
     -moz-appearance: textfield;
   }
+  /* Chrome/Edge render an unstyled native up/down spin control on a date
+     field once it's focused/hovered — the one native control the app's
+     Tailwind-only inputs don't already flatten. Hide it; the calendar-picker
+     affordance stays (::-webkit-calendar-picker-indicator is untouched). */
+  input[type='date']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    display: none;
+  }
 }

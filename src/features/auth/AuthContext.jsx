@@ -12,6 +12,7 @@
  * an expired session anywhere in the app drops cleanly to the login screen.
  */
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { setAccessToken, subscribeUnauthorized } from '../../lib/axios.js';
 import { loginRequest, refreshRequest, logoutRequest } from './auth.api.js';
 import { useToast } from '../../components/ui/Toast.jsx';
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'authed' | 'guest'
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // One-shot session restore. A 401 here just means "not logged in".
@@ -42,10 +44,11 @@ export function AuthProvider({ children }) {
     // the toast can't greet a first-time visitor with "session expired".
     return subscribeUnauthorized(() => {
       toast.error('Your session has expired. Please sign in again.');
+      queryClient.clear();
       setUser(null);
       setStatus('guest');
     });
-  }, [toast]);
+  }, [toast, queryClient]);
 
   // Auto-logout after 12 minutes of inactivity
   useEffect(() => {
@@ -58,6 +61,7 @@ export function AuthProvider({ children }) {
         // Trigger auto-logout but use the state directly to avoid cyclic dependencies in the hook
         logoutRequest().catch(() => {});
         setAccessToken(null);
+        queryClient.clear();
         setUser(null);
         setStatus('guest');
         toast.info('You have been logged out due to inactivity.');
@@ -67,30 +71,37 @@ export function AuthProvider({ children }) {
     // Events that indicate the user is active
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
     events.forEach(event => document.addEventListener(event, resetTimer, { passive: true }));
-    
+
     resetTimer(); // Start the timer
 
     return () => {
       clearTimeout(timeoutId);
       events.forEach(event => document.removeEventListener(event, resetTimer));
     };
-  }, [status, toast]);
+  }, [status, toast, queryClient]);
 
   const login = useCallback(async (credentials) => {
     const { user: loggedInUser, accessToken } = await loginRequest(credentials);
+    // A previous session's cached queries (dashboard counts, review queues,
+    // anything keyed without the acting user's id) must never leak into this
+    // one — clear before the new session's own queries start populating it.
+    queryClient.clear();
     setAccessToken(accessToken);
     setUser(loggedInUser);
     setStatus('authed');
-  }, []);
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     // Server call first (kills the session row); local state clears even if
     // the network call fails — the user asked to leave, so we leave.
     await logoutRequest().catch(() => {});
     setAccessToken(null);
+    // Same reasoning as login() above — nothing this session cached should
+    // still be sitting in the shared QueryClient for whoever logs in next.
+    queryClient.clear();
     setUser(null);
     setStatus('guest');
-  }, []);
+  }, [queryClient]);
 
   // Merge a partial into the in-memory user (e.g. a fresh avatarUrl after
   // upload) without a full session refresh — the server call that produced

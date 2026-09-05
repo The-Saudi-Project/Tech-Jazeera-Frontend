@@ -22,6 +22,7 @@ import ExpiringDocuments from '../components/ExpiringDocuments.jsx';
 import RecentActivity from '../components/RecentActivity.jsx';
 import QuickActions from '../components/QuickActions.jsx';
 import ProfitCard from '../components/ProfitCard.jsx';
+import MyPendingActions from '../components/MyPendingActions.jsx';
 
 /** A labelled money figure for the finance card. */
 function FinanceItem({ label, value, hint, accent }) {
@@ -60,6 +61,11 @@ export default function DashboardPage() {
 
   const firstName = user.name.split(' ')[0];
   const isCoordinator = user.role === 'Coordinator';
+  // A Manager (the generic login a BDM-titled person holds) — company-wide
+  // money figures (Pipeline, Profit, Recent Activity) are Admin/Executive
+  // territory; see dashboard.service.js's hideFinance for the full reasoning.
+  const isManager = user.role === 'Manager';
+  const hideFinance = isCoordinator || isManager;
 
   if (isPending) {
     return (
@@ -88,7 +94,8 @@ export default function DashboardPage() {
     );
   }
 
-  const { stats, finance, workforceByStatus, quotationsByStatus, expiringDocuments, recentActivity } = data;
+  const { stats, finance, workforceByStatus, quotationsByStatus, expiringDocuments, recentActivity, myPendingActions } =
+    data;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -120,7 +127,13 @@ export default function DashboardPage() {
         {isCoordinator ? (
           <StatCard label="Expiring soon" value={stats.expiringSoon} accent="warning" hint="Documents needing attention" />
         ) : (
-          <StatCard label="Pending quotations" value={stats.pendingQuotations} accent="warning" hint="Draft, awaiting approval" to="/quotations" />
+          <StatCard
+            label="Pending quotations"
+            value={stats.pendingQuotations}
+            accent="warning"
+            hint={isManager ? 'Your drafts, awaiting approval' : 'Draft, awaiting approval'}
+            to="/quotations"
+          />
         )}
         <StatCard
           label="Marked today"
@@ -130,10 +143,12 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Finance summary — Admin/Manager/HR/Accounts only. A Coordinator never
-          sees salary or revenue figures, even scoped to their own team — see
-          dashboard.service.js. */}
-      {!isCoordinator && (
+      <MyPendingActions items={myPendingActions} />
+
+      {/* Finance summary — Admin/Executive/HR/Accounts only. Neither a
+          Coordinator nor a Manager (BDM) sees salary or revenue figures — see
+          dashboard.service.js's hideFinance. */}
+      {!hideFinance && (
         <>
           <Card>
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Pipeline</h2>
@@ -166,7 +181,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Alerts + activity — Recent Activity is Admin/Manager/HR/Accounts
+      {/* Alerts + activity — Recent Activity is Admin/Executive/HR/Accounts
           only, same visibility line as Finance above (see dashboard.service.js). */}
       {isCoordinator ? (
         <ExpiringDocuments
@@ -175,6 +190,8 @@ export default function DashboardPage() {
           onThresholdChange={changeThreshold}
           scopedToTeam
         />
+      ) : isManager ? (
+        <ExpiringDocuments items={expiringDocuments} thresholdDays={thresholdDays} onThresholdChange={changeThreshold} />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <ExpiringDocuments items={expiringDocuments} thresholdDays={thresholdDays} onThresholdChange={changeThreshold} />
