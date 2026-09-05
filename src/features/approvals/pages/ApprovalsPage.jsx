@@ -11,6 +11,9 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   listApprovalRoles,
   createApprovalRole,
@@ -30,7 +33,7 @@ import {
 import { listStaffUsers } from '../../users/users.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { APPROVAL_REQUEST_TYPES, APPROVAL_REQUEST_TYPE_LABELS, APPROVALS_MANAGE_ROLES } from '../../../lib/constants.js';
-import { apiMessage } from '../../../lib/utils.js';
+import { apiMessage, cn } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Tabs, { useTabParam } from '../../../components/ui/Tabs.jsx';
@@ -164,6 +167,116 @@ function ApprovalRolesPanel() {
   );
 }
 
+/** A toggle-able pill — the shared visual for both "applies to" and
+ *  per-step role selection, so a multi-select reads the same everywhere in
+ *  this form instead of pills in one place and checkboxes in another. */
+function TogglePill({ selected, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+        selected
+          ? 'bg-primary text-white'
+          : 'border border-border text-muted hover:border-muted/50 hover:text-text'
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GripIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+      <circle cx="9" cy="6" r="1.4" />
+      <circle cx="15" cy="6" r="1.4" />
+      <circle cx="9" cy="12" r="1.4" />
+      <circle cx="15" cy="12" r="1.4" />
+      <circle cx="9" cy="18" r="1.4" />
+      <circle cx="15" cy="18" r="1.4" />
+    </svg>
+  );
+}
+
+/** The down-arrow rendered between two step cards — purely decorative (not
+ *  a drop target of its own), it's what makes the reordered list actually
+ *  read as a connected chain rather than just a list. */
+function StepConnector() {
+  return (
+    <div className="flex justify-center py-0.5" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5 text-muted">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m0 0l-5-5m5 5l5-5" />
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * One draggable step card. The grip handle (not the whole card) carries the
+ * drag listeners, so clicking a role pill or the label input never fights
+ * with starting a drag.
+ */
+function SortableStepCard({ id, index, register, roleError, roles, stepRoles, onToggleRole, onRemove, canRemove }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn('rounded-lg border bg-surface p-3', isDragging ? 'border-primary shadow-md' : 'border-border')}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab touch-none rounded p-1 text-muted hover:bg-bg/60 hover:text-text active:cursor-grabbing"
+          aria-label={`Drag to reorder step ${index + 1}`}
+        >
+          <GripIcon />
+        </button>
+        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+          {index + 1}
+        </span>
+        <Input
+          placeholder="Step label (optional, e.g. HR)"
+          className="flex-1"
+          aria-label={`Step ${index + 1} label`}
+          {...register(`steps.${index}.label`)}
+        />
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="hover:text-danger"
+          onClick={onRemove}
+          disabled={!canRemove}
+          aria-label="Remove step"
+        >
+          ✕
+        </Button>
+      </div>
+      <p className="mb-1 text-xs text-muted">Any ONE member of any role checked below can decide this step:</p>
+      <div className="flex flex-wrap gap-1.5">
+        {roles.map((r) => (
+          <TogglePill key={r._id} selected={stepRoles.includes(r._id)} onClick={() => onToggleRole(r._id)}>
+            {r.name}
+          </TogglePill>
+        ))}
+      </div>
+      {roleError && <p className="mt-1 text-sm text-danger">{roleError}</p>}
+    </div>
+  );
+}
+
 function ApprovalWorkflowsPanel() {
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -181,8 +294,24 @@ function ApprovalWorkflowsPanel() {
     reset,
     formState: { errors },
   } = useForm({ resolver: zodResolver(approvalWorkflowFormSchema), defaultValues: emptyApprovalWorkflowForm });
-  const { fields: stepFields, append: appendStep, remove: removeStep } = useFieldArray({ control, name: 'steps' });
+  const { fields: stepFields, append: appendStep, remove: removeStep, move: moveStep } = useFieldArray({ control, name: 'steps' });
   const appliesTo = watch('appliesTo') ?? [];
+
+  // A short activation distance so clicking a role pill or the label input
+  // inside a card is never misread as the start of a drag — only an actual
+  // press-and-move on the grip handle (below) counts.
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function handleStepDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = stepFields.findIndex((f) => f.id === active.id);
+    const newIndex = stepFields.findIndex((f) => f.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) moveStep(oldIndex, newIndex);
+  }
 
   function toggleAppliesTo(type) {
     setValue('appliesTo', appliesTo.includes(type) ? appliesTo.filter((t) => t !== type) : [...appliesTo, type]);
@@ -278,69 +407,38 @@ function ApprovalWorkflowsPanel() {
                 Add step
               </Button>
             </div>
-            <div className="space-y-3">
-              {stepFields.map((field, i) => {
-                const stepRoles = watch(`steps.${i}.roles`) ?? [];
-                return (
-                  <div key={field.id} className="rounded-lg border border-border p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {i + 1}
-                      </span>
-                      <Input
-                        placeholder="Step label (optional, e.g. HR)"
-                        className="flex-1"
-                        aria-label={`Step ${i + 1} label`}
-                        {...register(`steps.${i}.label`)}
+            <div className="mt-2">
+              <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleStepDragEnd}>
+                <SortableContext items={stepFields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+                  {stepFields.map((field, i) => (
+                    <div key={field.id}>
+                      {i > 0 && <StepConnector />}
+                      <SortableStepCard
+                        id={field.id}
+                        index={i}
+                        register={register}
+                        roleError={errors.steps?.[i]?.roles?.message}
+                        roles={roles ?? []}
+                        stepRoles={watch(`steps.${i}.roles`) ?? []}
+                        onToggleRole={(roleId) => toggleStepRole(i, roleId)}
+                        onRemove={() => removeStep(i)}
+                        canRemove={stepFields.length > 1}
                       />
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="hover:text-danger"
-                        onClick={() => removeStep(i)}
-                        aria-label="Remove step"
-                      >
-                        ✕
-                      </Button>
                     </div>
-                    <p className="mb-1 text-xs text-muted">Any ONE member of any role checked below can decide this step:</p>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                      {(roles ?? []).map((r) => (
-                        <label key={r._id} className="flex items-center gap-1.5 text-sm">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-border"
-                            checked={stepRoles.includes(r._id)}
-                            onChange={() => toggleStepRole(i, r._id)}
-                          />
-                          {r.name}
-                        </label>
-                      ))}
-                    </div>
-                    {errors.steps?.[i]?.roles?.message && (
-                      <p className="mt-1 text-sm text-danger">{errors.steps[i].roles.message}</p>
-                    )}
-                  </div>
-                );
-              })}
+                  ))}
+                </SortableContext>
+              </DndContext>
             </div>
             {errors.steps?.message && <p className="mt-1 text-sm text-danger">{errors.steps.message}</p>}
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-medium">Default for request types</label>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="flex flex-wrap gap-1.5">
               {APPROVAL_REQUEST_TYPES.map((t) => (
-                <label key={t} className="flex items-center gap-1.5 text-sm">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-border"
-                    checked={appliesTo.includes(t)}
-                    onChange={() => toggleAppliesTo(t)}
-                  />
+                <TogglePill key={t} selected={appliesTo.includes(t)} onClick={() => toggleAppliesTo(t)}>
                   {APPROVAL_REQUEST_TYPE_LABELS[t]}
-                </label>
+                </TogglePill>
               ))}
             </div>
             <p className="mt-1 text-xs text-muted">

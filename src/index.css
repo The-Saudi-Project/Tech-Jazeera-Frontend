@@ -83,4 +83,15 @@
       transition-duration: 0.001ms !important;
     }
   }
+  /* No spinner arrows on any number field — every one of them is a plain
+     money/quantity amount, never a value anyone dials with tiny clicks.
+     Scroll-to-change is handled separately in Input.jsx (blur on wheel). */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
 }

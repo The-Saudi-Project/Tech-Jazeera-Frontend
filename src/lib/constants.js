@@ -237,13 +237,19 @@ export const CLIENT_DECIDE_ROLES = ['Admin', 'Manager'];
 /** Who sees the Coordinator Activity oversight page. */
 export const COORDINATOR_ACTIVITY_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
 
-/** Mirrors approvalWorkflow.model.js's APPROVAL_REQUEST_TYPES. */
-export const APPROVAL_REQUEST_TYPES = ['Leave', 'SalaryAdvance', 'Reimbursement', 'Timesheet'];
+/** Mirrors approvalWorkflow.model.js's APPROVAL_REQUEST_TYPES. `Mobilisation`
+ *  was missing here even though the server has supported it since the
+ *  Mobilisation module shipped — meaning the Approval Hierarchy page's
+ *  "which request type does this workflow apply to" picker could never
+ *  actually offer it, so no company could configure Mobilisation routing
+ *  through the UI at all (see docs/MOBILISATION-notes.md's follow-up note). */
+export const APPROVAL_REQUEST_TYPES = ['Leave', 'SalaryAdvance', 'Reimbursement', 'Timesheet', 'Mobilisation'];
 export const APPROVAL_REQUEST_TYPE_LABELS = {
   Leave: 'Leave',
   SalaryAdvance: 'Salary Advance',
   Reimbursement: 'Reimbursement',
   Timesheet: 'Timesheet',
+  Mobilisation: 'Mobilisation',
 };
 /** Configuring the hierarchy itself (roles/workflows) is Admin-only — the
  *  server enforces this; the mirror only hides the nav link/route for

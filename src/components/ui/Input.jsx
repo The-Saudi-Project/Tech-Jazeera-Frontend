@@ -33,7 +33,7 @@ import { cn } from '../../lib/utils.js';
  * "email", "current-password", "tel", etc.) — this only guards the default.
  */
 const Input = forwardRef(function Input(
-  { label, error, type = 'text', className, autoComplete = 'off', onFocus, onMouseDown, ...props },
+  { label, error, type = 'text', className, autoComplete = 'off', onFocus, onMouseDown, onWheel, ...props },
   ref
 ) {
   const id = useId(); // stable unique id so the label targets this input
@@ -65,6 +65,16 @@ const Input = forwardRef(function Input(
         onFocus={(e) => {
           unlock();
           onFocus?.(e);
+        }}
+        onWheel={(e) => {
+          // A focused number input changes value on scroll by default in
+          // Chrome/Firefox — surprising and easy to trigger by accident
+          // just scrolling the page. Blurring (not preventDefault, which
+          // would also block the page from scrolling under the cursor)
+          // drops focus so the scroll passes through as a normal page
+          // scroll instead.
+          if (type === 'number') e.currentTarget.blur();
+          onWheel?.(e);
         }}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : undefined}
