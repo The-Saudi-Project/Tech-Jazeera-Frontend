@@ -71,6 +71,11 @@ export default function ClientListPage() {
         ...(params.approvalStatus && { approvalStatus: params.approvalStatus }),
       }),
     placeholderData: keepPreviousData,
+    // Same reasoning as the Leave review queue: a new client submitted for
+    // approval from another session has no way to reach this already-open
+    // list otherwise.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   const [toDelete, setToDelete] = useState(null);

@@ -32,7 +32,15 @@ export default function NotificationBell() {
   const { data } = useQuery({
     queryKey: ['notifications', 'bell'],
     queryFn: () => listNotifications({ limit: 10 }),
-    refetchInterval: 30_000,
+    // 30s made a fresh approval-needed notification feel like it never
+    // arrived without a manual refresh. 10s is still a handful of requests
+    // an hour even with the whole staff logged in — cheap insurance for
+    // something people expect to feel near-instant. Overriding
+    // refetchOnWindowFocus here (the app-wide default is off, deliberately,
+    // for every other query) means switching back to this tab also checks
+    // immediately instead of waiting for the next tick.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {

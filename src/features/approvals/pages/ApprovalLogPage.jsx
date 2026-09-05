@@ -42,6 +42,10 @@ export default function ApprovalLogPage() {
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['approval-log', { type, status }],
     queryFn: () => listApprovalLog({ limit: 100, ...(type && { type }), ...(status && { status }) }),
+    // Same reasoning as the Leave review queue: a decision made from another
+    // session has no way to reach this already-open log otherwise.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   // Employee search is client-side, scoped to the currently loaded page —

@@ -40,6 +40,11 @@ export default function MobilisationListPage() {
         ...(params.status && { status: params.status }),
       }),
     placeholderData: keepPreviousData,
+    // Same reasoning as the Leave review queue: a coordinator submitting or
+    // a Marketing Manager deciding a mobilisation from another session has
+    // no way to reach this already-open list otherwise.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   const columns = [

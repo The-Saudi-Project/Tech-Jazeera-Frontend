@@ -329,6 +329,13 @@ function ReviewQueue() {
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['leave', { status }],
     queryFn: () => listLeaveRequests({ limit: 50, ...(status && { status }) }),
+    // A new submission from another session (or another approver deciding a
+    // step) has no way to reach this already-open queue otherwise — the
+    // app-wide default is a 30s staleTime with no polling and no
+    // refetch-on-focus. Same cadence as NotificationBell's own poll, so a
+    // request appearing here and its notification arriving feel like one event.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['leave'] });

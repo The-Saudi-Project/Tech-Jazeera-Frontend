@@ -35,6 +35,10 @@ export default function CertificateReviewPanel() {
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['exit-documents', 'certificates', { status }],
     queryFn: () => listCertificates({ limit: 50, ...(status && { status }) }),
+    // Same reasoning as the Leave review queue: a submission from another
+    // session has no way to reach this already-open queue otherwise.
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['exit-documents', 'certificates'] });
