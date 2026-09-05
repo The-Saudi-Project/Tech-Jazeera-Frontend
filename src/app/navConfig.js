@@ -119,6 +119,7 @@ export const NAV_GROUPS = [
     icon: ICON.cog,
     description: 'Company-wide configuration, records and internal tools.',
     items: [
+      { to: '/company-settings', label: 'Company Settings', icon: ICON.building, description: 'Legal identity, contact, bank and signatory details — printed on every generated document.' },
       { to: '/documents', label: 'Documents', icon: ICON.document, description: 'Company & employee document store.' },
       { to: '/assets', label: 'Assets', icon: ICON.asset, description: 'Equipment issued to employees.' },
       { to: '/team', label: 'Team', icon: ICON.team, roles: STAFF_USER_VIEW_ROLES, description: 'Staff logins and roles.' },

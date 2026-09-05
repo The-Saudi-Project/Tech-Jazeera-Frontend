@@ -1,15 +1,24 @@
 /**
  * Textarea — multi-line sibling of Input (labels/errors handled identically).
  */
-import { forwardRef, useId } from 'react';
+import { forwardRef, useId, useState } from 'react';
 import { cn } from '../../lib/utils.js';
 
+// readOnly-until-interacted, not an autocomplete token — see Input.jsx's
+// identical default for why (autocomplete="off"/"new-password" were both
+// tried and confirmed not to stop Chrome's Address/Contact autofill).
 const Textarea = forwardRef(function Textarea(
-  { label, error, className, rows = 4, autoComplete = 'new-password', ...props },
+  { label, error, className, rows = 4, autoComplete = 'off', onFocus, onMouseDown, ...props },
   ref
 ) {
   const id = useId();
   const errorId = `${id}-error`;
+  const suppressAutofill = autoComplete === 'off';
+  const [locked, setLocked] = useState(suppressAutofill);
+
+  const unlock = () => {
+    if (locked) setLocked(false);
+  };
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -22,8 +31,16 @@ const Textarea = forwardRef(function Textarea(
         id={id}
         ref={ref}
         rows={rows}
-        // "new-password" by default — see Input.jsx's identical default for why.
         autoComplete={autoComplete}
+        readOnly={suppressAutofill ? locked : undefined}
+        onMouseDown={(e) => {
+          unlock();
+          onMouseDown?.(e);
+        }}
+        onFocus={(e) => {
+          unlock();
+          onFocus?.(e);
+        }}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(

@@ -74,7 +74,11 @@ export default function DeploymentNewPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Assign worker" description="Deploy a worker to a client site." />
+      <PageHeader
+        title="Assign worker"
+        description="Deploy a worker to a client site."
+        onBack={() => navigate(-1)}
+      />
       {workers.length === 0 ? (
         <EmptyState
           title="No assignable workers"

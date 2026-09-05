@@ -36,7 +36,11 @@ export default function QuotationNewPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title="New quotation" description="Build a priced offer for a client." />
+      <PageHeader
+        title="New quotation"
+        description="Build a priced offer for a client."
+        onBack={() => navigate(-1)}
+      />
       <QuotationForm
         defaultValues={defaultValues}
         onSubmit={(values) => mutation.mutate(values)}

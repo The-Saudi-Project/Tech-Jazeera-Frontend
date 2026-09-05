@@ -28,7 +28,11 @@ export default function EmployeeNewPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Add employee" description="Create a new workforce record." />
+      <PageHeader
+        title="Add employee"
+        description="Create a new workforce record."
+        onBack={() => navigate(-1)}
+      />
       <EmployeeForm
         defaultValues={emptyEmployeeForm}
         onSubmit={(values) => mutation.mutate(formToEmployeePayload(values))}

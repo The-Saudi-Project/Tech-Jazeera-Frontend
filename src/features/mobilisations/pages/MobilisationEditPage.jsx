@@ -10,6 +10,7 @@ import { mobilisationToForm } from '../mobilisations.schema.js';
 import { listEmployees } from '../../employees/employees.api.js';
 import { listClients } from '../../clients/clients.api.js';
 import { listSubcontractors } from '../../subcontractors/subcontractors.api.js';
+import { listJobTitles } from '../../jobTitles/jobTitles.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -41,6 +42,10 @@ export default function MobilisationEditPage() {
     queryKey: ['subcontractors', { active: true }],
     queryFn: () => listSubcontractors({ status: 'Active', limit: 100 }),
   });
+  const { data: jobTitleData, isPending: jobTitlesLoading } = useQuery({
+    queryKey: ['job-titles'],
+    queryFn: () => listJobTitles({ activeOnly: 'true' }),
+  });
 
   const mutation = useMutation({
     mutationFn: (values) => updateMobilisation(id, values),
@@ -53,7 +58,7 @@ export default function MobilisationEditPage() {
     onError: (error) => toast.error(apiMessage(error)),
   });
 
-  const loading = isPending || workersLoading || clientsLoading || subcontractorsLoading;
+  const loading = isPending || workersLoading || clientsLoading || subcontractorsLoading || jobTitlesLoading;
 
   if (loading) {
     return (
@@ -87,6 +92,7 @@ export default function MobilisationEditPage() {
   const workers = (workerData?.items ?? []).filter((w) => w.status !== 'Exited' || w._id === mobilisation.worker);
   const clients = clientData?.items ?? [];
   const subcontractors = subcontractorData?.items ?? [];
+  const jobTitles = jobTitleData ?? [];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -100,6 +106,7 @@ export default function MobilisationEditPage() {
           workers={workers}
           clients={clients}
           subcontractors={subcontractors}
+          jobTitles={jobTitles}
           defaultValues={mobilisationToForm(mobilisation)}
           onSubmit={(values) => mutation.mutate(values)}
           onCancel={() => navigate(`/mobilisations/${id}`)}

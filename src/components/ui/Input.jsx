@@ -7,15 +7,43 @@
  * ref, so `<Input {...register('email')} />` must pass that ref through to
  * the real <input>.
  */
-import { forwardRef, useId } from 'react';
+import { forwardRef, useId, useState } from 'react';
 import { cn } from '../../lib/utils.js';
 
+/**
+ * Neither `autocomplete="off"` nor `autocomplete="new-password"` actually
+ * stops Chrome's suggestion dropdown on a field it heuristically recognizes
+ * as a name/contact-shaped field (label "Name", DOM name="name") — both were
+ * tried and both were confirmed, by real screenshots, to still show it.
+ * That's not a bug in either value: Chrome's "Addresses and more" autofill
+ * is a SEPARATE system from form-history autofill, and it deliberately
+ * ignores the `autocomplete` attribute for a field it's confident about,
+ * regardless of the token. No `autocomplete` value can be trusted to win
+ * that fight.
+ *
+ * What actually works, because it doesn't ask Chrome's permission at all:
+ * a genuinely `readOnly` input never gets the autofill UI attached to it in
+ * the first place (Chrome only attaches suggestions to an editable field).
+ * Start every default field readOnly, and drop it the instant the user
+ * actually interacts with it (mousedown fires before focus; keyboard
+ * tabbing fires focus directly) — indistinguishable from a normal field to
+ * type into, but Chrome never sees an editable field to suggest against
+ * before that. Skipped entirely whenever a caller opts into real browser/
+ * password-manager autofill with its own explicit token (autoComplete=
+ * "email", "current-password", "tel", etc.) — this only guards the default.
+ */
 const Input = forwardRef(function Input(
-  { label, error, type = 'text', className, autoComplete = 'new-password', ...props },
+  { label, error, type = 'text', className, autoComplete = 'off', onFocus, onMouseDown, ...props },
   ref
 ) {
   const id = useId(); // stable unique id so the label targets this input
   const errorId = `${id}-error`;
+  const suppressAutofill = autoComplete === 'off';
+  const [locked, setLocked] = useState(suppressAutofill);
+
+  const unlock = () => {
+    if (locked) setLocked(false);
+  };
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -28,21 +56,16 @@ const Input = forwardRef(function Input(
         id={id}
         ref={ref}
         type={type}
-        // "new-password" by default, not "off" — Chrome runs two separate
-        // autofill systems and only "off" suppresses the first one (form
-        // history, keyed by the bare `name` attribute shared across the
-        // whole origin — e.g. every entity's "name" field). Chrome's other
-        // system, Address/Contact autofill (the "Manage addresses…"
-        // dropdown), deliberately IGNORES "off" as a matter of policy — a
-        // long-standing, intentional Chromium decision, not a bug here.
-        // "new-password" suppresses both: Chrome treats it as "a password
-        // manager owns this field" and never layers its own suggestions on
-        // top. No stray "suggest a strong password" UI appears since that
-        // icon is gated on type="password", not on this attribute. Fields
-        // that genuinely want real autofill (login, change password) pass
-        // their own explicit token (e.g. autoComplete="email"), which
-        // overrides this default.
         autoComplete={autoComplete}
+        readOnly={suppressAutofill ? locked : undefined}
+        onMouseDown={(e) => {
+          unlock();
+          onMouseDown?.(e);
+        }}
+        onFocus={(e) => {
+          unlock();
+          onFocus?.(e);
+        }}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(

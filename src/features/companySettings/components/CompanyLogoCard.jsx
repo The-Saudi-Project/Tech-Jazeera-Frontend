@@ -1,8 +1,9 @@
 /**
- * CompanyLogoCard — Admin uploads/replaces/removes the logo embedded at the
- * top of the Timesheet Processor's exported .xlsx (see server's
- * companySettings module). Lives directly on the Timesheet Processor page
- * since that's the only place this logo is used today.
+ * CompanyLogoCard — upload/replace/remove the company logo, embedded at the
+ * top of the Timesheet Processor's exported .xlsx AND every generated PDF's
+ * letterhead (invoices, quotations, EOSB settlements, certificates,
+ * payslips — see server's companySettings/letterhead.pdf.js). Lives on the
+ * Company Settings page; whoever can reach that page can manage the logo.
  */
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -68,7 +69,8 @@ export default function CompanyLogoCard() {
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Company logo</h2>
           <p className="mt-1 text-xs text-muted">
-            Shown at the top of every exported timesheet. PNG, JPG, or WEBP up to {MAX_MB} MB.
+            Shown on every generated document — invoices, quotations, settlements, certificates, payslips, and
+            exported timesheets. PNG, JPG, or WEBP up to {MAX_MB} MB.
           </p>
         </div>
 

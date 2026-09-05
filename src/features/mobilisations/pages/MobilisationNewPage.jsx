@@ -10,6 +10,7 @@ import { emptyMobilisationForm } from '../mobilisations.schema.js';
 import { listEmployees } from '../../employees/employees.api.js';
 import { listClients } from '../../clients/clients.api.js';
 import { listSubcontractors } from '../../subcontractors/subcontractors.api.js';
+import { listJobTitles } from '../../jobTitles/jobTitles.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -34,6 +35,10 @@ export default function MobilisationNewPage() {
     queryKey: ['subcontractors', { active: true }],
     queryFn: () => listSubcontractors({ status: 'Active', limit: 100 }),
   });
+  const { data: jobTitleData, isPending: jobTitlesLoading } = useQuery({
+    queryKey: ['job-titles'],
+    queryFn: () => listJobTitles({ activeOnly: 'true' }),
+  });
 
   const mutation = useMutation({
     mutationFn: createMobilisation,
@@ -49,7 +54,7 @@ export default function MobilisationNewPage() {
     mutation.mutate(values);
   }
 
-  if (workersLoading || clientsLoading || subcontractorsLoading) {
+  if (workersLoading || clientsLoading || subcontractorsLoading || jobTitlesLoading) {
     return (
       <div className="mx-auto max-w-3xl space-y-4">
         <Skeleton className="h-8 w-48" />
@@ -61,15 +66,21 @@ export default function MobilisationNewPage() {
   const workers = (workerData?.items ?? []).filter((w) => w.status !== 'Exited');
   const clients = clientData?.items ?? [];
   const subcontractors = subcontractorData?.items ?? [];
+  const jobTitles = jobTitleData ?? [];
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="New mobilisation" description="Place a worker with a client and record its billing terms." />
+      <PageHeader
+        title="New mobilisation"
+        description="Place a worker with a client and record its billing terms."
+        onBack={() => navigate(-1)}
+      />
       <Card>
         <MobilisationForm
           workers={workers}
           clients={clients}
           subcontractors={subcontractors}
+          jobTitles={jobTitles}
           defaultValues={emptyMobilisationForm}
           onSubmit={handleSubmit}
           onCancel={() => navigate('/mobilisations')}

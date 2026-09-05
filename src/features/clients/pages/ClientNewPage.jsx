@@ -27,7 +27,11 @@ export default function ClientNewPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Add client" description="Create a new client company." />
+      <PageHeader
+        title="Add client"
+        description="Create a new client company."
+        onBack={() => navigate(-1)}
+      />
       <ClientForm
         defaultValues={emptyClientForm}
         onSubmit={(values) => mutation.mutate(values)}

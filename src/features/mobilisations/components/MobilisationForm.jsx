@@ -8,14 +8,19 @@
  * is checked — same reveal-on-toggle pattern as DeploymentForm's
  * client-dependent site dropdown.
  */
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mobilisationFormSchema } from '../mobilisations.schema.js';
+import { createJobTitle } from '../../jobTitles/jobTitles.api.js';
+import { apiMessage } from '../../../lib/utils.js';
+import { useToast } from '../../../components/ui/Toast.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 import Button from '../../../components/ui/Button.jsx';
+import Modal from '../../../components/ui/Modal.jsx';
 
 // forwardRef is required here — react-hook-form's register() spreads a ref
 // callback onto this element to manage it as an uncontrolled input; a plain
@@ -34,22 +39,53 @@ export default function MobilisationForm({
   workers,
   clients,
   subcontractors,
+  jobTitles,
   defaultValues,
   onSubmit,
   onCancel,
   submitLabel,
   submitting,
 }) {
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const {
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({ resolver: zodResolver(mobilisationFormSchema), defaultValues });
 
   const hasSubcontractor = useWatch({ control, name: 'hasSubcontractor' });
 
+  const [addingJobTitle, setAddingJobTitle] = useState(false);
+  const [newJobTitle, setNewJobTitle] = useState('');
+  // The list invalidation refetches asynchronously, so the new <option> isn't
+  // in the DOM yet at the moment createJobTitle resolves — selecting it here
+  // would silently no-op. Defer the actual selection until jobTitles (the
+  // prop, refreshed by the invalidated query) really contains it.
+  const [pendingJobTitle, setPendingJobTitle] = useState(null);
+  const addJobTitleMutation = useMutation({
+    mutationFn: () => createJobTitle(newJobTitle.trim()),
+    onSuccess: (created) => {
+      toast.success(`"${created.name}" added.`);
+      queryClient.invalidateQueries({ queryKey: ['job-titles'] });
+      setPendingJobTitle(created.name);
+      setAddingJobTitle(false);
+      setNewJobTitle('');
+    },
+    onError: (error) => toast.error(apiMessage(error)),
+  });
+
+  useEffect(() => {
+    if (pendingJobTitle && jobTitles.some((jt) => jt.name === pendingJobTitle)) {
+      setValue('jobTitle', pendingJobTitle, { shouldValidate: true, shouldDirty: true });
+      setPendingJobTitle(null);
+    }
+  }, [jobTitles, pendingJobTitle, setValue]);
+
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Worker & job</h3>
@@ -62,7 +98,26 @@ export default function MobilisationForm({
               </option>
             ))}
           </Select>
-          <Input label="Job title *" placeholder="e.g. Site Driver" error={errors.jobTitle?.message} {...register('jobTitle')} />
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-sm font-medium text-text">Job title *</label>
+              <button
+                type="button"
+                className="text-xs font-medium text-primary hover:underline"
+                onClick={() => setAddingJobTitle(true)}
+              >
+                + Add new
+              </button>
+            </div>
+            <Select error={errors.jobTitle?.message} {...register('jobTitle')}>
+              <option value="">Select a job title…</option>
+              {jobTitles.map((jt) => (
+                <option key={jt._id} value={jt.name}>
+                  {jt.name}
+                </option>
+              ))}
+            </Select>
+          </div>
         </div>
       </section>
 
@@ -143,5 +198,31 @@ export default function MobilisationForm({
         </Button>
       </div>
     </form>
+
+    <Modal open={addingJobTitle} onClose={() => setAddingJobTitle(false)} title="Add job title">
+      <div className="flex flex-col gap-4">
+        <Input
+          label="Job title"
+          placeholder="e.g. Site Driver"
+          value={newJobTitle}
+          onChange={(e) => setNewJobTitle(e.target.value)}
+          autoFocus
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={() => setAddingJobTitle(false)}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={() => addJobTitleMutation.mutate()}
+            isLoading={addJobTitleMutation.isPending}
+            disabled={!newJobTitle.trim()}
+          >
+            Add
+          </Button>
+        </div>
+      </div>
+    </Modal>
+    </>
   );
 }

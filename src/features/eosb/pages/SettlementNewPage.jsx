@@ -64,7 +64,11 @@ export default function SettlementNewPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="New settlement" description="Compute the end-of-service award and vacation-pay settlement for an exiting employee." />
+      <PageHeader
+        title="New settlement"
+        description="Compute the end-of-service award and vacation-pay settlement for an exiting employee."
+        onBack={() => navigate(-1)}
+      />
       <Card>
         <form onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate className="space-y-4">
           <Select label="Employee *" error={errors.employee?.message} {...register('employee')}>
