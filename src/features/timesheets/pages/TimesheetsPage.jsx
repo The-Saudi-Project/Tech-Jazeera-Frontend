@@ -1,7 +1,8 @@
 /**
  * TimesheetsPage — the supervisor review queue for weekly timesheets
  * (P2-M3b): approve/reject individually, or select several Submitted weeks
- * and bulk-approve (the plan's "bulk approve a week").
+ * and bulk-approve (the plan's "bulk approve a week"). Three tabs — see
+ * docs/TABS-notes.md for why tabs replaced the original vertical stack.
  */
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +22,7 @@ import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import Tabs, { useTabParam } from '../../../components/ui/Tabs.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -66,7 +68,7 @@ function MonthlyReportPanel() {
   });
 
   return (
-    <Card className="mb-6">
+    <Card>
       <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Generate monthly report</h2>
       <p className="mb-4 text-xs text-muted">
         A full day-by-day report for one employee's whole month, built from their real attendance — same format as
@@ -145,7 +147,7 @@ function SubmitTimesheetPanel() {
   });
 
   return (
-    <Card className="mb-4">
+    <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Submit your own timesheet</h2>
@@ -159,9 +161,14 @@ function SubmitTimesheetPanel() {
   );
 }
 
-export default function TimesheetsPage() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+/**
+ * ReviewQueue — the main review table plus its own bulk-approve trigger.
+ * The "Approve N selected" button lives here, in this component's own
+ * header, rather than in PageHeader as it originally did — once this queue
+ * became one tab among several, a header button referencing checkboxes
+ * inside a possibly-hidden tab would be confusing.
+ */
+function ReviewQueue() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('Submitted');
@@ -225,103 +232,92 @@ export default function TimesheetsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <PageHeader
-        title="Timesheets"
-        description="Weekly hours submitted by workers, summarized from their attendance."
-        onBack={() => navigate(-1)}
-        actions={
-          selected.size > 0 && (
-            <Button onClick={() => setConfirmingBulk(true)}>
+    <Card>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Timesheets</h2>
+        <div className="flex items-center gap-2">
+          {selected.size > 0 && (
+            <Button size="sm" onClick={() => setConfirmingBulk(true)}>
               Approve {selected.size} selected
             </Button>
-          )
-        }
-      />
-
-      <MonthlyReportPanel />
-
-      {user.role !== 'Admin' && <SubmitTimesheetPanel />}
-
-      <div className="mb-4">
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
-          <option value="">All statuses</option>
-          {TIMESHEET_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </Select>
+          )}
+          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            {TIMESHEET_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
-      <Card>
-        {isPending ? (
-          <Skeleton className="h-32 w-full" />
-        ) : isError ? (
-          <EmptyState title="Could not load timesheets" description="Check your connection and try again." action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>} />
-        ) : data.items.length === 0 ? (
-          <EmptyState title="No timesheets" description="Nothing matches this filter." />
-        ) : (
-          <>
-            {submittedIds.length > 0 && (
-              <label className="mb-3 flex items-center gap-2 border-b border-border pb-3 text-xs text-muted">
-                <input type="checkbox" className="h-4 w-4 rounded border-border" checked={allSelected} onChange={toggleAll} />
-                Select all submitted
-              </label>
-            )}
-            <div className="divide-y divide-border">
-              {data.items.map((t) => {
-                const incomplete = t.recordedDays < 7;
-                return (
-                  <div key={t._id} className="flex flex-wrap items-start justify-between gap-3 py-3 text-sm">
-                    <div className="flex min-w-0 items-start gap-3">
-                      {canBulkApprove(t) && (
-                        <input
-                          type="checkbox"
-                          className="mt-1 h-4 w-4 rounded border-border"
-                          checked={selected.has(t._id)}
-                          onChange={() => toggleOne(t._id)}
-                        />
+      {isPending ? (
+        <Skeleton className="h-32 w-full" />
+      ) : isError ? (
+        <EmptyState title="Could not load timesheets" description="Check your connection and try again." action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>} />
+      ) : data.items.length === 0 ? (
+        <EmptyState title="No timesheets" description="Nothing matches this filter." />
+      ) : (
+        <>
+          {submittedIds.length > 0 && (
+            <label className="mb-3 flex items-center gap-2 border-b border-border pb-3 text-xs text-muted">
+              <input type="checkbox" className="h-4 w-4 rounded border-border" checked={allSelected} onChange={toggleAll} />
+              Select all submitted
+            </label>
+          )}
+          <div className="divide-y divide-border">
+            {data.items.map((t) => {
+              const incomplete = t.recordedDays < 7;
+              return (
+                <div key={t._id} className="flex flex-wrap items-start justify-between gap-3 py-3 text-sm">
+                  <div className="flex min-w-0 items-start gap-3">
+                    {canBulkApprove(t) && (
+                      <input
+                        type="checkbox"
+                        className="mt-1 h-4 w-4 rounded border-border"
+                        checked={selected.has(t._id)}
+                        onChange={() => toggleOne(t._id)}
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        {t.employee?.fullName} <span className="font-normal text-muted">({t.employee?.employeeId})</span>
+                      </p>
+                      <p className="text-xs text-muted">
+                        {formatDate(t.periodStart)} – {formatDate(t.periodEnd)} · {formatHours(t.totalHours)} hrs
+                        {t.overtimeHours > 0 && (
+                          <span className="text-warning"> ({formatHours(t.overtimeHours)} overtime)</span>
+                        )}{' '}
+                        · {t.daysPresent} present, {t.daysAbsent} absent, {t.daysLeaveOrSick} leave/sick, {t.daysOff} off
+                      </p>
+                      {incomplete && (
+                        <p className="mt-1 text-xs text-warning">Only {t.recordedDays} of 7 days have attendance recorded.</p>
                       )}
-                      <div className="min-w-0">
-                        <p className="font-medium">
-                          {t.employee?.fullName} <span className="font-normal text-muted">({t.employee?.employeeId})</span>
-                        </p>
-                        <p className="text-xs text-muted">
-                          {formatDate(t.periodStart)} – {formatDate(t.periodEnd)} · {formatHours(t.totalHours)} hrs
-                          {t.overtimeHours > 0 && (
-                            <span className="text-warning"> ({formatHours(t.overtimeHours)} overtime)</span>
-                          )}{' '}
-                          · {t.daysPresent} present, {t.daysAbsent} absent, {t.daysLeaveOrSick} leave/sick, {t.daysOff} off
-                        </p>
-                        {incomplete && (
-                          <p className="mt-1 text-xs text-warning">Only {t.recordedDays} of 7 days have attendance recorded.</p>
-                        )}
-                        {t.notes && <p className="mt-1 text-xs text-muted">{t.notes}</p>}
-                        {t.decisionNote && <p className="mt-1 text-xs italic text-muted">Note: {t.decisionNote}</p>}
-                        <ApprovalTrailView request={t} />
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 flex-col items-end gap-2">
-                      <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
-                      {t.canDecideCurrentStep && t.status === 'Submitted' && (
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="secondary" onClick={() => setConfirming({ timesheet: t, decision: 'Approved' })}>
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ timesheet: t, decision: 'Rejected' })}>
-                            Reject
-                          </Button>
-                        </div>
-                      )}
+                      {t.notes && <p className="mt-1 text-xs text-muted">{t.notes}</p>}
+                      {t.decisionNote && <p className="mt-1 text-xs italic text-muted">Note: {t.decisionNote}</p>}
+                      <ApprovalTrailView request={t} />
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </Card>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
+                    {t.canDecideCurrentStep && t.status === 'Submitted' && (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="secondary" onClick={() => setConfirming({ timesheet: t, decision: 'Approved' })}>
+                          Approve
+                        </Button>
+                        <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ timesheet: t, decision: 'Rejected' })}>
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <ConfirmDialog
         open={!!confirming}
@@ -347,6 +343,29 @@ export default function TimesheetsPage() {
         onConfirm={() => bulkMutation.mutate([...selected])}
         onCancel={() => setConfirmingBulk(false)}
       />
+    </Card>
+  );
+}
+
+export default function TimesheetsPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const tabs = [
+    { key: 'requests', label: 'Requests', content: <ReviewQueue /> },
+    user.role !== 'Admin' && { key: 'submit', label: 'Submit Timesheet', content: <SubmitTimesheetPanel /> },
+    { key: 'monthly-report', label: 'Monthly Report', content: <MonthlyReportPanel /> },
+  ].filter(Boolean);
+  const [activeTab, setActiveTab] = useTabParam(tabs, 'requests');
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-6">
+      <PageHeader
+        title="Timesheets"
+        description="Weekly hours submitted by workers, summarized from their attendance."
+        onBack={() => navigate(-1)}
+      />
+      <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
     </div>
   );
 }

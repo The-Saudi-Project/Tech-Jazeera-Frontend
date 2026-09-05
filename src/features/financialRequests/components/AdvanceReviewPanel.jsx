@@ -41,7 +41,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
  * never sees this panel. Workers use MyRequestsPage instead; this reuses
  * the exact same form schema/fields.
  */
-function SubmitAdvancePanel() {
+export function SubmitAdvancePanel() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const {
@@ -142,8 +142,6 @@ export default function AdvanceReviewPanel() {
   }
 
   return (
-    <>
-      {user.role !== 'Admin' && <SubmitAdvancePanel />}
       <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Salary advances</h2>
@@ -250,6 +248,5 @@ export default function AdvanceReviewPanel() {
         onCancel={() => setConfirming(null)}
       />
       </Card>
-    </>
   );
 }

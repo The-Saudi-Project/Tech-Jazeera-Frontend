@@ -33,6 +33,7 @@ import { APPROVAL_REQUEST_TYPES, APPROVAL_REQUEST_TYPE_LABELS, APPROVALS_MANAGE_
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import Tabs, { useTabParam } from '../../../components/ui/Tabs.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -370,6 +371,15 @@ function ApprovalWorkflowsPanel() {
 export default function ApprovalsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  // useTabParam (a hook) must run unconditionally, before the role-gate's
+  // early return below — calling it after would violate the Rules of Hooks
+  // the moment this component ever re-renders.
+  const tabs = [
+    { key: 'roles', label: 'Roles', content: <ApprovalRolesPanel /> },
+    { key: 'workflows', label: 'Workflows', content: <ApprovalWorkflowsPanel /> },
+  ];
+  const [activeTab, setActiveTab] = useTabParam(tabs, 'roles');
+
   if (!APPROVALS_MANAGE_ROLES.includes(user.role)) return <Navigate to="/" replace />;
 
   return (
@@ -379,8 +389,7 @@ export default function ApprovalsPage() {
         description="Define your company's approval roles and the multi-step chains Leave, Salary Advance, Reimbursement and Timesheet requests route through."
         onBack={() => navigate(-1)}
       />
-      <ApprovalRolesPanel />
-      <ApprovalWorkflowsPanel />
+      <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
     </div>
   );
 }

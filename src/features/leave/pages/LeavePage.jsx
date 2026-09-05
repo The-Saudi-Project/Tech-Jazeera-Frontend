@@ -51,6 +51,7 @@ import Textarea from '../../../components/ui/Textarea.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
+import Tabs, { useTabParam } from '../../../components/ui/Tabs.jsx';
 
 function LeaveTypesPanel() {
   const toast = useToast();
@@ -451,6 +452,14 @@ export default function LeavePage() {
   const { user } = useAuth();
   const canManageTypes = LEAVE_TYPE_MANAGE_ROLES.includes(user.role);
 
+  const tabs = [
+    { key: 'requests', label: 'Requests', content: <ReviewQueue /> },
+    user.role !== 'Admin' && { key: 'submit', label: 'Submit Request', content: <SubmitLeavePanel /> },
+    { key: 'holidays', label: 'Holidays', content: <UpcomingHolidays /> },
+    canManageTypes && { key: 'types', label: 'Leave Types', content: <LeaveTypesPanel /> },
+  ].filter(Boolean);
+  const [activeTab, setActiveTab] = useTabParam(tabs, 'requests');
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
@@ -462,10 +471,7 @@ export default function LeavePage() {
             : 'Leave requests across the company.'
         }
       />
-      <UpcomingHolidays />
-      {canManageTypes && <LeaveTypesPanel />}
-      {user.role !== 'Admin' && <SubmitLeavePanel />}
-      <ReviewQueue />
+      <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />
     </div>
   );
 }

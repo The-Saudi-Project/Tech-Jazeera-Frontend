@@ -43,7 +43,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
  * record and never sees this panel. Workers use MyRequestsPage instead;
  * this reuses the exact same form schema/fields/file-upload pattern.
  */
-function SubmitReimbursementPanel() {
+export function SubmitReimbursementPanel() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
@@ -185,8 +185,6 @@ export default function ReimbursementReviewPanel() {
   }
 
   return (
-    <>
-      {user.role !== 'Admin' && <SubmitReimbursementPanel />}
       <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Reimbursement claims</h2>
@@ -268,6 +266,5 @@ export default function ReimbursementReviewPanel() {
         onCancel={() => setConfirming(null)}
       />
       </Card>
-    </>
   );
 }
