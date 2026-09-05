@@ -11,7 +11,7 @@ import { forwardRef, useId } from 'react';
 import { cn } from '../../lib/utils.js';
 
 const Input = forwardRef(function Input(
-  { label, error, type = 'text', className, autoComplete = 'off', ...props },
+  { label, error, type = 'text', className, autoComplete = 'new-password', ...props },
   ref
 ) {
   const id = useId(); // stable unique id so the label targets this input
@@ -28,13 +28,20 @@ const Input = forwardRef(function Input(
         id={id}
         ref={ref}
         type={type}
-        // Off by default — Chrome keys autofill suggestions by `name` alone,
-        // shared across the whole origin, so a generic field name like
-        // "name" (every entity's name field) or "reason" surfaces unrelated
-        // saved values from completely different forms. Fields that
-        // genuinely want browser/password-manager autofill (login, change
-        // password) pass their own explicit token (e.g. autoComplete="email")
-        // which overrides this default.
+        // "new-password" by default, not "off" — Chrome runs two separate
+        // autofill systems and only "off" suppresses the first one (form
+        // history, keyed by the bare `name` attribute shared across the
+        // whole origin — e.g. every entity's "name" field). Chrome's other
+        // system, Address/Contact autofill (the "Manage addresses…"
+        // dropdown), deliberately IGNORES "off" as a matter of policy — a
+        // long-standing, intentional Chromium decision, not a bug here.
+        // "new-password" suppresses both: Chrome treats it as "a password
+        // manager owns this field" and never layers its own suggestions on
+        // top. No stray "suggest a strong password" UI appears since that
+        // icon is gated on type="password", not on this attribute. Fields
+        // that genuinely want real autofill (login, change password) pass
+        // their own explicit token (e.g. autoComplete="email"), which
+        // overrides this default.
         autoComplete={autoComplete}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : undefined}
