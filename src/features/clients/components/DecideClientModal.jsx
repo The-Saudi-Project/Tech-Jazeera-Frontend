@@ -5,6 +5,7 @@
  * resubmitting (see client.service.js decideClient / updateClient).
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { decideClient } from '../clients.api.js';
 import { apiMessage } from '../../../lib/utils.js';
@@ -14,6 +15,7 @@ import Button from '../../../components/ui/Button.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 
 export default function DecideClientModal({ client, onClose }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [rejecting, setRejecting] = useState(false);
@@ -22,7 +24,11 @@ export default function DecideClientModal({ client, onClose }) {
   const mutation = useMutation({
     mutationFn: (payload) => decideClient(client._id, payload),
     onSuccess: (_, payload) => {
-      toast.success(payload.status === 'Approved' ? `${client.companyName} approved.` : `${client.companyName} rejected.`);
+      toast.success(
+        payload.status === 'Approved'
+          ? t('staffClients.decide.approvedToast', { name: client.companyName })
+          : t('staffClients.decide.rejectedToast', { name: client.companyName })
+      );
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       onClose();
     },
@@ -36,13 +42,13 @@ export default function DecideClientModal({ client, onClose }) {
   }
 
   return (
-    <Modal open={Boolean(client)} onClose={mutation.isPending ? () => {} : handleClose} title="Review client submission">
+    <Modal open={Boolean(client)} onClose={mutation.isPending ? () => {} : handleClose} title={t('staffClients.decide.modalTitle')}>
       {client && (
         <div className="space-y-4">
           <div className="rounded-lg border border-border bg-bg p-3">
             <p className="font-medium">{client.companyName}</p>
             <p className="text-xs text-muted">
-              Submitted by {client.createdBy?.name ?? 'a Coordinator'}
+              {t('staffClients.decide.submittedBy', { name: client.createdBy?.name ?? t('staffClients.decide.unknownSubmitter') })}
               {client.industry && ` · ${client.industry}`}
             </p>
             {(client.contactPerson || client.phone || client.email) && (
@@ -55,15 +61,15 @@ export default function DecideClientModal({ client, onClose }) {
           {rejecting ? (
             <>
               <Textarea
-                label="What needs fixing? *"
-                placeholder="e.g. Missing VAT number, please confirm the CR number."
+                label={t('staffClients.decide.rejectReasonLabel')}
+                placeholder={t('staffClients.decide.rejectReasonPlaceholder')}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 autoFocus
               />
               <div className="flex justify-end gap-2">
                 <Button variant="secondary" onClick={() => setRejecting(false)} disabled={mutation.isPending}>
-                  Back
+                  {t('common.back')}
                 </Button>
                 <Button
                   variant="danger"
@@ -71,23 +77,23 @@ export default function DecideClientModal({ client, onClose }) {
                   isLoading={mutation.isPending}
                   onClick={() => mutation.mutate({ status: 'Rejected', decisionNote: note.trim() })}
                 >
-                  Confirm rejection
+                  {t('staffClients.decide.confirmRejection')}
                 </Button>
               </div>
             </>
           ) : (
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={handleClose} disabled={mutation.isPending}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="danger" onClick={() => setRejecting(true)} disabled={mutation.isPending}>
-                Reject
+                {t('common.reject')}
               </Button>
               <Button
                 isLoading={mutation.isPending}
                 onClick={() => mutation.mutate({ status: 'Approved' })}
               >
-                Approve
+                {t('common.approve')}
               </Button>
             </div>
           )}

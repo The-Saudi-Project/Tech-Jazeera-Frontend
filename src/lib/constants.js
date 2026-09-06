@@ -28,9 +28,9 @@ export const WORKFORCE_TYPES = ['Client', 'Subcontracted'];
  *  reject anyway. The server is the real enforcement. */
 export const EMPLOYEE_WRITE_ROLES = ['Admin', 'Manager', 'HR'];
 export const EMPLOYEE_DELETE_ROLES = ['Admin', 'HR'];
-/** Who may reach the "Add employee" form — write roles plus self-service
- *  Coordinator (adds only to their own team, no approval needed). */
-export const EMPLOYEE_CREATE_ROLES = ['Admin', 'Manager', 'HR', 'Coordinator'];
+// Who may reach the "Add employee" form is no longer a static list — see
+// SectionAccess ('employeeCreate'): Admin only by default, until an Admin
+// designates a real "office secretary" via the Section Access settings page.
 
 /** Who may provision a login for an employee. Mirror of the server guard on
  *  POST /employees/:id/user — the server enforces. */
@@ -153,8 +153,12 @@ export const CERTIFICATE_TYPE_LABELS = {
 export const CERTIFICATE_TYPES_WITH_PDF = ['SalaryCertificate', 'ServiceCertificate'];
 export const CERTIFICATE_STATUSES = ['Pending', 'Approved', 'Rejected', 'Issued'];
 export const CERTIFICATE_STATUS_VARIANT = { Pending: 'warning', Approved: 'success', Rejected: 'danger', Issued: 'primary' };
-/** Mirror of exitDocuments.routes.js guards — an HR/compliance-only module. */
-export const EXIT_DOCUMENTS_ROLES = ['Admin', 'Manager', 'HR'];
+/** Who may mark a request as actually issued (a separate HR/compliance
+ *  recording step, not part of the approval chain — see
+ *  exitDocuments.routes.js). Deciding a request itself is no longer a
+ *  static role check — see `canDecideCurrentStep` on each row, same as
+ *  Leave. */
+export const EXIT_DOCUMENTS_ISSUE_ROLES = ['Admin', 'Manager', 'HR'];
 
 /** Mirrors asset.model.js / assetAssignment.model.js. */
 export const ASSET_CATEGORIES = ['Vehicle', 'Laptop', 'Mobile Device', 'Tool', 'Other'];
@@ -171,12 +175,11 @@ export const TIMESHEET_STATUS_VARIANT = { Submitted: 'warning', Approved: 'succe
  *  timesheet is the same supervisory circle as correcting an attendance day. */
 export const TIMESHEET_DECIDE_ROLES = ['Admin', 'Manager', 'HR'];
 
-/** Mirrors payrollRun.model.js / payroll.routes.js guards. */
+/** Mirrors payrollRun.model.js. Access itself is no longer a static role
+ *  list — see SectionAccess ('payroll') — Admin plus whoever is granted
+ *  gets full read/write/finalize/delete, no separate tiers. */
 export const PAYROLL_STATUSES = ['Draft', 'Finalized'];
 export const PAYROLL_STATUS_VARIANT = { Draft: 'warning', Finalized: 'success' };
-export const PAYROLL_VIEW_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
-export const PAYROLL_WRITE_ROLES = ['Admin', 'Manager', 'Accounts'];
-export const PAYROLL_FINALIZE_ROLES = ['Admin', 'Manager'];
 export const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -189,13 +192,16 @@ export const INVOICE_STATUS_VARIANT = { Unpaid: 'danger', 'Partially Paid': 'war
 export const INVOICE_WRITE_ROLES = ['Admin', 'Manager', 'Accounts'];
 export const INVOICE_DELETE_ROLES = ['Admin', 'Manager'];
 
-/** Mirrors expense.model.js / expense.routes.js guards. Internal cost data —
- *  a narrower view circle than Invoices, same as Payroll/EOSB. */
+/** Mirrors expense.model.js. Internal cost data — access is the same
+ *  SectionAccess ('expenses') mechanism as Payroll, not a static role list. */
 export const EXPENSE_CATEGORIES = ['Rent', 'Fuel', 'Salaries-external', 'Purchases', 'Utilities', 'Other'];
-export const EXPENSE_VIEW_ROLES = ['Admin', 'Manager', 'HR', 'Accounts'];
-export const EXPENSE_WRITE_ROLES = ['Admin', 'Manager', 'Accounts'];
-export const EXPENSE_DELETE_ROLES = ['Admin', 'Manager'];
 
+/** Mirrors sectionAccess.model.js's GRANTABLE_ROLES — every User.role except
+ *  the ESS self-service personas (Worker/Staff), which Section Access can
+ *  never grant into a staff module regardless of admin configuration. */
+export const SECTION_ACCESS_GRANTABLE_ROLES = ['Admin', 'Manager', 'HR', 'Accounts', 'Coordinator', 'Executive'];
+/** Mirrors sectionAccess.model.js's SECTION_KEYS + labels — the sections
+ *  currently governed by the admin-configurable Section Access screen. */
 /** Mirrors subcontractor.model.js's status enum. */
 export const SUBCONTRACTOR_STATUSES = ['Active', 'Inactive'];
 /** Mirror of subcontractor.routes.js guards — same circle as Client. */
@@ -243,13 +249,23 @@ export const COORDINATOR_ACTIVITY_VIEW_ROLES = ['Admin', 'Manager', 'HR'];
  *  "which request type does this workflow apply to" picker could never
  *  actually offer it, so no company could configure Mobilisation routing
  *  through the UI at all (see docs/MOBILISATION-notes.md's follow-up note). */
-export const APPROVAL_REQUEST_TYPES = ['Leave', 'SalaryAdvance', 'Reimbursement', 'Timesheet', 'Mobilisation'];
+export const APPROVAL_REQUEST_TYPES = [
+  'Leave',
+  'SalaryAdvance',
+  'Reimbursement',
+  'Timesheet',
+  'Mobilisation',
+  'ExitReentry',
+  'Certificate',
+];
 export const APPROVAL_REQUEST_TYPE_LABELS = {
   Leave: 'Leave',
   SalaryAdvance: 'Salary Advance',
   Reimbursement: 'Reimbursement',
   Timesheet: 'Timesheet',
   Mobilisation: 'Mobilisation',
+  ExitReentry: 'Exit Re-Entry Visa',
+  Certificate: 'Certificate Request',
 };
 /** Configuring the hierarchy itself (roles/workflows) is Admin-only — the
  *  server enforces this; the mirror only hides the nav link/route for

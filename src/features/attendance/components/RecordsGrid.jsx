@@ -14,6 +14,7 @@
  * database. A real record for that day always wins over the inference.
  */
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listEmployees } from '../../employees/employees.api.js';
 import { listStaffUsers } from '../../users/users.api.js';
@@ -64,6 +65,7 @@ function toIsoDateTime(dateKey, timeInput) {
 
 export default function RecordsGrid() {
   const toast = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const canEdit = ATTENDANCE_WRITE_ROLES.includes(user.role);
@@ -181,7 +183,7 @@ export default function RecordsGrid() {
   const adjustMutation = useMutation({
     mutationFn: adjustAttendance,
     onSuccess: () => {
-      toast.success('Attendance updated.');
+      toast.success(t('staffAttendance.records.updatedSuccess'));
       setEditing(null);
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
     },
@@ -215,7 +217,7 @@ export default function RecordsGrid() {
         records: markAllCandidates.map((w) => ({ employee: w._id, status: 'Present' })),
       }),
     onSuccess: (res) => {
-      toast.success(`Marked ${res.marked} worker(s) present for today.`);
+      toast.success(t('staffAttendance.records.markedPresentSuccess', { count: res.marked }));
       setMarkAllOpen(false);
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
     },
@@ -238,23 +240,23 @@ export default function RecordsGrid() {
                 mode === m ? 'bg-primary text-white' : 'text-muted hover:text-text'
               )}
             >
-              {m}
+              {t(`staffAttendance.records.${m}`)}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => shift(-1)}>
-            ‹ Prev
+            {t('staffAttendance.records.prev')}
           </Button>
           <span className="min-w-[9rem] text-center text-sm font-medium">
             {mode === 'month' ? monthLabel(ref) : `${range.from} → ${range.to}`}
           </span>
           <Button size="sm" variant="secondary" onClick={() => shift(1)}>
-            Next ›
+            {t('staffAttendance.records.next')}
           </Button>
           {showMarkAll && (
             <Button size="sm" variant="secondary" onClick={() => setMarkAllOpen(true)}>
-              Mark all present
+              {t('staffAttendance.records.markAllPresent')}
             </Button>
           )}
         </div>
@@ -267,28 +269,28 @@ export default function RecordsGrid() {
             <span className={cn('grid h-5 w-5 place-items-center rounded text-[10px] font-bold', meta.cell)}>
               {meta.letter}
             </span>
-            {status}
+            {t(`common.status.${status}`, status)}
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5">
           <span className="grid h-5 w-5 place-items-center rounded text-[10px] font-bold bg-border/25 text-muted/70 ring-1 ring-inset ring-border/40">
             F
           </span>
-          Inferred weekly off (not recorded)
+          {t('staffAttendance.records.legendInferredOff')}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="grid h-5 w-5 place-items-center rounded text-[10px] font-bold bg-border/25 text-muted/70 ring-1 ring-inset ring-border/40">
             {HOLIDAY_DISPLAY_META.letter}
           </span>
-          Company holiday (not recorded)
+          {t('staffAttendance.records.legendHoliday')}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="relative inline-block h-3 w-3">
             <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-surface" />
           </span>
-          Self-marked (hours shown once signed out)
+          {t('staffAttendance.records.legendSelfMarked')}
         </span>
-        {canEdit && <span>Click any worker cell to correct a day.</span>}
+        {canEdit && <span>{t('staffAttendance.records.clickToCorrect')}</span>}
       </div>
 
       {employeesLoading || recordsLoading ? (
@@ -299,7 +301,7 @@ export default function RecordsGrid() {
             <thead>
               <tr>
                 <th className="sticky left-0 z-10 bg-surface px-3 py-2 text-left font-medium text-muted">
-                  Worker
+                  {t('staffAttendance.records.worker')}
                 </th>
                 {range.days.map((d) => (
                   <th
@@ -334,14 +336,18 @@ export default function RecordsGrid() {
                     const cellText = hasHours ? formatHours(mark.hoursWorked) : meta?.letter;
                     const cellTitle = mark
                       ? mark.status === 'Holiday'
-                        ? `Holiday — ${mark.holidayName} (not recorded)`
+                        ? t('staffAttendance.records.holidayTitle', { name: mark.holidayName })
                         : mark.inferred
-                          ? 'Off — weekly day off (not recorded)'
-                          : [mark.status, hasHours && `${formatHours(mark.hoursWorked)} hrs`, mark.source === 'self' && 'self-marked']
+                          ? t('staffAttendance.records.offTitle')
+                          : [
+                              t(`common.status.${mark.status}`, mark.status),
+                              hasHours && t('staffAttendance.records.hoursSuffix', { hours: formatHours(mark.hoursWorked) }),
+                              mark.source === 'self' && t('staffAttendance.records.selfMarked'),
+                            ]
                               .filter(Boolean)
                               .join(' · ')
                       : canEdit
-                        ? 'Click to add'
+                        ? t('staffAttendance.records.clickToAdd')
                         : undefined;
                     return (
                       <td key={d} className={cn('p-0 text-center', isWeekend(d) && 'bg-bg/40')}>
@@ -387,7 +393,7 @@ export default function RecordsGrid() {
                     colSpan={range.days.length + 1}
                     className="sticky left-0 z-10 bg-bg/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted"
                   >
-                    Coordinators &amp; staff
+                    {t('staffAttendance.records.coordinatorsAndStaff')}
                   </td>
                 </tr>
               )}
@@ -401,11 +407,11 @@ export default function RecordsGrid() {
                     const mark = staffMarks[`${u._id}|${d}`];
                     const hasHours = mark?.hoursWorked != null;
                     const signedIn = Boolean(mark?.checkInTime) && !mark?.checkOutTime;
-                    const cellText = hasHours ? formatHours(mark.hoursWorked) : signedIn ? 'In' : null;
+                    const cellText = hasHours ? formatHours(mark.hoursWorked) : signedIn ? t('staffAttendance.records.signedInStatus') : null;
                     const cellTitle = hasHours
-                      ? `${formatHours(mark.hoursWorked)} hrs · self-marked`
+                      ? t('staffAttendance.records.hoursSelfMarkedTitle', { hours: formatHours(mark.hoursWorked) })
                       : signedIn
-                        ? 'Signed in, not yet out'
+                        ? t('staffAttendance.records.signedInNotOutTitle')
                         : undefined;
                     return (
                       <td key={d} className={cn('p-0 text-center', isWeekend(d) && 'bg-bg/40')}>
@@ -437,7 +443,7 @@ export default function RecordsGrid() {
       <Modal
         open={Boolean(editing)}
         onClose={() => setEditing(null)}
-        title={editing ? `${editing.employeeName} — ${editing.date}` : ''}
+        title={editing ? t('staffAttendance.records.editorTitle', { name: editing.employeeName, date: editing.date }) : ''}
       >
         {editing && (
           <form
@@ -448,45 +454,42 @@ export default function RecordsGrid() {
             className="space-y-4"
           >
             <Select
-              label="Status"
+              label={t('staffAttendance.records.status')}
               value={editing.status}
               onChange={(e) => setEditing({ ...editing, status: e.target.value })}
             >
               {ATTENDANCE_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {t(`common.status.${s}`, s)}
                 </option>
               ))}
             </Select>
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Check-in time"
+                label={t('staffAttendance.records.checkInTime')}
                 type="time"
                 value={editing.checkIn}
                 onChange={(e) => setEditing({ ...editing, checkIn: e.target.value })}
               />
               <Input
-                label="Check-out time"
+                label={t('staffAttendance.records.checkOutTime')}
                 type="time"
                 value={editing.checkOut}
                 onChange={(e) => setEditing({ ...editing, checkOut: e.target.value })}
               />
             </div>
-            <p className="text-xs text-muted">
-              Both times set the worked hours automatically. Leave either blank to clear the hours for this day —
-              the status above is still saved on its own.
-            </p>
+            <p className="text-xs text-muted">{t('staffAttendance.records.timesHint')}</p>
             <Textarea
-              label="Note (optional)"
+              label={t('staffAttendance.records.note')}
               value={editing.note}
               onChange={(e) => setEditing({ ...editing, note: e.target.value })}
             />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setEditing(null)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" isLoading={adjustMutation.isPending}>
-                Save
+                {t('common.save')}
               </Button>
             </div>
           </form>
@@ -495,9 +498,9 @@ export default function RecordsGrid() {
 
       <ConfirmDialog
         open={markAllOpen}
-        title="Mark all present?"
-        message={`${markAllCandidates.length} worker(s) will be marked Present for today (${today}). Anyone with an existing mark for today will be overwritten; workers whose weekly off day is today are skipped.`}
-        confirmLabel="Mark all present"
+        title={t('staffAttendance.records.markAllTitle')}
+        message={t('staffAttendance.records.markAllMessage', { count: markAllCandidates.length, date: today })}
+        confirmLabel={t('staffAttendance.records.markAllPresent')}
         loading={markAllMutation.isPending}
         onConfirm={() => markAllMutation.mutate()}
         onCancel={() => setMarkAllOpen(false)}

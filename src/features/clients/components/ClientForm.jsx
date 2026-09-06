@@ -6,6 +6,7 @@
  */
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { clientFormSchema } from '../clients.schema.js';
 import { CLIENT_STATUSES } from '../../../lib/constants.js';
@@ -34,6 +35,7 @@ function Section({ title, description, children }) {
  */
 export default function ClientForm({ defaultValues, onSubmit, submitLabel, submitting, client }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const {
     register,
     control,
@@ -48,11 +50,11 @@ export default function ClientForm({ defaultValues, onSubmit, submitLabel, submi
       {client?.approvalStatus === 'Rejected' && (
         <Card className="border-danger/30 bg-danger/5">
           <div className="flex items-start gap-3">
-            <Badge variant="danger">Rejected</Badge>
+            <Badge variant="danger">{t('common.status.Rejected')}</Badge>
             <div>
-              <p className="text-sm font-medium">This submission was rejected.</p>
+              <p className="text-sm font-medium">{t('staffClients.form.rejectedTitle')}</p>
               {client.decisionNote && <p className="mt-1 text-sm text-muted">{client.decisionNote}</p>}
-              <p className="mt-2 text-xs text-muted">Saving changes resubmits it for approval.</p>
+              <p className="mt-2 text-xs text-muted">{t('staffClients.form.resubmitHint')}</p>
             </div>
           </div>
         </Card>
@@ -60,65 +62,65 @@ export default function ClientForm({ defaultValues, onSubmit, submitLabel, submi
       {client?.approvalStatus === 'Pending' && (
         <Card className="border-warning/30 bg-warning/5">
           <div className="flex items-center gap-3">
-            <Badge variant="warning">Pending approval</Badge>
+            <Badge variant="warning">{t('staffClients.form.pendingBadge')}</Badge>
             <p className="text-sm text-muted">
-              Not usable for deployments or quotations yet — waiting on a review.
+              {t('staffClients.form.pendingHint')}
             </p>
           </div>
         </Card>
       )}
 
-      <Section title="Company">
-        <Input label="Company name *" error={errors.companyName?.message} {...register('companyName')} />
-        <Input label="Industry" placeholder="Construction, Facilities…" error={errors.industry?.message} {...register('industry')} />
-        <Input label="Contact person" error={errors.contactPerson?.message} {...register('contactPerson')} />
-        <Input label="Phone" placeholder="+966 1x xxx xxxx" error={errors.phone?.message} {...register('phone')} />
-        <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-        <Select label="Status" error={errors.status?.message} {...register('status')}>
+      <Section title={t('staffClients.form.sectionCompany')}>
+        <Input label={t('staffClients.form.companyName')} error={errors.companyName?.message} {...register('companyName')} />
+        <Input label={t('staffClients.form.industry')} placeholder={t('staffClients.form.industryPlaceholder')} error={errors.industry?.message} {...register('industry')} />
+        <Input label={t('staffClients.form.contactPerson')} error={errors.contactPerson?.message} {...register('contactPerson')} />
+        <Input label={t('staffClients.form.phone')} placeholder={t('staffClients.form.phonePlaceholder')} error={errors.phone?.message} {...register('phone')} />
+        <Input label={t('staffClients.form.email')} type="email" error={errors.email?.message} {...register('email')} />
+        <Select label={t('staffClients.form.status')} error={errors.status?.message} {...register('status')}>
           {CLIENT_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
       </Section>
 
-      <Section title="Legal & address" description="Saudi VAT is 15 digits; Commercial Registration is 10 digits.">
-        <Input label="VAT number" placeholder="3xxxxxxxxxxxxx3" error={errors.vatNumber?.message} {...register('vatNumber')} />
-        <Input label="Commercial Registration" placeholder="10 digits" error={errors.crNumber?.message} {...register('crNumber')} />
-        <Input label="Address" className="sm:col-span-2" error={errors.address?.message} {...register('address')} />
+      <Section title={t('staffClients.form.sectionLegal')} description={t('staffClients.form.sectionLegalDescription')}>
+        <Input label={t('staffClients.form.vatNumber')} placeholder={t('staffClients.form.vatPlaceholder')} error={errors.vatNumber?.message} {...register('vatNumber')} />
+        <Input label={t('staffClients.form.crNumber')} placeholder={t('staffClients.form.crPlaceholder')} error={errors.crNumber?.message} {...register('crNumber')} />
+        <Input label={t('staffClients.form.address')} className="sm:col-span-2" error={errors.address?.message} {...register('address')} />
       </Section>
 
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Sites</h2>
-            <p className="mt-1 text-sm text-muted">Locations or projects where workers are deployed.</p>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffClients.form.sitesTitle')}</h2>
+            <p className="mt-1 text-sm text-muted">{t('staffClients.form.sitesDescription')}</p>
           </div>
           <Button size="sm" variant="secondary" onClick={() => append({ name: '', city: '', address: '' })}>
-            Add site
+            {t('staffClients.form.addSite')}
           </Button>
         </div>
 
         {fields.length === 0 ? (
           <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted">
-            No sites added yet. Add the locations where this client's workers are based.
+            {t('staffClients.form.noSites')}
           </p>
         ) : (
           <div className="mt-4 space-y-3">
             {fields.map((field, index) => (
               <div key={field.id} className="grid grid-cols-1 gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1.5fr_auto]">
-                <Input placeholder="Site name *" error={errors.sites?.[index]?.name?.message} {...register(`sites.${index}.name`)} />
-                <Input placeholder="City" {...register(`sites.${index}.city`)} />
-                <Input placeholder="Address" {...register(`sites.${index}.address`)} />
+                <Input placeholder={t('staffClients.form.siteNamePlaceholder')} error={errors.sites?.[index]?.name?.message} {...register(`sites.${index}.name`)} />
+                <Input placeholder={t('staffClients.form.cityPlaceholder')} {...register(`sites.${index}.city`)} />
+                <Input placeholder={t('staffClients.form.addressPlaceholder')} {...register(`sites.${index}.address`)} />
                 <Button
                   size="sm"
                   variant="ghost"
                   className="hover:text-danger"
                   onClick={() => remove(index)}
-                  aria-label={`Remove site ${index + 1}`}
+                  aria-label={t('staffClients.form.removeSiteAriaLabel', { index: index + 1 })}
                 >
-                  Remove
+                  {t('staffClients.form.removeSite')}
                 </Button>
               </div>
             ))}
@@ -127,12 +129,12 @@ export default function ClientForm({ defaultValues, onSubmit, submitLabel, submi
       </Card>
 
       <Card>
-        <Textarea label="Notes" placeholder="Payment terms, key contacts, history…" error={errors.notes?.message} {...register('notes')} />
+        <Textarea label={t('staffClients.form.notes')} placeholder={t('staffClients.form.notesPlaceholder')} error={errors.notes?.message} {...register('notes')} />
       </Card>
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={() => navigate(-1)} disabled={submitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" isLoading={submitting}>
           {submitLabel}

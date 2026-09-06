@@ -5,6 +5,7 @@
  * the server). Workers use MyLeavePage (/me/leave) instead.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,6 +55,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
 import Tabs, { useTabParam } from '../../../components/ui/Tabs.jsx';
 
 function LeaveTypesPanel() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(null); // null = closed, {} = new, {...} = edit
@@ -88,7 +90,7 @@ function LeaveTypesPanel() {
     mutationFn: (values) =>
       editing?._id ? updateLeaveType(editing._id, values) : createLeaveType(values),
     onSuccess: () => {
-      toast.success(editing?._id ? 'Leave type updated.' : 'Leave type created.');
+      toast.success(editing?._id ? t('staffLeave.types.updatedSuccess') : t('staffLeave.types.createdSuccess'));
       setEditing(null);
       queryClient.invalidateQueries({ queryKey: ['leave-types'] });
     },
@@ -107,86 +109,91 @@ function LeaveTypesPanel() {
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Leave types</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffLeave.types.title')}</h2>
         <Button size="sm" onClick={openNew}>
-          Add leave type
+          {t('staffLeave.types.addType')}
         </Button>
       </div>
 
       {isPending ? (
         <Skeleton className="h-24 w-full" />
       ) : types.length === 0 ? (
-        <EmptyState title="No leave types yet" description="Add one so staff can start requesting leave." />
+        <EmptyState title={t('staffLeave.types.emptyTitle')} description={t('staffLeave.types.emptyDescription')} />
       ) : (
         <div className="divide-y divide-border">
-          {types.map((t) => (
+          {types.map((lt) => (
             <button
-              key={t._id}
-              onClick={() => openEdit(t)}
+              key={lt._id}
+              onClick={() => openEdit(lt)}
               className="-mx-2 flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2.5 text-left text-sm transition-colors hover:bg-bg/60"
             >
               <div>
-                <p className="font-medium">{t.name}</p>
+                <p className="font-medium">{lt.name}</p>
                 <p className="text-xs text-muted">
-                  {LEAVE_RECURRENCE_LABELS[t.recurrence]}
-                  {t.recurrence === 'Annual' && ` · ${t.daysPerYear} days/yr${t.tierYears ? ` (${t.tierDaysPerYear} after ${t.tierYears}yr)` : ''}`}
-                  {t.recurrence === 'ContractCycle' && ` · ${t.daysPerCycle} days every ${t.cycleYears}yr`}
-                  {t.recurrence === 'Sick' &&
-                    ` · ${(t.sickPayTiers ?? []).reduce((sum, tier) => sum + tier.days, 0)} days/yr (${(t.sickPayTiers ?? [])
-                      .map((tier) => `${tier.days}d @ ${tier.payPercent}%`)
-                      .join(', ')})`}
-                  {t.minServiceMonths > 0 && ` · min ${t.minServiceMonths}mo service`}
-                  {t.maxDaysPerRequest ? ` · capped at ${t.maxDaysPerRequest}d/request` : ''}
-                  {t.recurrence !== 'Sick' && !t.isPaid && ' · unpaid'}
+                  {t(`staffLeave.recurrenceLabels.${lt.recurrence}`, LEAVE_RECURRENCE_LABELS[lt.recurrence])}
+                  {lt.recurrence === 'Annual' &&
+                    ` · ${t('staffLeave.types.daysPerYearSuffix', { days: lt.daysPerYear })}${
+                      lt.tierYears ? t('staffLeave.types.tierAfterSuffix', { tierDays: lt.tierDaysPerYear, years: lt.tierYears }) : ''
+                    }`}
+                  {lt.recurrence === 'ContractCycle' &&
+                    ` · ${t('staffLeave.types.daysPerCycleSuffix', { days: lt.daysPerCycle, years: lt.cycleYears })}`}
+                  {lt.recurrence === 'Sick' &&
+                    ` · ${t('staffLeave.types.sickDaysPerYearSuffix', {
+                      days: (lt.sickPayTiers ?? []).reduce((sum, tier) => sum + tier.days, 0),
+                      breakdown: (lt.sickPayTiers ?? [])
+                        .map((tier) => t('staffLeave.types.sickTierBreakdownItem', { days: tier.days, percent: tier.payPercent }))
+                        .join(', '),
+                    })}`}
+                  {lt.minServiceMonths > 0 && ` · ${t('staffLeave.types.minServiceSuffix', { months: lt.minServiceMonths })}`}
+                  {lt.maxDaysPerRequest ? ` · ${t('staffLeave.types.cappedSuffix', { days: lt.maxDaysPerRequest })}` : ''}
+                  {lt.recurrence !== 'Sick' && !lt.isPaid && ` · ${t('staffLeave.types.unpaidSuffix')}`}
                 </p>
               </div>
-              <Badge variant={t.isActive ? 'success' : 'default'}>{t.isActive ? 'Active' : 'Inactive'}</Badge>
+              <Badge variant={lt.isActive ? 'success' : 'default'}>{lt.isActive ? t('staffLeave.types.active') : t('staffLeave.types.inactive')}</Badge>
             </button>
           ))}
         </div>
       )}
 
-      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?._id ? 'Edit leave type' : 'New leave type'}>
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?._id ? t('staffLeave.types.modalEditTitle') : t('staffLeave.types.modalNewTitle')}>
         <form
           onSubmit={handleSubmit((values) => saveMutation.mutate(values))}
           noValidate
           className="space-y-4"
         >
-          <Input label="Name *" error={errors.name?.message} {...register('name')} />
-          <Select label="How it's earned *" error={errors.recurrence?.message} {...register('recurrence')}>
+          <Input label={t('staffLeave.types.form.name')} error={errors.name?.message} {...register('name')} />
+          <Select label={t('staffLeave.types.form.recurrenceLabel')} error={errors.recurrence?.message} {...register('recurrence')}>
             {LEAVE_RECURRENCES.map((r) => (
               <option key={r} value={r}>
-                {LEAVE_RECURRENCE_LABELS[r]}
+                {t(`staffLeave.recurrenceLabels.${r}`, LEAVE_RECURRENCE_LABELS[r])}
               </option>
             ))}
           </Select>
 
           {recurrence === 'Annual' && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="Days per year *" type="number" min="0" error={errors.daysPerYear?.message} {...register('daysPerYear')} />
+              <Input label={t('staffLeave.types.form.daysPerYear')} type="number" min="0" error={errors.daysPerYear?.message} {...register('daysPerYear')} />
               <div />
-              <Input label="Tier: after years of service" type="number" min="1" error={errors.tierYears?.message} {...register('tierYears')} />
-              <Input label="Tier: days per year" type="number" min="0" error={errors.tierDaysPerYear?.message} {...register('tierDaysPerYear')} />
+              <Input label={t('staffLeave.types.form.tierYears')} type="number" min="1" error={errors.tierYears?.message} {...register('tierYears')} />
+              <Input label={t('staffLeave.types.form.tierDaysPerYear')} type="number" min="0" error={errors.tierDaysPerYear?.message} {...register('tierDaysPerYear')} />
             </div>
           )}
           {recurrence === 'ContractCycle' && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="Cycle length (years) *" type="number" min="1" error={errors.cycleYears?.message} {...register('cycleYears')} />
-              <Input label="Days per cycle *" type="number" min="0" error={errors.daysPerCycle?.message} {...register('daysPerCycle')} />
+              <Input label={t('staffLeave.types.form.cycleYears')} type="number" min="1" error={errors.cycleYears?.message} {...register('cycleYears')} />
+              <Input label={t('staffLeave.types.form.daysPerCycle')} type="number" min="0" error={errors.daysPerCycle?.message} {...register('daysPerCycle')} />
             </div>
           )}
           {recurrence === 'Sick' && (
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-medium">Pay tiers *</label>
+                <label className="text-sm font-medium">{t('staffLeave.types.form.payTiers')}</label>
                 <Button type="button" size="sm" variant="secondary" onClick={() => appendTier({ days: '', payPercent: '' })}>
-                  Add tier
+                  {t('staffLeave.types.form.addTier')}
                 </Button>
               </div>
               <p className="mb-2 text-xs text-muted">
-                The next N days of sick leave taken each leave year are paid at the given %, in order. Article 117's
-                default is 30 days @ 100%, 60 days @ 75%, 30 days @ 0% (120 days/year total) — adjust if your company
-                policy is more generous.
+                {t('staffLeave.types.form.tierHint')}
               </p>
               <div className="space-y-2">
                 {tierFields.map((field, i) => (
@@ -194,8 +201,8 @@ function LeaveTypesPanel() {
                     <Input
                       type="number"
                       min="1"
-                      placeholder="Days"
-                      aria-label={`Tier ${i + 1} days`}
+                      placeholder={t('staffLeave.types.form.tierDaysPlaceholder')}
+                      aria-label={t('staffLeave.types.form.tierDaysAriaLabel', { index: i + 1 })}
                       error={errors.sickPayTiers?.[i]?.days?.message}
                       {...register(`sickPayTiers.${i}.days`)}
                     />
@@ -203,12 +210,12 @@ function LeaveTypesPanel() {
                       type="number"
                       min="0"
                       max="100"
-                      placeholder="Pay %"
-                      aria-label={`Tier ${i + 1} pay percent`}
+                      placeholder={t('staffLeave.types.form.tierPayPlaceholder')}
+                      aria-label={t('staffLeave.types.form.tierPayAriaLabel', { index: i + 1 })}
                       error={errors.sickPayTiers?.[i]?.payPercent?.message}
                       {...register(`sickPayTiers.${i}.payPercent`)}
                     />
-                    <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => removeTier(i)} aria-label="Remove tier">
+                    <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => removeTier(i)} aria-label={t('staffLeave.types.form.removeTierAriaLabel')}>
                       ✕
                     </Button>
                   </div>
@@ -220,17 +227,17 @@ function LeaveTypesPanel() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
-              label="Minimum service before eligible (months)"
+              label={t('staffLeave.types.form.minServiceMonths')}
               type="number"
               min="0"
               error={errors.minServiceMonths?.message}
               {...register('minServiceMonths')}
             />
             <Input
-              label="Max days per request"
+              label={t('staffLeave.types.form.maxDaysPerRequest')}
               type="number"
               min="1"
-              placeholder="No cap"
+              placeholder={t('staffLeave.types.form.maxDaysPlaceholder')}
               error={errors.maxDaysPerRequest?.message}
               {...register('maxDaysPerRequest')}
             />
@@ -239,20 +246,20 @@ function LeaveTypesPanel() {
           {recurrence !== 'Sick' && (
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isPaid')} />
-              Paid leave
+              {t('staffLeave.types.form.paidLeave')}
             </label>
           )}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isActive')} />
-            Active — visible when staff/workers submit a request
+            {t('staffLeave.types.form.activeHint')}
           </label>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setEditing(null)} disabled={saveMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={saveMutation.isPending}>
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </form>
@@ -269,6 +276,7 @@ function LeaveTypesPanel() {
  * this reuses the exact same form schema/fields.
  */
 function SubmitLeavePanel() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -287,7 +295,7 @@ function SubmitLeavePanel() {
   const submitMutation = useMutation({
     mutationFn: submitLeaveRequest,
     onSuccess: (request) => {
-      toast.success(request.status === 'AutoApproved' ? 'Leave request approved.' : 'Leave request submitted for review.');
+      toast.success(request.status === 'AutoApproved' ? t('staffLeave.submit.approvedToast') : t('staffLeave.submit.submittedToast'));
       reset(emptySubmitLeaveForm);
       queryClient.invalidateQueries({ queryKey: ['leave'] });
     },
@@ -296,10 +304,10 @@ function SubmitLeavePanel() {
 
   return (
     <Card>
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Submit your own request</h2>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffLeave.submit.title')}</h2>
       <form onSubmit={handleSubmit((values) => submitMutation.mutate(values))} noValidate className="space-y-4">
-        <Select label="Leave type" error={errors.leaveType?.message} {...register('leaveType')}>
-          <option value="">Choose a leave type…</option>
+        <Select label={t('staffLeave.submit.chooseType')} error={errors.leaveType?.message} {...register('leaveType')}>
+          <option value="">{t('staffLeave.submit.choosePlaceholder')}</option>
           {(types ?? []).map((ty) => (
             <option key={ty._id} value={ty._id}>
               {ty.name}
@@ -307,13 +315,13 @@ function SubmitLeavePanel() {
           ))}
         </Select>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Start date" type="date" error={errors.startDate?.message} {...register('startDate')} />
-          <Input label="End date" type="date" error={errors.endDate?.message} {...register('endDate')} />
+          <Input label={t('staffLeave.submit.startDate')} type="date" error={errors.startDate?.message} {...register('startDate')} />
+          <Input label={t('staffLeave.submit.endDate')} type="date" error={errors.endDate?.message} {...register('endDate')} />
         </div>
-        <Textarea label="Reason" placeholder="Optional" error={errors.reason?.message} {...register('reason')} />
+        <Textarea label={t('staffLeave.submit.reason')} placeholder={t('common.optional')} error={errors.reason?.message} {...register('reason')} />
         <div className="flex justify-end">
           <Button type="submit" isLoading={submitMutation.isPending}>
-            Submit request
+            {t('common.submitRequest')}
           </Button>
         </div>
       </form>
@@ -322,6 +330,7 @@ function SubmitLeavePanel() {
 }
 
 function ReviewQueue() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -348,7 +357,7 @@ function ReviewQueue() {
   const decideMutation = useMutation({
     mutationFn: ({ id, decision }) => decideLeaveRequest(id, { status: decision }),
     onSuccess: (req) => {
-      toast.success(`Leave request ${req.status.toLowerCase()}.`);
+      toast.success(req.status === 'Approved' ? t('staffLeave.queue.approvedDecidedToast') : t('staffLeave.queue.rejectedDecidedToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -358,7 +367,7 @@ function ReviewQueue() {
   const ackMutation = useMutation({
     mutationFn: (id) => acknowledgeLeaveRequest(id),
     onSuccess: () => {
-      toast.success('Marked as seen.');
+      toast.success(t('staffLeave.queue.seenToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -367,12 +376,12 @@ function ReviewQueue() {
   return (
     <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Leave requests</h2>
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[200px]" aria-label="Filter by status">
-          <option value="">All statuses</option>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffLeave.queue.title')}</h2>
+        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[200px]" aria-label={t('staffLeave.queue.filterAriaLabel')}>
+          <option value="">{t('common.allStatuses')}</option>
           {LEAVE_REQUEST_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {LEAVE_REQUEST_STATUS_LABELS[s]}
+              {t(`staffLeave.statusLabels.${s}`, LEAVE_REQUEST_STATUS_LABELS[s])}
             </option>
           ))}
         </Select>
@@ -382,12 +391,12 @@ function ReviewQueue() {
         <Skeleton className="h-32 w-full" />
       ) : isError ? (
         <EmptyState
-          title="Could not load leave requests"
-          description="Check your connection and try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('staffLeave.queue.couldNotLoad')}
+          description={t('common.checkConnection')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       ) : data.items.length === 0 ? (
-        <EmptyState title="No leave requests" description="Nothing matches this filter." />
+        <EmptyState title={t('staffLeave.queue.emptyTitle')} description={t('staffLeave.queue.emptyDescription')} />
       ) : (
         <div className="divide-y divide-border">
           {data.items.map((req) => {
@@ -400,27 +409,27 @@ function ReviewQueue() {
                     <span className="font-normal text-muted">({req.employee?.employeeId})</span>
                   </p>
                   <p className="text-xs text-muted">
-                    {req.leaveTypeName} · {formatDate(req.startDate)} – {formatDate(req.endDate)} · {req.days} day
-                    {req.days > 1 ? 's' : ''}
+                    {req.leaveTypeName} · {formatDate(req.startDate)} – {formatDate(req.endDate)} ·{' '}
+                    {t('staffLeave.queue.dayCount', { count: req.days })}
                   </p>
                   <p className="mt-1 text-xs text-muted">{req.eligibility?.ruleApplied}</p>
                   <ApprovalTrailView request={req} />
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{LEAVE_REQUEST_STATUS_LABELS[req.status]}</Badge>
+                  <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{t(`staffLeave.statusLabels.${req.status}`, LEAVE_REQUEST_STATUS_LABELS[req.status])}</Badge>
                   {req.canDecideCurrentStep && req.status === 'PendingReview' && (
                     <div className="flex gap-2">
                       <Button size="sm" variant="secondary" onClick={() => setConfirming({ req, decision: 'Approved' })}>
-                        Approve
+                        {t('staffLeave.queue.approve')}
                       </Button>
                       <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ req, decision: 'Rejected' })}>
-                        Reject
+                        {t('staffLeave.queue.reject')}
                       </Button>
                     </div>
                   )}
                   {canAcknowledge && needsAck && (
                     <Button size="sm" variant="ghost" isLoading={ackMutation.isPending} onClick={() => ackMutation.mutate(req._id)}>
-                      Mark as seen
+                      {t('staffLeave.queue.markSeen')}
                     </Button>
                   )}
                 </div>
@@ -432,12 +441,18 @@ function ReviewQueue() {
 
       <ConfirmDialog
         open={!!confirming}
-        title={confirming?.decision === 'Approved' ? 'Approve leave request?' : 'Reject leave request?'}
+        title={confirming?.decision === 'Approved' ? t('staffLeave.queue.approveTitle') : t('staffLeave.queue.rejectTitle')}
         message={
           confirming &&
-          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.req.employee?.fullName}'s ${confirming.req.leaveTypeName} request (${formatDate(confirming.req.startDate)} – ${formatDate(confirming.req.endDate)})? This cannot be undone.`
+          t('staffLeave.queue.confirmMessage', {
+            action: confirming.decision === 'Approved' ? t('staffLeave.queue.approve') : t('staffLeave.queue.reject'),
+            name: confirming.req.employee?.fullName,
+            type: confirming.req.leaveTypeName,
+            start: formatDate(confirming.req.startDate),
+            end: formatDate(confirming.req.endDate),
+          })
         }
-        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmLabel={confirming?.decision === 'Approved' ? t('staffLeave.queue.approve') : t('staffLeave.queue.reject')}
         confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
         loading={decideMutation.isPending}
         onConfirm={() => decideMutation.mutate({ id: confirming.req._id, decision: confirming.decision })}
@@ -449,26 +464,27 @@ function ReviewQueue() {
 
 export default function LeavePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canManageTypes = LEAVE_TYPE_MANAGE_ROLES.includes(user.role);
 
   const tabs = [
-    { key: 'requests', label: 'Requests', content: <ReviewQueue /> },
-    user.role !== 'Admin' && { key: 'submit', label: 'Submit Request', content: <SubmitLeavePanel /> },
-    { key: 'holidays', label: 'Holidays', content: <UpcomingHolidays /> },
-    canManageTypes && { key: 'types', label: 'Leave Types', content: <LeaveTypesPanel /> },
+    { key: 'requests', label: t('staffLeave.tabs.requests'), content: <ReviewQueue /> },
+    user.role !== 'Admin' && { key: 'submit', label: t('staffLeave.tabs.submit'), content: <SubmitLeavePanel /> },
+    { key: 'holidays', label: t('staffLeave.tabs.holidays'), content: <UpcomingHolidays /> },
+    canManageTypes && { key: 'types', label: t('staffLeave.tabs.types'), content: <LeaveTypesPanel /> },
   ].filter(Boolean);
   const [activeTab, setActiveTab] = useTabParam(tabs, 'requests');
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
-        title="Leave"
+        title={t('staffLeave.page.title')}
         onBack={() => navigate(-1)}
         description={
           user.role === 'Coordinator'
-            ? 'Requests from your assigned employees.'
-            : 'Leave requests across the company.'
+            ? t('staffLeave.page.descriptionCoordinator')
+            : t('staffLeave.page.descriptionDefault')
         }
       />
       <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />

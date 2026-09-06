@@ -4,14 +4,16 @@
  * link to the worker's profile.
  */
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import { formatDate } from '../../../lib/utils.js';
 
 function ExpiryTag({ daysLeft }) {
-  if (daysLeft < 0) return <Badge variant="danger">Expired</Badge>;
-  return <Badge variant="warning">{daysLeft}d left</Badge>;
+  const { t } = useTranslation();
+  if (daysLeft < 0) return <Badge variant="danger">{t('staffDashboard.expiringDocuments.expired')}</Badge>;
+  return <Badge variant="warning">{t('staffDashboard.expiringDocuments.daysLeft', { days: daysLeft })}</Badge>;
 }
 
 /**
@@ -22,14 +24,15 @@ function ExpiryTag({ daysLeft }) {
  * something worth a server round trip to store.
  */
 export default function ExpiringDocuments({ items, thresholdDays, onThresholdChange, scopedToTeam }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-          Expiring documents{scopedToTeam ? ' · your team' : ''}
+          {scopedToTeam ? t('staffDashboard.expiringDocuments.titleYourTeam') : t('staffDashboard.expiringDocuments.title')}
         </h2>
         <label className="flex items-center gap-1.5 text-xs text-muted">
-          Alert within
+          {t('staffDashboard.expiringDocuments.alertWithin')}
           <input
             type="number"
             min="1"
@@ -39,11 +42,14 @@ export default function ExpiringDocuments({ items, thresholdDays, onThresholdCha
             className="h-7 w-14 rounded-md border border-border bg-surface px-1.5 text-center text-xs text-text"
             aria-label="Alert window in days"
           />
-          days
+          {t('staffDashboard.expiringDocuments.days')}
         </label>
       </div>
       {items.length === 0 ? (
-        <EmptyState title="Nothing expiring" description={`No documents expire in the next ${thresholdDays} days.`} />
+        <EmptyState
+          title={t('staffDashboard.expiringDocuments.nothingExpiring')}
+          description={t('staffDashboard.expiringDocuments.noneInNextDays', { days: thresholdDays })}
+        />
       ) : (
         <div className="divide-y divide-border">
           {items.map((item, i) => {
@@ -60,7 +66,7 @@ export default function ExpiringDocuments({ items, thresholdDays, onThresholdCha
                 <div>
                   <p className="font-medium">{item.ownerName}</p>
                   <p className="text-xs text-muted">
-                    {label} · expires {formatDate(item.expiry)}
+                    {label} · {t('staffDashboard.expiringDocuments.expires', { date: formatDate(item.expiry) })}
                   </p>
                 </div>
                 <ExpiryTag daysLeft={item.daysLeft} />

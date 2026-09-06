@@ -9,6 +9,7 @@
  * Below that, the worker's ended deployments render as history.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listDeployments, transferDeployment, endDeployment } from '../deployments.api.js';
@@ -36,6 +37,7 @@ function DetailRow({ label, children }) {
 }
 
 export default function WorkerDeploymentPanel({ employee }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -68,7 +70,7 @@ export default function WorkerDeploymentPanel({ employee }) {
   const transferMutation = useMutation({
     mutationFn: ({ id, values }) => transferDeployment(id, values),
     onSuccess: () => {
-      toast.success(`${employee.fullName} transferred.`);
+      toast.success(t('staffDeployments.panel.transferredToast', { name: employee.fullName }));
       setTransferring(false);
       invalidate();
     },
@@ -78,7 +80,7 @@ export default function WorkerDeploymentPanel({ employee }) {
   const endMutation = useMutation({
     mutationFn: (id) => endDeployment(id),
     onSuccess: () => {
-      toast.success(`${employee.fullName} unassigned.`);
+      toast.success(t('staffDeployments.panel.unassignedToast', { name: employee.fullName }));
       setEnding(false);
       invalidate();
     },
@@ -98,14 +100,14 @@ export default function WorkerDeploymentPanel({ employee }) {
     <>
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Deployment</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffDeployments.panel.title')}</h2>
           {active && canWrite && (
             <div className="flex gap-2">
               <Button size="sm" variant="secondary" onClick={() => setTransferring(true)}>
-                Transfer
+                {t('staffDeployments.panel.transfer')}
               </Button>
               <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setEnding(true)}>
-                End
+                {t('staffDeployments.panel.end')}
               </Button>
             </div>
           )}
@@ -114,25 +116,25 @@ export default function WorkerDeploymentPanel({ employee }) {
         {active ? (
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <Badge variant="success">Active</Badge>
+              <Badge variant="success">{t('common.status.Active')}</Badge>
               <Link to={`/clients/${active.client}`} className="font-medium hover:text-primary">
                 {active.clientName}
               </Link>
             </div>
-            <DetailRow label="Site">{active.site}</DetailRow>
-            <DetailRow label="Shift">{active.shift}</DetailRow>
-            <DetailRow label="Vehicle">{active.vehicle}</DetailRow>
-            <DetailRow label="Driver">{active.driver}</DetailRow>
-            <DetailRow label="Since">{formatDate(active.startDate)}</DetailRow>
+            <DetailRow label={t('staffDeployments.panel.site')}>{active.site}</DetailRow>
+            <DetailRow label={t('staffDeployments.panel.shift')}>{t(`staffDeployments.shiftLabels.${active.shift}`, active.shift)}</DetailRow>
+            <DetailRow label={t('staffDeployments.panel.vehicle')}>{active.vehicle}</DetailRow>
+            <DetailRow label={t('staffDeployments.panel.driver')}>{active.driver}</DetailRow>
+            <DetailRow label={t('staffDeployments.panel.since')}>{formatDate(active.startDate)}</DetailRow>
           </div>
         ) : employee.status === 'Exited' ? (
-          <p className="text-sm text-muted">Exited employees are not deployed.</p>
+          <p className="text-sm text-muted">{t('staffDeployments.panel.exitedNote')}</p>
         ) : (
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted">Not currently deployed.</p>
+            <p className="text-sm text-muted">{t('staffDeployments.panel.notDeployed')}</p>
             {canWrite && (
               <Link to={`/deployments/new?worker=${workerId}`}>
-                <Button size="sm">Assign to a client</Button>
+                <Button size="sm">{t('staffDeployments.panel.assignToClient')}</Button>
               </Link>
             )}
           </div>
@@ -142,7 +144,7 @@ export default function WorkerDeploymentPanel({ employee }) {
       {history.length > 0 && (
         <Card>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-            Deployment history
+            {t('staffDeployments.panel.historyTitle')}
           </h2>
           <div className="divide-y divide-border">
             {history.map((d) => (
@@ -155,7 +157,7 @@ export default function WorkerDeploymentPanel({ employee }) {
                     {formatDate(d.startDate)} → {formatDate(d.endDate)}
                   </p>
                 </div>
-                <Badge>{d.endReason ?? 'Ended'}</Badge>
+                <Badge>{d.endReason ?? t('common.status.Ended')}</Badge>
               </div>
             ))}
           </div>
@@ -163,14 +165,14 @@ export default function WorkerDeploymentPanel({ employee }) {
       )}
 
       {/* Transfer modal */}
-      <Modal open={transferring} onClose={() => setTransferring(false)} title={`Transfer ${employee.fullName}`}>
+      <Modal open={transferring} onClose={() => setTransferring(false)} title={t('staffDeployments.panel.transferModalTitle', { name: employee.fullName })}>
         {clientData ? (
           <DeploymentForm
             clients={clientData.items ?? []}
             defaultValues={emptyPlacement}
             onSubmit={(values) => transferMutation.mutate({ id: active._id, values })}
             onCancel={() => setTransferring(false)}
-            submitLabel="Transfer"
+            submitLabel={t('staffDeployments.panel.transferSubmitLabel')}
             submitting={transferMutation.isPending}
           />
         ) : (
@@ -180,9 +182,9 @@ export default function WorkerDeploymentPanel({ employee }) {
 
       <ConfirmDialog
         open={ending}
-        title="End deployment?"
-        message={`${employee.fullName} will be unassigned from ${active?.clientName ?? 'the client'}. The deployment is kept in history.`}
-        confirmLabel="End deployment"
+        title={t('staffDeployments.panel.endConfirmTitle')}
+        message={t('staffDeployments.panel.endConfirmMessage', { name: employee.fullName, client: active?.clientName ?? t('staffDeployments.panel.unknownClient') })}
+        confirmLabel={t('staffDeployments.panel.endConfirmLabel')}
         loading={endMutation.isPending}
         onConfirm={() => endMutation.mutate(active._id)}
         onCancel={() => setEnding(false)}

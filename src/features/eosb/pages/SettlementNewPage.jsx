@@ -7,6 +7,7 @@
  * Accepts `?employee=<id>` to preset from an Employee profile.
  */
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -24,14 +25,9 @@ import Input from '../../../components/ui/Input.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
-const REASON_HINTS = {
-  Resignation: 'The worker is leaving on their own terms — Article 85 tiering by length of service applies.',
-  TerminationByEmployer: 'The company is ending the contract — full award, no reduction.',
-  EndOfContract: "The contract term ended and wasn't renewed — full award, no reduction.",
-};
-
 export default function SettlementNewPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const presetEmployee = searchParams.get('employee') ?? '';
@@ -56,7 +52,7 @@ export default function SettlementNewPage() {
   const mutation = useMutation({
     mutationFn: createSettlement,
     onSuccess: (settlement) => {
-      toast.success(`Settlement computed for ${settlement.employeeName}.`);
+      toast.success(t('staffEosb.new.computedToast', { name: settlement.employeeName }));
       navigate(`/eosb/${settlement._id}`, { replace: true });
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -65,14 +61,14 @@ export default function SettlementNewPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title="New settlement"
-        description="Compute the end-of-service award and vacation-pay settlement for an exiting employee."
+        title={t('staffEosb.new.pageTitle')}
+        description={t('staffEosb.new.pageDescription')}
         onBack={() => navigate(-1)}
       />
       <Card>
         <form onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate className="space-y-4">
-          <Select label="Employee *" error={errors.employee?.message} {...register('employee')}>
-            <option value="">Select an employee…</option>
+          <Select label={t('staffEosb.new.employee')} error={errors.employee?.message} {...register('employee')}>
+            <option value="">{t('staffEosb.new.selectEmployee')}</option>
             {employees.map((e) => (
               <option key={e._id} value={e._id}>
                 {e.fullName} ({e.employeeId})
@@ -80,23 +76,23 @@ export default function SettlementNewPage() {
             ))}
           </Select>
 
-          <Input label="Exit date *" type="date" error={errors.exitDate?.message} {...register('exitDate')} />
+          <Input label={t('staffEosb.new.exitDate')} type="date" error={errors.exitDate?.message} {...register('exitDate')} />
 
-          <Select label="Reason for exit *" error={errors.exitReason?.message} {...register('exitReason')}>
-            <option value="">Choose a reason…</option>
+          <Select label={t('staffEosb.new.exitReason')} error={errors.exitReason?.message} {...register('exitReason')}>
+            <option value="">{t('staffEosb.new.chooseReason')}</option>
             {EXIT_REASONS.map((r) => (
               <option key={r} value={r}>
-                {EXIT_REASON_LABELS[r]}
+                {t(`staffEosb.exitReasonLabels.${r}`, EXIT_REASON_LABELS[r])}
               </option>
             ))}
           </Select>
-          {exitReason && <p className="-mt-2 text-xs text-muted">{REASON_HINTS[exitReason]}</p>}
+          {exitReason && <p className="-mt-2 text-xs text-muted">{t(`staffEosb.new.reasonHints.${exitReason}`)}</p>}
 
-          <Textarea label="Notes" placeholder="Optional" error={errors.notes?.message} {...register('notes')} />
+          <Textarea label={t('staffEosb.new.notes')} placeholder={t('common.optional')} error={errors.notes?.message} {...register('notes')} />
 
           <div className="flex justify-end pt-2">
             <Button type="submit" isLoading={mutation.isPending}>
-              Compute settlement
+              {t('staffEosb.new.computeButton')}
             </Button>
           </div>
         </form>

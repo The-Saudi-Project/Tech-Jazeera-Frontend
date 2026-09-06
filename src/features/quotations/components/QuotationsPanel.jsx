@@ -3,6 +3,7 @@
  * quotations, with a "New quotation" button pre-filling the client.
  */
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { listQuotations } from '../quotations.api.js';
 import { buildQuotationColumns } from './quotationColumns.jsx';
@@ -15,6 +16,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function QuotationsPanel({ clientId }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const canWrite = QUOTATION_WRITE_ROLES.includes(user.role);
@@ -24,15 +26,15 @@ export default function QuotationsPanel({ clientId }) {
     queryFn: () => listQuotations({ client: clientId, limit: 100 }),
   });
 
-  const columns = buildQuotationColumns();
+  const columns = buildQuotationColumns({ t });
 
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Quotations</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffQuotations.panel.title')}</h2>
         {canWrite && (
           <Button size="sm" onClick={() => navigate(`/quotations/new?client=${clientId}`)}>
-            New quotation
+            {t('staffQuotations.panel.newQuotation')}
           </Button>
         )}
       </div>
@@ -46,11 +48,11 @@ export default function QuotationsPanel({ clientId }) {
           rowKey={(q) => q._id}
           emptyState={
             <EmptyState
-              title="No quotations yet"
-              description={canWrite ? 'Create a priced offer for this client.' : 'No quotations for this client.'}
+              title={t('staffQuotations.panel.emptyTitle')}
+              description={canWrite ? t('staffQuotations.panel.emptyDescriptionWrite') : t('staffQuotations.panel.emptyDescriptionView')}
               action={
                 canWrite ? (
-                  <Button onClick={() => navigate(`/quotations/new?client=${clientId}`)}>New quotation</Button>
+                  <Button onClick={() => navigate(`/quotations/new?client=${clientId}`)}>{t('staffQuotations.panel.newQuotation')}</Button>
                 ) : null
               }
             />

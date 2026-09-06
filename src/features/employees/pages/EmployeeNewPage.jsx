@@ -1,6 +1,7 @@
 /**
  * New employee — thin page: header + EmployeeForm + create mutation.
  */
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createEmployee } from '../employees.api.js';
@@ -12,13 +13,14 @@ import EmployeeForm from '../components/EmployeeForm.jsx';
 
 export default function EmployeeNewPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: createEmployee,
     onSuccess: (employee) => {
-      toast.success(`${employee.fullName} added.`);
+      toast.success(t('staffEmployees.new.addedSuccess', { name: employee.fullName }));
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       navigate(`/employees/${employee._id}`, { replace: true });
     },
@@ -29,14 +31,14 @@ export default function EmployeeNewPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Add employee"
-        description="Create a new workforce record."
+        title={t('staffEmployees.new.title')}
+        description={t('staffEmployees.new.description')}
         onBack={() => navigate(-1)}
       />
       <EmployeeForm
         defaultValues={emptyEmployeeForm}
         onSubmit={(values) => mutation.mutate(formToEmployeePayload(values))}
-        submitLabel="Create employee"
+        submitLabel={t('staffEmployees.new.submitLabel')}
         submitting={mutation.isPending}
       />
     </div>

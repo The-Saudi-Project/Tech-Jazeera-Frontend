@@ -4,12 +4,12 @@
  * employee salaries and Approved timesheets.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listPayrollRuns, createPayrollRun } from '../payroll.api.js';
 import { apiMessage, formatMoney } from '../../../lib/utils.js';
-import { useAuth } from '../../auth/AuthContext.jsx';
-import { PAYROLL_STATUS_VARIANT, PAYROLL_WRITE_ROLES, MONTH_NAMES } from '../../../lib/constants.js';
+import { PAYROLL_STATUS_VARIANT, MONTH_NAMES } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Table from '../../../components/ui/Table.jsx';
@@ -22,17 +22,16 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 const now = new Date();
 
 export default function PayrollListPage() {
-  const { user } = useAuth();
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const canWrite = PAYROLL_WRITE_ROLES.includes(user.role);
 
   const [creating, setCreating] = useState(false);
   const [periodYear, setPeriodYear] = useState(now.getFullYear());
   const [periodMonth, setPeriodMonth] = useState(now.getMonth() + 1);
 
-  const { data, isPending, isError, refetch } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['payroll'],
     queryFn: () => listPayrollRuns({ limit: 50 }),
   });
@@ -40,7 +39,7 @@ export default function PayrollListPage() {
   const createMutation = useMutation({
     mutationFn: () => createPayrollRun({ periodYear, periodMonth }),
     onSuccess: (run) => {
-      toast.success(`Payroll run created for ${MONTH_NAMES[run.periodMonth - 1]} ${run.periodYear}.`);
+      toast.success(t('staffPayroll.list.createdToast', { month: t(`common.months.${run.periodMonth}`), year: run.periodYear }));
       setCreating(false);
       queryClient.invalidateQueries({ queryKey: ['payroll'] });
       navigate(`/payroll/${run._id}`);
@@ -53,29 +52,33 @@ export default function PayrollListPage() {
   const columns = [
     {
       key: 'period',
-      header: 'Period',
+      header: t('staffPayroll.list.columns.period'),
       render: (r) => (
         <span className="font-medium text-text">
-          {MONTH_NAMES[r.periodMonth - 1]} {r.periodYear}
+          {t(`common.months.${r.periodMonth}`)} {r.periodYear}
         </span>
       ),
     },
-    { key: 'lines', header: 'Employees', hideOnMobile: true, render: (r) => r.lines?.length ?? '—' },
-    { key: 'totalNet', header: 'Total net pay', className: 'text-right', render: (r) => <span className="font-semibold tabular-nums">{formatMoney(r.totalNet)}</span> },
-    { key: 'status', header: 'Status', render: (r) => <Badge variant={PAYROLL_STATUS_VARIANT[r.status]}>{r.status}</Badge> },
+    { key: 'lines', header: t('staffPayroll.list.columns.employees'), hideOnMobile: true, render: (r) => r.lines?.length ?? '—' },
+    { key: 'totalNet', header: t('staffPayroll.list.columns.totalNet'), className: 'text-right', render: (r) => <span className="font-semibold tabular-nums">{formatMoney(r.totalNet)}</span> },
+    { key: 'status', header: t('staffPayroll.list.columns.status'), render: (r) => <Badge variant={PAYROLL_STATUS_VARIANT[r.status]}>{t(`common.status.${r.status}`, r.status)}</Badge> },
   ];
 
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
-        title="Payroll"
-        description="Monthly payroll runs for the supplied workforce."
+        title={t('staffPayroll.list.pageTitle')}
+        description={t('staffPayroll.list.pageDescription')}
         onBack={() => navigate(-1)}
-        actions={canWrite && <Button onClick={() => setCreating(true)}>Run payroll</Button>}
+        actions={!isError && <Button onClick={() => setCreating(true)}>{t('staffPayroll.list.runPayroll')}</Button>}
       />
 
       {isError ? (
-        <EmptyState title="Could not load payroll runs" description="Please try again." action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>} />
+        <EmptyState
+          title={t('staffPayroll.list.noAccessTitle')}
+          description={apiMessage(error) || t('staffPayroll.list.noAccessDefaultDescription')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
+        />
       ) : (
         <Table
           columns={columns}
@@ -85,29 +88,28 @@ export default function PayrollListPage() {
           onRowClick={(r) => navigate(`/payroll/${r._id}`)}
           emptyState={
             <EmptyState
-              title="No payroll runs yet"
-              description="Run payroll for a month to compute pay from real salaries and approved hours."
-              action={canWrite && <Button onClick={() => setCreating(true)}>Run payroll</Button>}
+              title={t('staffPayroll.list.emptyTitle')}
+              description={t('staffPayroll.list.emptyDescription')}
+              action={<Button onClick={() => setCreating(true)}>{t('staffPayroll.list.runPayroll')}</Button>}
             />
           }
         />
       )}
 
-      <Modal open={creating} onClose={() => setCreating(false)} title="Run payroll">
+      <Modal open={creating} onClose={() => setCreating(false)} title={t('staffPayroll.list.modalTitle')}>
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            Builds a draft from every active supplied-workforce employee's current salary. You can adjust
-            allowances and deductions before finalizing.
+            {t('staffPayroll.list.modalDescription')}
           </p>
           <div className="grid grid-cols-2 gap-4">
-            <Select label="Month" value={periodMonth} onChange={(e) => setPeriodMonth(Number(e.target.value))}>
+            <Select label={t('staffPayroll.list.month')} value={periodMonth} onChange={(e) => setPeriodMonth(Number(e.target.value))}>
               {MONTH_NAMES.map((m, i) => (
                 <option key={m} value={i + 1}>
-                  {m}
+                  {t(`common.months.${i + 1}`)}
                 </option>
               ))}
             </Select>
-            <Select label="Year" value={periodYear} onChange={(e) => setPeriodYear(Number(e.target.value))}>
+            <Select label={t('staffPayroll.list.year')} value={periodYear} onChange={(e) => setPeriodYear(Number(e.target.value))}>
               {years.map((y) => (
                 <option key={y} value={y}>
                   {y}
@@ -117,10 +119,10 @@ export default function PayrollListPage() {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setCreating(false)} disabled={createMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button isLoading={createMutation.isPending} onClick={() => createMutation.mutate()}>
-              Build draft
+              {t('staffPayroll.list.buildDraft')}
             </Button>
           </div>
         </div>

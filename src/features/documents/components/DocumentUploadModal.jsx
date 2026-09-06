@@ -11,6 +11,7 @@
  * assembled into FormData for the multipart POST.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ import Select from '../../../components/ui/Select.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function DocumentUploadModal({ open, onClose, fixedOwner, onUploaded }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [file, setFile] = useState(null);
@@ -78,7 +80,7 @@ export default function DocumentUploadModal({ open, onClose, fixedOwner, onUploa
       return uploadDocument(fd);
     },
     onSuccess: () => {
-      toast.success('Document uploaded.');
+      toast.success(t('staffDocuments.upload.uploadedToast'));
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       onUploaded?.();
       closeAndReset();
@@ -89,15 +91,15 @@ export default function DocumentUploadModal({ open, onClose, fixedOwner, onUploa
   function onSubmit(values) {
     setFileError(null);
     if (!file) {
-      setFileError('Choose a file to upload.');
+      setFileError(t('staffDocuments.upload.chooseFileError'));
       return;
     }
     if (file.size > DOCUMENT_MAX_MB * 1024 * 1024) {
-      setFileError(`File is too large (maximum ${DOCUMENT_MAX_MB} MB).`);
+      setFileError(t('staffDocuments.upload.fileTooLargeError', { maxMb: DOCUMENT_MAX_MB }));
       return;
     }
     if (!fixedOwner && !ownerId) {
-      setFileError('Select who this document belongs to.');
+      setFileError(t('staffDocuments.upload.selectOwnerError'));
       return;
     }
     mutation.mutate(values);
@@ -106,30 +108,30 @@ export default function DocumentUploadModal({ open, onClose, fixedOwner, onUploa
   const items = ownerOptions?.items ?? [];
 
   return (
-    <Modal open={open} onClose={closeAndReset} title="Upload document">
+    <Modal open={open} onClose={closeAndReset} title={t('staffDocuments.upload.title')}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {fixedOwner ? (
           <p className="rounded-lg bg-bg p-2.5 text-sm text-muted">
-            For <span className="font-medium text-text">{fixedOwner.name}</span>
+            {t('staffDocuments.upload.for')} <span className="font-medium text-text">{fixedOwner.name}</span>
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Select
-              label="Owner type"
+              label={t('staffDocuments.upload.ownerType')}
               value={ownerType}
               onChange={(e) => {
                 setOwnerType(e.target.value);
                 setOwnerId('');
               }}
             >
-              {DOCUMENT_OWNER_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {DOCUMENT_OWNER_TYPES.map((ot) => (
+                <option key={ot} value={ot}>
+                  {t(`staffDocuments.ownerTypeLabels.${ot}`, ot)}
                 </option>
               ))}
             </Select>
-            <Select label="Owner" value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
-              <option value="">Select…</option>
+            <Select label={t('staffDocuments.upload.ownerLabel')} value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+              <option value="">{t('staffDocuments.upload.selectOwner')}</option>
               {items.map((o) => (
                 <option key={o._id} value={o._id}>
                   {ownerType === 'Employee' ? `${o.fullName} (${o.employeeId})` : o.companyName}
@@ -139,20 +141,20 @@ export default function DocumentUploadModal({ open, onClose, fixedOwner, onUploa
           </div>
         )}
 
-        <Input label="Title *" placeholder="e.g. Passport copy" error={errors.title?.message} {...register('title')} />
+        <Input label={t('staffDocuments.upload.titleLabel')} placeholder={t('staffDocuments.upload.titlePlaceholder')} error={errors.title?.message} {...register('title')} />
         <div className="grid grid-cols-2 gap-3">
-          <Select label="Category" error={errors.category?.message} {...register('category')}>
+          <Select label={t('staffDocuments.upload.category')} error={errors.category?.message} {...register('category')}>
             {DOCUMENT_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {t(`staffDocuments.categoryLabels.${c}`, c)}
               </option>
             ))}
           </Select>
-          <Input label="Expiry date" type="date" error={errors.expiryDate?.message} {...register('expiryDate')} />
+          <Input label={t('staffDocuments.upload.expiryDate')} type="date" error={errors.expiryDate?.message} {...register('expiryDate')} />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-text">File *</label>
+          <label className="text-sm font-medium text-text">{t('staffDocuments.upload.fileLabel')}</label>
           <input
             type="file"
             accept={DOCUMENT_ACCEPT}
@@ -162,16 +164,16 @@ export default function DocumentUploadModal({ open, onClose, fixedOwner, onUploa
             }}
             className="text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-primary-hover"
           />
-          <p className="text-xs text-muted">PDF, images, Word or Excel · up to {DOCUMENT_MAX_MB} MB</p>
+          <p className="text-xs text-muted">{t('staffDocuments.upload.fileHint', { maxMb: DOCUMENT_MAX_MB })}</p>
           {fileError && <p className="text-sm text-danger">{fileError}</p>}
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={closeAndReset} disabled={mutation.isPending}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" isLoading={mutation.isPending}>
-            Upload
+            {t('staffDocuments.panel.upload')}
           </Button>
         </div>
       </form>

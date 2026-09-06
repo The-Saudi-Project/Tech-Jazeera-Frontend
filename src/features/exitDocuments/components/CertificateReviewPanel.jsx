@@ -1,8 +1,10 @@
 /**
  * CertificateReviewPanel — the staff review queue for certificate requests:
- * approve/reject, download the generated PDF (letter types only), then
- * mark issued once handed over (or, for the attestation type, once the
- * physical stamping is complete).
+ * approve/reject (per-row canDecideCurrentStep, via the Configurable
+ * Approval Hierarchy engine — same as Leave), download the generated PDF
+ * (letter types only), then mark issued once handed over (or, for the
+ * attestation type, once the physical stamping is complete). Marking issued
+ * stays a separate, static-role check (EXIT_DOCUMENTS_ISSUE_ROLES).
  */
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,13 +16,15 @@ import {
   CERTIFICATE_STATUS_VARIANT,
   CERTIFICATE_TYPE_LABELS,
   CERTIFICATE_TYPES_WITH_PDF,
-  EXIT_DOCUMENTS_ROLES,
+  EXIT_DOCUMENTS_ISSUE_ROLES,
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Select from '../../../components/ui/Select.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
@@ -28,9 +32,10 @@ export default function CertificateReviewPanel() {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canAct = EXIT_DOCUMENTS_ROLES.includes(user.role);
+  const canIssue = EXIT_DOCUMENTS_ISSUE_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
   const [downloadingId, setDownloadingId] = useState(null);
+  const [confirming, setConfirming] = useState(null);
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['exit-documents', 'certificates', { status }],
@@ -50,6 +55,7 @@ export default function CertificateReviewPanel() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirming(null),
   });
 
   const issueMutation = useMutation({
@@ -104,6 +110,7 @@ export default function CertificateReviewPanel() {
                   </p>
                   <p className="text-xs text-muted">{CERTIFICATE_TYPE_LABELS[c.type]}</p>
                   {c.purpose && <p className="mt-1 text-xs text-muted">For: {c.purpose}</p>}
+                  <ApprovalTrailView request={c} pendingStatus="Pending" />
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <Badge variant={CERTIFICATE_STATUS_VARIANT[c.status]}>{c.status}</Badge>
@@ -112,17 +119,17 @@ export default function CertificateReviewPanel() {
                       PDF
                     </Button>
                   )}
-                  {canAct && c.status === 'Pending' && (
+                  {c.canDecideCurrentStep && c.status === 'Pending' && (
                     <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: c._id, decision: 'Approved' })}>
+                      <Button size="sm" variant="secondary" onClick={() => setConfirming({ req: c, decision: 'Approved' })}>
                         Approve
                       </Button>
-                      <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: c._id, decision: 'Rejected' })}>
+                      <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ req: c, decision: 'Rejected' })}>
                         Reject
                       </Button>
                     </div>
                   )}
-                  {canAct && c.status === 'Approved' && (
+                  {canIssue && c.status === 'Approved' && (
                     <Button size="sm" variant="ghost" isLoading={issueMutation.isPending} onClick={() => issueMutation.mutate(c._id)}>
                       Mark issued
                     </Button>
@@ -133,6 +140,20 @@ export default function CertificateReviewPanel() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming?.decision === 'Approved' ? 'Approve certificate request?' : 'Reject certificate request?'}
+        message={
+          confirming &&
+          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.req.employee?.fullName}'s ${CERTIFICATE_TYPE_LABELS[confirming.req.type]} request? This cannot be undone.`
+        }
+        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
+        loading={decideMutation.isPending}
+        onConfirm={() => decideMutation.mutate({ id: confirming.req._id, decision: confirming.decision })}
+        onCancel={() => setConfirming(null)}
+      />
     </Card>
   );
 }

@@ -1,9 +1,12 @@
 /**
- * i18n setup (P3-G) — scoped to the Worker self-service (ESS) portal + the
- * shared login screen, per the P3-G scope decision: the workforce actually
- * needs Hindi/Nepali/Bengali/Arabic; Admin/Manager/HR/Accounts/Coordinator
- * already operate the staff panel in English, so it stays untranslated
- * (see docs/P3-G-notes.md for the full reasoning).
+ * i18n setup — originally scoped to the Worker self-service (ESS) portal +
+ * the shared login screen only (P3-G: the workforce needs Hindi/Nepali/
+ * Bengali/Arabic; staff operate in English day to day, see
+ * docs/P3-G-notes.md). Extended 2026-09-06 to the staff panel too, English/
+ * Arabic only, rolled out module by module (shell + Dashboard first — see
+ * docs/STAFF-I18N-notes.md) — one shared i18n instance and RTL mechanism
+ * for both surfaces; only which languages each surface's own
+ * LanguageSwitcher OFFERS differs (STAFF_SUPPORTED_LANGUAGES below).
  *
  * No language-detector plugin: the user explicitly picks a language (there
  * is no "detect from Accept-Language" requirement here, and a manual choice
@@ -25,6 +28,13 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'hi', label: 'हिन्दी' },
   { code: 'ne', label: 'नेपाली' },
   { code: 'bn', label: 'বাংলা' },
+];
+/** The staff panel's own switcher offers only these — an office-staff
+ *  language (Arabic), not the blue-collar workforce's (Hindi/Nepali/
+ *  Bengali, ESS-only). Same underlying i18n instance either way. */
+export const STAFF_SUPPORTED_LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'ar', label: 'العربية' },
 ];
 export const RTL_LANGUAGES = ['ar'];
 const STORAGE_KEY = 'language';

@@ -4,15 +4,15 @@
  * payslip PDFs.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPayrollRun, updatePayrollLine, finalizePayrollRun, deletePayrollRun, downloadPayslipPdf } from '../payroll.api.js';
 import { payrollLineFormSchema, lineToForm, formToLinePayload } from '../payroll.schema.js';
-import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatMoney } from '../../../lib/utils.js';
-import { PAYROLL_STATUS_VARIANT, PAYROLL_WRITE_ROLES, PAYROLL_FINALIZE_ROLES, MONTH_NAMES } from '../../../lib/constants.js';
+import { PAYROLL_STATUS_VARIANT, MONTH_NAMES } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
@@ -26,19 +26,17 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function PayrollRunPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const canWrite = PAYROLL_WRITE_ROLES.includes(user.role);
-  const canFinalize = PAYROLL_FINALIZE_ROLES.includes(user.role);
 
   const [editingLine, setEditingLine] = useState(null);
   const [confirmingFinalize, setConfirmingFinalize] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
 
-  const { data: run, isPending, isError } = useQuery({
+  const { data: run, isPending, isError, error } = useQuery({
     queryKey: ['payroll', id],
     queryFn: () => getPayrollRun(id),
   });
@@ -57,7 +55,7 @@ export default function PayrollRunPage() {
   const saveLineMutation = useMutation({
     mutationFn: (values) => updatePayrollLine(id, editingLine._id, formToLinePayload(values)),
     onSuccess: () => {
-      toast.success('Payroll line updated.');
+      toast.success(t('staffPayroll.run.lineUpdatedToast'));
       setEditingLine(null);
       invalidate();
     },
@@ -67,7 +65,7 @@ export default function PayrollRunPage() {
   const finalizeMutation = useMutation({
     mutationFn: () => finalizePayrollRun(id),
     onSuccess: () => {
-      toast.success('Payroll run finalized.');
+      toast.success(t('staffPayroll.run.finalizedToast'));
       setConfirmingFinalize(false);
       invalidate();
     },
@@ -80,7 +78,7 @@ export default function PayrollRunPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deletePayrollRun(id),
     onSuccess: () => {
-      toast.success('Payroll run deleted.');
+      toast.success(t('staffPayroll.run.deletedToast'));
       queryClient.invalidateQueries({ queryKey: ['payroll'] });
       navigate('/payroll', { replace: true });
     },
@@ -100,7 +98,7 @@ export default function PayrollRunPage() {
     try {
       await downloadPayslipPdf(id, line._id, `Payslip-${line.employeeCode}-${run.periodYear}-${String(run.periodMonth).padStart(2, '0')}.pdf`);
     } catch (error) {
-      toast.error(apiMessage(error, 'Could not generate the payslip.'));
+      toast.error(apiMessage(error, t('staffPayroll.run.payslipFailedToast')));
     } finally {
       setDownloadingId(null);
     }
@@ -117,9 +115,9 @@ export default function PayrollRunPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Payroll run not found"
-        description="It may have been deleted."
-        action={<Link to="/payroll"><Button variant="secondary">Back to payroll</Button></Link>}
+        title={t('staffPayroll.run.couldNotOpenTitle')}
+        description={apiMessage(error) || t('staffPayroll.run.couldNotOpenDefaultDescription')}
+        action={<Link to="/payroll"><Button variant="secondary">{t('staffPayroll.run.backToPayroll')}</Button></Link>}
       />
     );
   }
@@ -129,20 +127,20 @@ export default function PayrollRunPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
-        title={`${MONTH_NAMES[run.periodMonth - 1]} ${run.periodYear}`}
-        description={`${run.lines.length} employee${run.lines.length === 1 ? '' : 's'} · total net ${formatMoney(run.totalNet)}`}
+        title={`${t(`common.months.${run.periodMonth}`)} ${run.periodYear}`}
+        description={t('staffPayroll.run.descriptionLine', { count: run.lines.length, total: formatMoney(run.totalNet) })}
         onBack={() => navigate(-1)}
         actions={
           <>
             <Badge variant={PAYROLL_STATUS_VARIANT[run.status]} className="mr-1">
-              {run.status}
+              {t(`common.status.${run.status}`, run.status)}
             </Badge>
-            {isDraft && canFinalize && (
-              <Button onClick={() => setConfirmingFinalize(true)}>Finalize</Button>
+            {isDraft && (
+              <Button onClick={() => setConfirmingFinalize(true)}>{t('staffPayroll.run.finalize')}</Button>
             )}
-            {isDraft && canFinalize && (
+            {isDraft && (
               <Button variant="ghost" className="hover:text-danger" onClick={() => setConfirmingDelete(true)}>
-                Delete
+                {t('common.delete')}
               </Button>
             )}
           </>
@@ -153,11 +151,11 @@ export default function PayrollRunPage() {
         <table className="w-full min-w-[900px] text-sm">
           <thead className="border-b border-border bg-bg/40 text-left">
             <tr>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">Employee</th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">Gross</th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">Hours</th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">Deductions</th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">Net pay</th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">{t('staffPayroll.run.columns.employee')}</th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">{t('staffPayroll.run.columns.gross')}</th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">{t('staffPayroll.run.columns.hours')}</th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">{t('staffPayroll.run.columns.deductions')}</th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted text-right">{t('staffPayroll.run.columns.netPay')}</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -171,18 +169,18 @@ export default function PayrollRunPage() {
                 <td className="px-4 py-3 text-right tabular-nums">
                   {formatMoney(line.grossPay)}
                   {line.overtimePay > 0 && (
-                    <span className="block text-xs font-normal text-warning">+{formatMoney(line.overtimePay)} OT</span>
+                    <span className="block text-xs font-normal text-warning">{t('staffPayroll.run.otSuffix', { amount: formatMoney(line.overtimePay) })}</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums text-muted">
                   {line.approvedHours || '—'}
-                  {line.overtimeHours > 0 && <span className="block text-xs text-warning">{line.overtimeHours}h OT</span>}
+                  {line.overtimeHours > 0 && <span className="block text-xs text-warning">{t('staffPayroll.run.otHoursSuffix', { hours: line.overtimeHours })}</span>}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">
                   {formatMoney(line.totalDeductions)}
                   {line.sickLeaveDeduction > 0 && (
                     <span className="block text-xs font-normal text-danger" title={line.sickLeaveNote}>
-                      -{formatMoney(line.sickLeaveDeduction)} sick
+                      {t('staffPayroll.run.sickSuffix', { amount: formatMoney(line.sickLeaveDeduction) })}
                     </span>
                   )}
                 </td>
@@ -190,11 +188,11 @@ export default function PayrollRunPage() {
                 <td className="px-4 py-3 text-right">
                   <span className="flex justify-end gap-2">
                     <Button size="sm" variant="ghost" isLoading={downloadingId === line._id} onClick={() => handleDownload(line)}>
-                      PDF
+                      {t('staffPayroll.run.pdfButton')}
                     </Button>
-                    {isDraft && canWrite && (
+                    {isDraft && (
                       <Button size="sm" variant="ghost" onClick={() => openEdit(line)}>
-                        Edit
+                        {t('common.edit')}
                       </Button>
                     )}
                   </span>
@@ -205,12 +203,12 @@ export default function PayrollRunPage() {
         </table>
       </Card>
 
-      <Modal open={!!editingLine} onClose={() => setEditingLine(null)} title={`Edit — ${editingLine?.employeeName ?? ''}`}>
+      <Modal open={!!editingLine} onClose={() => setEditingLine(null)} title={t('staffPayroll.run.editModalTitle', { name: editingLine?.employeeName ?? '' })}>
         <form onSubmit={handleSubmit((values) => saveLineMutation.mutate(values))} noValidate className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Other allowances" type="number" min="0" step="10" error={errors.otherAllowances?.message} {...register('otherAllowances')} />
+            <Input label={t('staffPayroll.run.otherAllowances')} type="number" min="0" step="10" error={errors.otherAllowances?.message} {...register('otherAllowances')} />
             <Input
-              label="GOSI deduction"
+              label={t('staffPayroll.run.gosiDeduction')}
               type="number"
               min="0"
               step="10"
@@ -219,15 +217,14 @@ export default function PayrollRunPage() {
             />
           </div>
           <p className="text-xs text-muted">
-            GOSI is not calculated automatically — rates vary by nationality/coverage. Enter the correct figure per
-            your current rates.
+            {t('staffPayroll.run.gosiHint')}
           </p>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-sm font-medium">Other deductions</label>
+              <label className="text-sm font-medium">{t('staffPayroll.run.otherDeductions')}</label>
               <Button type="button" size="sm" variant="secondary" onClick={() => append({ label: '', amount: '' })}>
-                Add
+                {t('common.add')}
               </Button>
             </div>
             <div className="space-y-2">
@@ -235,8 +232,8 @@ export default function PayrollRunPage() {
                 <div key={field.id} className="flex items-start gap-2">
                   <Input
                     className="flex-1"
-                    placeholder="Label (e.g. Advance repayment)"
-                    aria-label="Deduction label"
+                    placeholder={t('staffPayroll.run.deductionLabelPlaceholder')}
+                    aria-label={t('staffPayroll.run.deductionLabelAriaLabel')}
                     error={errors.otherDeductions?.[i]?.label?.message}
                     {...register(`otherDeductions.${i}.label`)}
                   />
@@ -245,12 +242,12 @@ export default function PayrollRunPage() {
                     min="0"
                     step="10"
                     className="w-32"
-                    placeholder="Amount"
-                    aria-label="Deduction amount"
+                    placeholder={t('staffPayroll.run.deductionAmountPlaceholder')}
+                    aria-label={t('staffPayroll.run.deductionAmountAriaLabel')}
                     error={errors.otherDeductions?.[i]?.amount?.message}
                     {...register(`otherDeductions.${i}.amount`)}
                   />
-                  <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => remove(i)} aria-label="Remove deduction">
+                  <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => remove(i)} aria-label={t('staffPayroll.run.removeDeductionAriaLabel')}>
                     ✕
                   </Button>
                 </div>
@@ -260,10 +257,10 @@ export default function PayrollRunPage() {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setEditingLine(null)} disabled={saveLineMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={saveLineMutation.isPending}>
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </form>
@@ -271,9 +268,9 @@ export default function PayrollRunPage() {
 
       <ConfirmDialog
         open={confirmingFinalize}
-        title="Finalize this payroll run?"
-        message="Lines can no longer be edited after finalizing. Workers will be able to view and download their payslips."
-        confirmLabel="Finalize"
+        title={t('staffPayroll.run.finalizeConfirmTitle')}
+        message={t('staffPayroll.run.finalizeConfirmMessage')}
+        confirmLabel={t('staffPayroll.run.finalize')}
         loading={finalizeMutation.isPending}
         onConfirm={() => finalizeMutation.mutate()}
         onCancel={() => setConfirmingFinalize(false)}
@@ -281,8 +278,8 @@ export default function PayrollRunPage() {
 
       <ConfirmDialog
         open={confirmingDelete}
-        title="Delete this payroll run?"
-        message="This draft and all its computed lines will be permanently removed."
+        title={t('staffPayroll.run.deleteConfirmTitle')}
+        message={t('staffPayroll.run.deleteConfirmMessage')}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setConfirmingDelete(false)}

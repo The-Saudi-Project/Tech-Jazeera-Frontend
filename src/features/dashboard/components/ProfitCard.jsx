@@ -6,6 +6,7 @@
  * diverging bars (no chart library — the stack is locked, same call as
  * StatusBreakdown).
  */
+import { useTranslation } from 'react-i18next';
 import Card from '../../../components/ui/Card.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import { formatMoney, cn } from '../../../lib/utils.js';
@@ -56,10 +57,11 @@ function TrendBars({ trend }) {
 }
 
 export default function ProfitCard({ profit, month, onMonthChange }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Profit</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffDashboard.profit.title')}</h2>
         <Input
           type="month"
           value={month}
@@ -70,19 +72,19 @@ export default function ProfitCard({ profit, month, onMonthChange }) {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <NetTile label="Revenue" value={profit.revenue} accent="text-text" hint="Invoiced this month" />
-        <NetTile label="Payroll cost" value={profit.payrollCost} accent="text-text" hint="Finalized run" />
-        <NetTile label="Expenses" value={profit.expenses} accent="text-text" hint="Recorded this month" />
+        <NetTile label={t('staffDashboard.profit.revenue')} value={profit.revenue} accent="text-text" hint={t('staffDashboard.profit.invoicedThisMonth')} />
+        <NetTile label={t('staffDashboard.profit.payrollCost')} value={profit.payrollCost} accent="text-text" hint={t('staffDashboard.profit.finalizedRun')} />
+        <NetTile label={t('staffDashboard.profit.expenses')} value={profit.expenses} accent="text-text" hint={t('staffDashboard.profit.recordedThisMonth')} />
         <NetTile
-          label="Net profit"
+          label={t('staffDashboard.profit.netProfit')}
           value={profit.net}
           accent={profit.net >= 0 ? 'text-success' : 'text-danger'}
-          hint="Revenue − payroll − expenses"
+          hint={t('staffDashboard.profit.revenueMinusPayrollMinusExpenses')}
         />
       </div>
 
       <div className="mt-6 border-t border-border pt-5">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Last 6 months</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">{t('staffDashboard.profit.last6Months')}</p>
         <TrendBars trend={profit.trend} />
       </div>
     </Card>

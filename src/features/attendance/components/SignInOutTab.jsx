@@ -11,6 +11,7 @@
  * carries a `kind` discriminator and its own record `_id` as the row key.
  */
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listAttendance } from '../attendance.api.js';
 import { listAllStaffAttendance, listMyStaffAttendance, punchStaffAttendance } from '../staffAttendance.api.js';
@@ -27,13 +28,16 @@ import Button from '../../../components/ui/Button.jsx';
 import Table from '../../../components/ui/Table.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
-const VERIFIED_LABEL = { geofence: 'Verified by location', officeIp: 'Verified by office network' };
-
 /** The punch card — Coordinator/HR/Accounts sign themselves in/out here. */
 function PunchCard() {
   const toast = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { locating, getLocation } = useDeviceLocation();
+  const VERIFIED_LABEL = {
+    geofence: t('staffAttendance.signInOut.verifiedByLocation'),
+    officeIp: t('staffAttendance.signInOut.verifiedByOfficeNetwork'),
+  };
 
   const { data } = useQuery({
     queryKey: ['staffAttendance', 'mine'],
@@ -52,7 +56,9 @@ function PunchCard() {
     mutationFn: punchStaffAttendance,
     onSuccess: ({ action, record }) => {
       toast.success(
-        action === 'checked-in' ? 'Signed in.' : `Signed out — ${formatHours(record.hoursWorked)} hrs today.`
+        action === 'checked-in'
+          ? t('staffAttendance.signInOut.signedIn')
+          : t('staffAttendance.signInOut.signedOut', { hours: formatHours(record.hoursWorked) })
       );
       queryClient.invalidateQueries({ queryKey: ['staffAttendance'] });
     },
@@ -66,34 +72,34 @@ function PunchCard() {
       <div className="flex flex-col items-center gap-4 py-4 text-center">
         {signedInNotOut ? (
           <Badge variant="success" className="text-sm">
-            Signed in at {formatTime(todayRecord.checkInTime)}
+            {t('staffAttendance.signInOut.signedInAt', { time: formatTime(todayRecord.checkInTime) })}
           </Badge>
         ) : hasPunchedToday ? (
           <>
             <Badge variant="default" className="text-sm">
-              Signed out at {formatTime(todayRecord.checkOutTime)}
+              {t('staffAttendance.signInOut.signedOutAt', { time: formatTime(todayRecord.checkOutTime) })}
             </Badge>
             <p className="text-xs text-muted">
-              {formatHours(todayRecord.hoursWorked)} hrs today · {VERIFIED_LABEL[todayRecord.verifiedBy] ?? 'Self-marked'}
+              {t('staffAttendance.signInOut.hoursToday', {
+                hours: formatHours(todayRecord.hoursWorked),
+                verifiedBy: VERIFIED_LABEL[todayRecord.verifiedBy] ?? t('staffAttendance.signInOut.selfMarked'),
+              })}
             </p>
           </>
         ) : (
-          <p className="text-sm text-muted">You haven't signed in today.</p>
+          <p className="text-sm text-muted">{t('staffAttendance.signInOut.notSignedInToday')}</p>
         )}
 
         {signedInNotOut ? (
           <Button onClick={punchWithLocation} isLoading={busy} size="lg" variant="secondary">
-            Sign out
+            {t('staffAttendance.signInOut.signOut')}
           </Button>
         ) : (
           <Button onClick={punchWithLocation} isLoading={busy} size="lg">
-            {hasPunchedToday ? 'Sign in again' : 'Sign in'}
+            {hasPunchedToday ? t('staffAttendance.signInOut.signInAgain') : t('staffAttendance.signInOut.signIn')}
           </Button>
         )}
-        <p className="max-w-sm text-xs text-muted">
-          You'll be asked for your location — you must be at the office (or on the office network) for this to
-          work. Sign out and back in as many times as you need during the day; each session adds to today's hours.
-        </p>
+        <p className="max-w-sm text-xs text-muted">{t('staffAttendance.signInOut.punchHint')}</p>
       </div>
     </Card>
   );
@@ -101,6 +107,7 @@ function PunchCard() {
 
 export default function SignInOutTab() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const canSeeStaffRows = ATTENDANCE_WRITE_ROLES.includes(user.role);
   const showPunchCard = STAFF_SELF_ATTENDANCE_ROLES.includes(user.role);
 
@@ -140,7 +147,7 @@ export default function SignInOutTab() {
     const staffRows = (staffRecords ?? []).map((r) => ({
       kind: 'staff',
       id: r._id,
-      name: r.user?.name ?? 'Unknown',
+      name: r.user?.name ?? t('common.notAssigned'),
       subLabel: r.user?.role,
       date: r.date,
       status: null, // StaffAttendance has no status field
@@ -158,7 +165,7 @@ export default function SignInOutTab() {
   const columns = [
     {
       key: 'who',
-      header: 'Name',
+      header: t('staffAttendance.signInOut.columns.name'),
       render: (r) => (
         <span className="font-medium text-text">
           {r.name}
@@ -166,30 +173,30 @@ export default function SignInOutTab() {
         </span>
       ),
     },
-    { key: 'date', header: 'Date', render: (r) => formatDate(r.date) },
+    { key: 'date', header: t('staffAttendance.signInOut.columns.date'), render: (r) => formatDate(r.date) },
     {
       key: 'status',
-      header: 'Status',
+      header: t('staffAttendance.signInOut.columns.status'),
       render: (r) =>
         r.status ? (
-          <Badge variant={ATTENDANCE_STATUS_META[r.status]?.variant ?? 'default'}>{r.status}</Badge>
+          <Badge variant={ATTENDANCE_STATUS_META[r.status]?.variant ?? 'default'}>{t(`common.status.${r.status}`, r.status)}</Badge>
         ) : (
           <span className="text-muted">—</span>
         ),
     },
-    { key: 'checkIn', header: 'Sign-in', className: 'tabular-nums', render: (r) => formatTime(r.checkInTime) },
-    { key: 'checkOut', header: 'Sign-out', className: 'tabular-nums', render: (r) => formatTime(r.checkOutTime) },
+    { key: 'checkIn', header: t('staffAttendance.signInOut.columns.signIn'), className: 'tabular-nums', render: (r) => formatTime(r.checkInTime) },
+    { key: 'checkOut', header: t('staffAttendance.signInOut.columns.signOut'), className: 'tabular-nums', render: (r) => formatTime(r.checkOutTime) },
     {
       key: 'hours',
-      header: 'Hours',
+      header: t('staffAttendance.signInOut.columns.hours'),
       className: 'text-center tabular-nums',
       render: (r) => formatHours(r.hoursWorked),
     },
     {
       key: 'source',
-      header: 'Marked by',
+      header: t('staffAttendance.signInOut.columns.markedBy'),
       hideOnMobile: true,
-      render: (r) => (r.source === 'self' ? 'Self' : 'Staff'),
+      render: (r) => (r.source === 'self' ? t('staffAttendance.signInOut.self') : t('staffAttendance.signInOut.staff')),
     },
   ];
 
@@ -200,16 +207,16 @@ export default function SignInOutTab() {
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex gap-3">
-            <Input label="From" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="sm:max-w-[170px]" />
-            <Input label="To" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="sm:max-w-[170px]" />
+            <Input label={t('staffAttendance.signInOut.from')} type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="sm:max-w-[170px]" />
+            <Input label={t('staffAttendance.signInOut.to')} type="date" value={to} onChange={(e) => setTo(e.target.value)} className="sm:max-w-[170px]" />
           </div>
-          <p className="text-xs text-muted">Every sign-in/sign-out for the selected range.</p>
+          <p className="text-xs text-muted">{t('staffAttendance.signInOut.rangeHint')}</p>
         </div>
 
         {!rangeValid ? (
-          <EmptyState title="Pick a valid range" description="The “from” date must be on or before the “to” date." />
+          <EmptyState title={t('staffAttendance.signInOut.invalidRange')} description={t('staffAttendance.signInOut.invalidRangeDescription')} />
         ) : isError ? (
-          <EmptyState title="Could not load the sign-in/out log" description="Please try again." />
+          <EmptyState title={t('staffAttendance.signInOut.couldNotLoad')} description={t('common.checkConnection')} />
         ) : (
           <Table
             columns={columns}
@@ -218,8 +225,8 @@ export default function SignInOutTab() {
             loading={isPending}
             emptyState={
               <EmptyState
-                title="No sign-ins in this range"
-                description="Mark or self-mark attendance for these dates to see sign-in/sign-out times."
+                title={t('staffAttendance.signInOut.emptyTitle')}
+                description={t('staffAttendance.signInOut.emptyDescription')}
               />
             }
           />

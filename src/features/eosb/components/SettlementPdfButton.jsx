@@ -3,12 +3,14 @@
  * state. Mirrors QuotationPdfButton.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { downloadSettlementPdf } from '../eosb.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function SettlementPdfButton({ id, employeeCode, size = 'md', variant = 'secondary' }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
 
@@ -17,7 +19,7 @@ export default function SettlementPdfButton({ id, employeeCode, size = 'md', var
     try {
       await downloadSettlementPdf(id, employeeCode);
     } catch (error) {
-      toast.error(apiMessage(error, 'Could not generate the PDF.'));
+      toast.error(apiMessage(error, t('staffEosb.pdfButton.failedToast')));
     } finally {
       setBusy(false);
     }
@@ -25,7 +27,7 @@ export default function SettlementPdfButton({ id, employeeCode, size = 'md', var
 
   return (
     <Button size={size} variant={variant} onClick={handle} isLoading={busy}>
-      PDF
+      {t('staffEosb.pdfButton.label')}
     </Button>
   );
 }

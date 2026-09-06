@@ -4,5 +4,5 @@ import { NAV_GROUPS } from '../navConfig.js';
 const group = NAV_GROUPS.find((g) => g.key === 'financial');
 
 export default function FinancialHubPage() {
-  return <SectionHubPage title={group.label} description={group.description} items={group.items} />;
+  return <SectionHubPage title={group.label} titleKey={group.labelKey} description={group.description} descriptionKey={group.descriptionKey} items={group.items} />;
 }

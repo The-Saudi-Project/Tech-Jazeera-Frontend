@@ -3,6 +3,7 @@
  * export. Defaults to the current month.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { getSummary, downloadExport } from '../attendance.api.js';
 import { monthRange, todayKey } from '../attendance.dates.js';
@@ -17,6 +18,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function SummaryTab() {
   const toast = useToast();
+  const { t } = useTranslation();
   const thisMonth = monthRange(todayKey());
   const [from, setFrom] = useState(thisMonth.from);
   const [to, setTo] = useState(thisMonth.to);
@@ -33,7 +35,7 @@ export default function SummaryTab() {
     try {
       await downloadExport({ format, from, to });
     } catch (error) {
-      toast.error(apiMessage(error, 'Export failed.'));
+      toast.error(apiMessage(error, t('staffAttendance.summary.exportFailed')));
     } finally {
       setExporting(null);
     }
@@ -42,7 +44,7 @@ export default function SummaryTab() {
   const columns = [
     {
       key: 'fullName',
-      header: 'Worker',
+      header: t('staffAttendance.summary.worker'),
       render: (r) => (
         <span>
           {r.fullName}
@@ -52,13 +54,13 @@ export default function SummaryTab() {
     },
     ...ATTENDANCE_STATUSES.map((s) => ({
       key: s,
-      header: s,
+      header: t(`common.status.${s}`, s),
       className: 'text-center tabular-nums',
       render: (r) => r[s] || 0,
     })),
     {
       key: 'total',
-      header: 'Total',
+      header: t('staffAttendance.summary.total'),
       className: 'text-center font-semibold tabular-nums',
       render: (r) => r.total,
     },
@@ -71,8 +73,8 @@ export default function SummaryTab() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex gap-3">
-          <Input label="From" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="sm:max-w-[170px]" />
-          <Input label="To" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="sm:max-w-[170px]" />
+          <Input label={t('staffAttendance.signInOut.from')} type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="sm:max-w-[170px]" />
+          <Input label={t('staffAttendance.signInOut.to')} type="date" value={to} onChange={(e) => setTo(e.target.value)} className="sm:max-w-[170px]" />
         </div>
         <div className="flex gap-2">
           <Button
@@ -81,7 +83,7 @@ export default function SummaryTab() {
             isLoading={exporting === 'xlsx'}
             disabled={!rangeValid || rows.length === 0}
           >
-            Export Excel
+            {t('staffAttendance.summary.exportExcel')}
           </Button>
           <Button
             variant="secondary"
@@ -89,15 +91,15 @@ export default function SummaryTab() {
             isLoading={exporting === 'pdf'}
             disabled={!rangeValid || rows.length === 0}
           >
-            Export PDF
+            {t('staffAttendance.summary.exportPdf')}
           </Button>
         </div>
       </div>
 
       {!rangeValid ? (
-        <EmptyState title="Pick a valid range" description="The “from” date must be on or before the “to” date." />
+        <EmptyState title={t('staffAttendance.signInOut.invalidRange')} description={t('staffAttendance.signInOut.invalidRangeDescription')} />
       ) : isError ? (
-        <EmptyState title="Could not load summary" description="Please try again." />
+        <EmptyState title={t('staffAttendance.summary.couldNotLoad')} description={t('staffAttendance.summary.couldNotLoadDescription')} />
       ) : (
         <Table
           columns={columns}
@@ -106,8 +108,8 @@ export default function SummaryTab() {
           loading={isPending}
           emptyState={
             <EmptyState
-              title="No attendance in this range"
-              description="Mark attendance for these dates to see a summary."
+              title={t('staffAttendance.summary.emptyTitle')}
+              description={t('staffAttendance.summary.emptyDescription')}
             />
           }
         />

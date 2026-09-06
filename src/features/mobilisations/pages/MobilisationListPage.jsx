@@ -4,6 +4,7 @@
  * view" until a proper detail page lands in M2/M3.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { listMobilisations } from '../mobilisations.api.js';
@@ -18,6 +19,7 @@ import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function MobilisationListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
@@ -48,14 +50,14 @@ export default function MobilisationListPage() {
   });
 
   const columns = [
-    { key: 'workerName', header: 'Worker', render: (m) => m.workerName },
-    { key: 'jobTitle', header: 'Job title', hideOnMobile: true, render: (m) => m.jobTitle },
-    { key: 'clientName', header: 'Client', render: (m) => m.clientName },
-    { key: 'mobilisationDate', header: 'Mobilisation date', hideOnMobile: true, render: (m) => formatDate(m.mobilisationDate) },
+    { key: 'workerName', header: t('staffMobilisations.list.columns.worker'), render: (m) => m.workerName },
+    { key: 'jobTitle', header: t('staffMobilisations.list.columns.jobTitle'), hideOnMobile: true, render: (m) => m.jobTitle },
+    { key: 'clientName', header: t('staffMobilisations.list.columns.client'), render: (m) => m.clientName },
+    { key: 'mobilisationDate', header: t('staffMobilisations.list.columns.mobilisationDate'), hideOnMobile: true, render: (m) => formatDate(m.mobilisationDate) },
     {
       key: 'status',
-      header: 'Status',
-      render: (m) => <Badge variant={MOBILISATION_STATUS_VARIANT[m.status]}>{m.status}</Badge>,
+      header: t('staffMobilisations.list.columns.status'),
+      render: (m) => <Badge variant={MOBILISATION_STATUS_VARIANT[m.status]}>{t(`common.status.${m.status}`, m.status)}</Badge>,
     },
     {
       key: 'actions',
@@ -64,7 +66,7 @@ export default function MobilisationListPage() {
       render: (m) => (
         <span className="flex justify-end gap-2">
           <Button size="sm" variant="ghost" onClick={() => navigate(`/mobilisations/${m._id}`)}>
-            View
+            {t('common.view')}
           </Button>
         </span>
       ),
@@ -76,34 +78,34 @@ export default function MobilisationListPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
-        title="Mobilisations"
-        description="Worker placements with client billing terms."
+        title={t('staffMobilisations.list.pageTitle')}
+        description={t('staffMobilisations.list.pageDescription')}
         onBack={() => navigate(-1)}
         actions={
           <Button size="sm" onClick={() => navigate('/mobilisations/new')}>
-            New mobilisation
+            {t('staffMobilisations.list.newMobilisation')}
           </Button>
         }
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
-          placeholder="Search worker, client, job title…"
+          placeholder={t('staffMobilisations.list.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
-          aria-label="Search mobilisations"
+          aria-label={t('staffMobilisations.list.searchAriaLabel')}
         />
         <Select
           value={params.status}
           onChange={(e) => setParams((p) => ({ ...p, status: e.target.value, page: 1 }))}
           className="sm:max-w-[180px]"
-          aria-label="Filter by status"
+          aria-label={t('staffMobilisations.list.filterStatusAriaLabel')}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {MOBILISATION_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
@@ -111,9 +113,9 @@ export default function MobilisationListPage() {
 
       {isError ? (
         <EmptyState
-          title="Could not load mobilisations"
-          description="Please try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('staffMobilisations.list.couldNotLoad')}
+          description={t('staffMobilisations.list.couldNotLoadDescription')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       ) : (
         <>
@@ -125,9 +127,9 @@ export default function MobilisationListPage() {
             onRowClick={(m) => navigate(`/mobilisations/${m._id}`)}
             emptyState={
               <EmptyState
-                title={noFilters ? 'No mobilisations yet' : 'No mobilisations match'}
-                description={noFilters ? 'Create your first mobilisation above.' : 'Try clearing the search or filters.'}
-                action={noFilters && <Button variant="secondary" onClick={() => navigate('/mobilisations/new')}>New mobilisation</Button>}
+                title={noFilters ? t('staffMobilisations.list.emptyTitleNoFilters') : t('staffMobilisations.list.emptyTitleFiltered')}
+                description={noFilters ? t('staffMobilisations.list.emptyDescriptionNoFilters') : t('common.tryClearingFilters')}
+                action={noFilters && <Button variant="secondary" onClick={() => navigate('/mobilisations/new')}>{t('staffMobilisations.list.newMobilisation')}</Button>}
               />
             }
           />
@@ -135,17 +137,17 @@ export default function MobilisationListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–{Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * params.limit + 1, to: Math.min(data.page * params.limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>

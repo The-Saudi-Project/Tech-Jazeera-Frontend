@@ -4,6 +4,7 @@
  * two screens stay consistent and share the reusable Table.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listClients, deleteClient } from '../clients.api.js';
@@ -31,6 +32,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 const STATUS_VARIANT = { Active: 'success', Inactive: 'default' };
 
 export default function ClientListPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -82,7 +84,7 @@ export default function ClientListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteClient(id),
     onSuccess: () => {
-      toast.success(`${toDelete.companyName} deleted.`);
+      toast.success(t('staffClients.list.deletedToast', { name: toDelete.companyName }));
       setToDelete(null);
       queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
@@ -105,7 +107,7 @@ export default function ClientListPage() {
   const columns = [
     {
       key: 'companyName',
-      header: 'Company',
+      header: t('staffClients.list.columns.company'),
       sortable: true,
       render: (c) => (
         <Link to={`/clients/${c._id}`} className="font-medium text-text hover:text-primary">
@@ -116,26 +118,26 @@ export default function ClientListPage() {
         </Link>
       ),
     },
-    { key: 'industry', header: 'Industry', render: (c) => c.industry || '—' },
-    { key: 'phone', header: 'Phone', hideOnMobile: true, render: (c) => c.phone || '—' },
+    { key: 'industry', header: t('staffClients.list.columns.industry'), render: (c) => c.industry || '—' },
+    { key: 'phone', header: t('staffClients.list.columns.phone'), hideOnMobile: true, render: (c) => c.phone || '—' },
     {
       key: 'sites',
-      header: 'Sites',
+      header: t('staffClients.list.columns.sites'),
       render: (c) => (c.sites?.length ? <Badge variant="primary">{c.sites.length}</Badge> : '—'),
     },
     {
       key: 'status',
-      header: 'Status',
-      render: (c) => <Badge variant={STATUS_VARIANT[c.status]}>{c.status}</Badge>,
+      header: t('staffClients.list.columns.status'),
+      render: (c) => <Badge variant={STATUS_VARIANT[c.status]}>{t(`common.status.${c.status}`, c.status)}</Badge>,
     },
     {
       key: 'approvalStatus',
-      header: 'Approval',
-      render: (c) => <Badge variant={CLIENT_APPROVAL_VARIANT[c.approvalStatus]}>{c.approvalStatus}</Badge>,
+      header: t('staffClients.list.columns.approval'),
+      render: (c) => <Badge variant={CLIENT_APPROVAL_VARIANT[c.approvalStatus]}>{t(`common.status.${c.approvalStatus}`, c.approvalStatus)}</Badge>,
     },
     {
       key: 'createdBy',
-      header: 'Added by',
+      header: t('staffClients.list.columns.addedBy'),
       hideOnMobile: true,
       render: (c) =>
         c.createdBy ? (
@@ -143,7 +145,7 @@ export default function ClientListPage() {
             {c.createdBy.name}
             {c.createdBy.role === 'Coordinator' && (
               <Badge variant="primary" className="ml-1.5">
-                Coordinator
+                {t('staffClients.list.coordinatorBadge')}
               </Badge>
             )}
           </span>
@@ -158,21 +160,21 @@ export default function ClientListPage() {
       render: (c) => (
         <span className="flex justify-end gap-2">
           <Button size="sm" variant="secondary" onClick={() => navigate(`/clients/${c._id}`)}>
-            View
+            {t('common.view')}
           </Button>
           {canEditClient(user, c) && (
             <Button size="sm" variant="ghost" onClick={() => navigate(`/clients/${c._id}/edit`)}>
-              Edit
+              {t('common.edit')}
             </Button>
           )}
           {canDelete && (
             <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(c)}>
-              Delete
+              {t('common.delete')}
             </Button>
           )}
           {canDecideClient(user, c) && (
             <Button size="sm" onClick={() => setDeciding(c)}>
-              Review
+              {t('staffClients.list.review')}
             </Button>
           )}
         </span>
@@ -185,30 +187,30 @@ export default function ClientListPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Clients"
-        description="Companies we supply manpower and trade to."
+        title={t('staffClients.list.pageTitle')}
+        description={t('staffClients.list.pageDescription')}
         onBack={() => navigate(-1)}
-        actions={canCreate && <Button onClick={() => navigate('/clients/new')}>Add client</Button>}
+        actions={canCreate && <Button onClick={() => navigate('/clients/new')}>{t('staffClients.list.addClient')}</Button>}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
         <Input
-          placeholder="Search company, contact, email…"
+          placeholder={t('staffClients.list.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
-          aria-label="Search clients"
+          aria-label={t('staffClients.list.searchAriaLabel')}
         />
         <Select
           value={params.status}
           onChange={(e) => setParams((p) => ({ ...p, status: e.target.value, page: 1 }))}
           className="sm:max-w-[180px]"
-          aria-label="Filter by status"
+          aria-label={t('staffClients.list.filterStatusAriaLabel')}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {CLIENT_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
@@ -216,12 +218,12 @@ export default function ClientListPage() {
           value={params.approvalStatus}
           onChange={(e) => setParams((p) => ({ ...p, approvalStatus: e.target.value, page: 1 }))}
           className="sm:max-w-[180px]"
-          aria-label="Filter by approval"
+          aria-label={t('staffClients.list.filterApprovalAriaLabel')}
         >
-          <option value="">All approval states</option>
+          <option value="">{t('staffClients.list.allApprovalStates')}</option>
           {CLIENT_APPROVAL_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
@@ -229,11 +231,11 @@ export default function ClientListPage() {
 
       {isError ? (
         <EmptyState
-          title="Could not load clients"
-          description="Check your connection and try again."
+          title={t('staffClients.list.couldNotLoad')}
+          description={t('staffClients.list.couldNotLoadDescription')}
           action={
             <Button variant="secondary" onClick={() => queryClient.invalidateQueries({ queryKey: ['clients'] })}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
         />
@@ -250,15 +252,15 @@ export default function ClientListPage() {
             onRowClick={(c) => navigate(`/clients/${c._id}`)}
             emptyState={
               <EmptyState
-                title={noFilters ? 'No clients yet' : 'No clients match'}
+                title={noFilters ? t('staffClients.list.emptyTitleNoFilters') : t('staffClients.list.emptyTitleFiltered')}
                 description={
                   noFilters
-                    ? 'Add your first client to start tracking companies and sites.'
-                    : 'Try clearing the search or filters.'
+                    ? t('staffClients.list.emptyDescriptionNoFilters')
+                    : t('common.tryClearingFilters')
                 }
                 action={
                   noFilters && canCreate ? (
-                    <Button onClick={() => navigate('/clients/new')}>Add client</Button>
+                    <Button onClick={() => navigate('/clients/new')}>{t('staffClients.list.addClient')}</Button>
                   ) : null
                 }
               />
@@ -268,18 +270,17 @@ export default function ClientListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–
-                {Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * params.limit + 1, to: Math.min(data.page * params.limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>
@@ -289,8 +290,8 @@ export default function ClientListPage() {
 
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete client?"
-        message={`${toDelete?.companyName} will be permanently removed. Set status to "Inactive" instead if you just want to archive it.`}
+        title={t('staffClients.list.deleteConfirmTitle')}
+        message={t('staffClients.list.deleteConfirmMessage', { name: toDelete?.companyName })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}

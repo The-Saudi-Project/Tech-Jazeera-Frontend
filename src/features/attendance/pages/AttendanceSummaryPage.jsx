@@ -4,16 +4,18 @@
  * tab bar — it's a monthly/reporting view, not a daily-operations one.
  */
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import SummaryTab from '../components/SummaryTab.jsx';
 
 export default function AttendanceSummaryPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Attendance Summary"
-        description="Per-worker status counts over a date range, with Excel/PDF export."
+        title={t('staffAttendance.summary.pageTitle')}
+        description={t('staffAttendance.summary.pageDescription')}
         // Fixed destination, not browser history — this page is only ever
         // reached from the Dashboard's "Marked today" stat (see the file
         // comment), so "back" here means the related Attendance page, not

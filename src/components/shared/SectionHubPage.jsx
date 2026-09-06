@@ -5,6 +5,7 @@
  * actually use.
  */
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../features/auth/AuthContext.jsx';
 import PageHeader from './PageHeader.jsx';
 
@@ -16,13 +17,19 @@ function ItemIcon({ d }) {
   );
 }
 
-export default function SectionHubPage({ title, description, items }) {
+/** `titleKey`/`descriptionKey` and each item's `labelKey`/`descriptionKey`
+ *  are optional translation keys (see navConfig.js) — `t(key, fallback)`
+ *  renders the literal English `title`/`description`/`item.label`/
+ *  `item.description` unchanged wherever a key isn't set yet, so this page
+ *  works identically for a not-yet-translated group. */
+export default function SectionHubPage({ title, titleKey, description, descriptionKey, items }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const visible = items.filter((item) => !item.roles || item.roles.includes(user.role));
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title={title} description={description} />
+      <PageHeader title={titleKey ? t(titleKey, title) : title} description={descriptionKey ? t(descriptionKey, description) : description} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {visible.map((item) => (
           <Link
@@ -34,8 +41,14 @@ export default function SectionHubPage({ title, description, items }) {
               <ItemIcon d={item.icon} />
             </div>
             <div>
-              <p className="font-semibold text-text group-hover:text-primary">{item.label}</p>
-              {item.description && <p className="mt-1 text-sm text-muted">{item.description}</p>}
+              <p className="font-semibold text-text group-hover:text-primary">
+                {item.labelKey ? t(item.labelKey, item.label) : item.label}
+              </p>
+              {item.description && (
+                <p className="mt-1 text-sm text-muted">
+                  {item.descriptionKey ? t(item.descriptionKey, item.description) : item.description}
+                </p>
+              )}
             </div>
           </Link>
         ))}

@@ -6,6 +6,7 @@
  * "connect to the office WiFi" (browsers can't read a WiFi network's name).
  */
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -27,6 +28,7 @@ import Skeleton from '../../../components/ui/Skeleton.jsx';
 
 export default function OfficeLocationSettings() {
   const toast = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { locating, getLocation } = useDeviceLocation();
 
@@ -50,7 +52,7 @@ export default function OfficeLocationSettings() {
   const saveMutation = useMutation({
     mutationFn: (values) => setOfficeLocation(formToOfficeLocationPayload(values)),
     onSuccess: () => {
-      toast.success('Office location saved.');
+      toast.success(t('staffAttendance.officeLocation.savedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['office-location'] });
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -59,34 +61,34 @@ export default function OfficeLocationSettings() {
   async function useMyLocation() {
     const location = await getLocation();
     if (!location) {
-      toast.error('Could not get your location. Check location permissions.');
+      toast.error(t('staffAttendance.officeLocation.locationError'));
       return;
     }
     setValue('lat', String(location.lat));
     setValue('lng', String(location.lng));
-    toast.success('Location filled in — stand at the office before clicking this.');
+    toast.success(t('staffAttendance.officeLocation.locationFilledSuccess'));
   }
 
   if (isPending) return <Skeleton className="h-64 w-full" />;
 
   return (
     <Card>
-      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Office location</h2>
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffAttendance.officeLocation.title')}</h2>
       <p className="mb-4 text-sm text-muted">
-        Workers can only mark their own attendance from within this radius, or from an allow-listed office IP.
-        {!location && ' Not configured yet — self-marking is disabled until you set this up.'}
+        {t('staffAttendance.officeLocation.hint')}
+        {!location && t('staffAttendance.officeLocation.notConfigured')}
       </p>
       <form onSubmit={handleSubmit((values) => saveMutation.mutate(values))} noValidate className="space-y-4">
-        <Input label="Location name" placeholder="Head Office" error={errors.name?.message} {...register('name')} />
+        <Input label={t('staffAttendance.officeLocation.locationName')} placeholder="Head Office" error={errors.name?.message} {...register('name')} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Latitude *" placeholder="24.7136" error={errors.lat?.message} {...register('lat')} />
-          <Input label="Longitude *" placeholder="46.6753" error={errors.lng?.message} {...register('lng')} />
+          <Input label={`${t('staffAttendance.officeLocation.latitude')} *`} placeholder="24.7136" error={errors.lat?.message} {...register('lat')} />
+          <Input label={`${t('staffAttendance.officeLocation.longitude')} *`} placeholder="46.6753" error={errors.lng?.message} {...register('lng')} />
         </div>
         <Button type="button" variant="secondary" size="sm" onClick={useMyLocation} isLoading={locating}>
-          Use my current location
+          {t('staffAttendance.officeLocation.useMyLocation')}
         </Button>
         <Input
-          label="Allowed radius (meters) *"
+          label={`${t('staffAttendance.officeLocation.allowedRadius')} *`}
           type="number"
           min="10"
           max="5000"
@@ -94,19 +96,16 @@ export default function OfficeLocationSettings() {
           {...register('radiusMeters')}
         />
         <Textarea
-          label="Office IP addresses (optional)"
-          placeholder={'One per line, e.g.\n203.0.113.42'}
+          label={t('staffAttendance.officeLocation.officeIps')}
+          placeholder={t('staffAttendance.officeLocation.officeIpsPlaceholder')}
           rows={3}
           error={errors.allowedIpsText?.message}
           {...register('allowedIpsText')}
         />
-        <p className="text-xs text-muted">
-          Exact IPs only — not a subnet/CIDR range. Find your office's public IP by visiting whatismyip.com from an
-          office computer.
-        </p>
+        <p className="text-xs text-muted">{t('staffAttendance.officeLocation.ipsHint')}</p>
         <div className="flex justify-end">
           <Button type="submit" isLoading={saveMutation.isPending}>
-            Save
+            {t('common.save')}
           </Button>
         </div>
       </form>

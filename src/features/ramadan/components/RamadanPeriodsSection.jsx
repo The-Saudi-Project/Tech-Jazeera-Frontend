@@ -11,6 +11,7 @@
  * here directly, but this is where that number ultimately comes from.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -34,6 +35,7 @@ import Modal from '../../../components/ui/Modal.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function RamadanPeriodsSection() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -59,7 +61,7 @@ export default function RamadanPeriodsSection() {
   const saveMutation = useMutation({
     mutationFn: (values) => (editing?._id ? updateRamadanPeriod(editing._id, values) : createRamadanPeriod(values)),
     onSuccess: () => {
-      toast.success(editing?._id ? 'Ramadan period updated.' : 'Ramadan period added.');
+      toast.success(editing?._id ? t('staffHolidays.ramadan.updatedSuccess') : t('staffHolidays.ramadan.addedSuccess'));
       setEditing(null);
       invalidate();
     },
@@ -69,7 +71,7 @@ export default function RamadanPeriodsSection() {
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteRamadanPeriod(id),
     onSuccess: () => {
-      toast.success(`${toDelete.label} removed.`);
+      toast.success(t('staffHolidays.ramadan.removedSuccess', { label: toDelete.label }));
       setToDelete(null);
       invalidate();
     },
@@ -86,17 +88,17 @@ export default function RamadanPeriodsSection() {
   }
 
   const columns = [
-    { key: 'label', header: 'Period', render: (p) => <span className="font-medium text-text">{p.label}</span> },
+    { key: 'label', header: t('staffHolidays.ramadan.columns.period'), render: (p) => <span className="font-medium text-text">{p.label}</span> },
     {
       key: 'dates',
-      header: 'Dates',
+      header: t('staffHolidays.ramadan.columns.dates'),
       render: (p) => `${formatDate(p.startDate)} – ${formatDate(p.endDate)}`,
     },
     {
       key: 'caps',
-      header: 'Hour caps',
+      header: t('staffHolidays.ramadan.columns.hourCaps'),
       hideOnMobile: true,
-      render: (p) => `${p.dailyHours}h/day · ${p.weeklyHours}h/week`,
+      render: (p) => t('staffHolidays.ramadan.hourCapsValue', { daily: p.dailyHours, weekly: p.weeklyHours }),
     },
     {
       key: 'actions',
@@ -106,10 +108,10 @@ export default function RamadanPeriodsSection() {
         canManage ? (
           <span className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => openEdit(p)}>
-              Edit
+              {t('common.edit')}
             </Button>
             <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(p)}>
-              Delete
+              {t('common.delete')}
             </Button>
           </span>
         ) : null,
@@ -120,23 +122,23 @@ export default function RamadanPeriodsSection() {
     <div>
       <div className="mb-4 flex items-baseline justify-between">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Ramadan working hours</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffHolidays.ramadan.sectionTitle')}</h2>
           <p className="mt-1 text-xs text-muted">
-            The reduced-hours period and weekly cap used to calculate overtime — confirm the dates each year.
+            {t('staffHolidays.ramadan.sectionDescription')}
           </p>
         </div>
         {canManage && (
           <Button size="sm" onClick={openNew}>
-            Add period
+            {t('staffHolidays.ramadan.addPeriod')}
           </Button>
         )}
       </div>
 
       {isError ? (
         <EmptyState
-          title="Could not load Ramadan periods"
-          description="Check your connection and try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('staffHolidays.ramadan.couldNotLoad')}
+          description={t('common.checkConnection')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       ) : (
         <Table
@@ -146,39 +148,39 @@ export default function RamadanPeriodsSection() {
           loading={isPending}
           emptyState={
             <EmptyState
-              title="No Ramadan periods yet"
+              title={t('staffHolidays.ramadan.emptyTitle')}
               description={
                 canManage
-                  ? 'Add this year’s dates so weekly timesheets during Ramadan use the reduced-hours cap.'
-                  : 'HR has not added a Ramadan period yet.'
+                  ? t('staffHolidays.ramadan.emptyDescriptionManage')
+                  : t('staffHolidays.ramadan.emptyDescriptionView')
               }
-              action={canManage && <Button variant="secondary" onClick={openNew}>Add period</Button>}
+              action={canManage && <Button variant="secondary" onClick={openNew}>{t('staffHolidays.ramadan.addPeriod')}</Button>}
             />
           }
         />
       )}
 
-      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?._id ? 'Edit Ramadan period' : 'Add Ramadan period'}>
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?._id ? t('staffHolidays.ramadan.modalEditTitle') : t('staffHolidays.ramadan.modalAddTitle')}>
         <form onSubmit={handleSubmit((values) => saveMutation.mutate(values))} noValidate className="space-y-4">
-          <Input label="Label *" placeholder="e.g. Ramadan 1447" error={errors.label?.message} {...register('label')} />
+          <Input label={t('staffHolidays.ramadan.form.label')} placeholder={t('staffHolidays.ramadan.form.labelPlaceholder')} error={errors.label?.message} {...register('label')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Start date *" type="date" error={errors.startDate?.message} {...register('startDate')} />
-            <Input label="End date *" type="date" error={errors.endDate?.message} {...register('endDate')} />
+            <Input label={t('staffHolidays.ramadan.form.startDate')} type="date" error={errors.startDate?.message} {...register('startDate')} />
+            <Input label={t('staffHolidays.ramadan.form.endDate')} type="date" error={errors.endDate?.message} {...register('endDate')} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Daily hour cap *" type="number" min="1" max="8" error={errors.dailyHours?.message} {...register('dailyHours')} />
-            <Input label="Weekly hour cap *" type="number" min="6" max="48" error={errors.weeklyHours?.message} {...register('weeklyHours')} />
+            <Input label={t('staffHolidays.ramadan.form.dailyHours')} type="number" min="1" max="8" error={errors.dailyHours?.message} {...register('dailyHours')} />
+            <Input label={t('staffHolidays.ramadan.form.weeklyHours')} type="number" min="6" max="48" error={errors.weeklyHours?.message} {...register('weeklyHours')} />
           </div>
           <p className="text-xs text-muted">
-            Labor Law Article 98 sets the default at 6 hours/day, 36 hours/week — adjust only if company policy differs.
+            {t('staffHolidays.ramadan.form.hint')}
           </p>
-          <Textarea label="Notes" placeholder="Optional" error={errors.notes?.message} {...register('notes')} />
+          <Textarea label={t('staffHolidays.ramadan.form.notes')} placeholder={t('common.optional')} error={errors.notes?.message} {...register('notes')} />
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setEditing(null)} disabled={saveMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={saveMutation.isPending}>
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </form>
@@ -186,8 +188,8 @@ export default function RamadanPeriodsSection() {
 
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete Ramadan period?"
-        message={`"${toDelete?.label}" will be removed. Timesheets already decided for weeks in this period keep their computed overtime; only future submissions are affected.`}
+        title={t('staffHolidays.ramadan.deleteConfirmTitle')}
+        message={t('staffHolidays.ramadan.deleteConfirmMessage', { label: toDelete?.label })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}

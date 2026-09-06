@@ -1,9 +1,16 @@
 /**
- * Certificate requests API layer — the staff review queue. A worker's own
- * submit/list/cancel/pdf calls live in features/ess/ess.api.js
- * (/api/me/certificates), not here.
+ * Certificate requests API layer — the staff review queue, plus a staff
+ * member's own self-submission. A worker's own submit/list/cancel/pdf calls
+ * live in features/ess/ess.api.js (/api/me/certificates), not here.
  */
 import { api } from '../../lib/axios.js';
+
+/** A staff member submitting their OWN request — the self-submission
+ *  counterpart to /api/me. */
+export async function submitCertificate(payload) {
+  const { data } = await api.post('/exit-documents/certificates', payload);
+  return data.data;
+}
 
 export async function listCertificates(params) {
   const { data } = await api.get('/exit-documents/certificates', { params });

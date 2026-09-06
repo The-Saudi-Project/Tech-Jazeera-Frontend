@@ -5,9 +5,11 @@
  * clients (M5) and the rest copy its shape.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listEmployees, deleteEmployee } from '../employees.api.js';
+import { getMySectionAccess } from '../../sectionAccess/sectionAccess.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import {
@@ -15,7 +17,6 @@ import {
   EMPLOYEE_TYPES,
   EMPLOYEE_WRITE_ROLES,
   EMPLOYEE_DELETE_ROLES,
-  EMPLOYEE_CREATE_ROLES,
   EXPIRY_WARNING_DAYS,
 } from '../../../lib/constants.js';
 import { apiMessage, daysUntil, formatDate } from '../../../lib/utils.js';
@@ -30,8 +31,12 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 const STATUS_VARIANT = { Active: 'success', 'On Leave': 'warning', Exited: 'default' };
 
-/** Worst document state across the five docs → one glanceable badge. */
-function docsBadge(employee) {
+/** Worst document state across the five docs → one glanceable badge. `t`
+ *  passed in rather than called via useTranslation() here — this is a plain
+ *  function invoked from Table's own render (via `column.render`), not a
+ *  component rendered as JSX, so a hook call inside it would attach to
+ *  whichever component happens to be mid-render, not this page. */
+function docsBadge(employee, t) {
   const expiries = [
     employee.passport?.expiry,
     employee.visa?.expiry,
@@ -39,22 +44,29 @@ function docsBadge(employee) {
     employee.medical?.expiry,
     employee.drivingLicense?.expiry,
   ].filter(Boolean);
-  if (expiries.length === 0) return <Badge>No docs</Badge>;
+  if (expiries.length === 0) return <Badge>{t('staffEmployees.list.noDocs')}</Badge>;
   const worst = Math.min(...expiries.map(daysUntil));
-  if (worst < 0) return <Badge variant="danger">Expired</Badge>;
-  if (worst <= EXPIRY_WARNING_DAYS) return <Badge variant="warning">{worst}d left</Badge>;
-  return <Badge variant="success">OK</Badge>;
+  if (worst < 0) return <Badge variant="danger">{t('staffEmployees.list.docsExpired')}</Badge>;
+  if (worst <= EXPIRY_WARNING_DAYS) return <Badge variant="warning">{t('staffEmployees.list.docsDaysLeft', { days: worst })}</Badge>;
+  return <Badge variant="success">{t('staffEmployees.list.docsOk')}</Badge>;
 }
 
 export default function EmployeeListPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const canWrite = EMPLOYEE_WRITE_ROLES.includes(user.role);
   const canDelete = EMPLOYEE_DELETE_ROLES.includes(user.role);
-  const canCreate = EMPLOYEE_CREATE_ROLES.includes(user.role);
+  // Who may create is admin-configurable (Section Access, 'employeeCreate')
+  // rather than a static role list — Admin only by default. Defaults to
+  // hidden while the check itself is loading, never a flash-then-hide.
+  const { data: canCreate = false } = useQuery({
+    queryKey: ['section-access', 'employeeCreate', 'mine'],
+    queryFn: () => getMySectionAccess('employeeCreate'),
+  });
 
   // `search` is what the user types; `params.search` is what we query with —
   // debounced 300ms so we don't fire a request per keystroke.
@@ -99,7 +111,7 @@ export default function EmployeeListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteEmployee(id),
     onSuccess: () => {
-      toast.success(`${toDelete.fullName} deleted.`);
+      toast.success(t('common.deletedSuccess', { name: toDelete.fullName }));
       setToDelete(null);
       queryClient.invalidateQueries({ queryKey: ['employees'] });
     },
@@ -118,7 +130,7 @@ export default function EmployeeListPage() {
   const columns = [
     {
       key: 'fullName',
-      header: 'Employee',
+      header: t('staffEmployees.list.columns.employee'),
       sortable: true,
       render: (e) => (
         <Link to={`/employees/${e._id}`} className="font-medium text-text hover:text-primary">
@@ -131,7 +143,7 @@ export default function EmployeeListPage() {
     },
     {
       key: 'designation',
-      header: 'Designation',
+      header: t('staffEmployees.list.columns.designation'),
       render: (e) => (
         <span>
           {e.designation}
@@ -139,23 +151,23 @@ export default function EmployeeListPage() {
         </span>
       ),
     },
-    { key: 'mobile', header: 'Mobile', hideOnMobile: true, render: (e) => e.mobile },
-    { key: 'type', header: 'Type', hideOnMobile: true, render: (e) => <Badge>{e.type}</Badge> },
+    { key: 'mobile', header: t('staffEmployees.list.columns.mobile'), hideOnMobile: true, render: (e) => e.mobile },
+    { key: 'type', header: t('staffEmployees.list.columns.type'), hideOnMobile: true, render: (e) => <Badge>{t(`common.employeeType.${e.type}`, e.type)}</Badge> },
     {
       key: 'joiningDate',
-      header: 'Joined',
+      header: t('staffEmployees.list.columns.joined'),
       sortable: true,
       render: (e) => formatDate(e.joiningDate),
     },
     {
       key: 'status',
-      header: 'Status',
-      render: (e) => <Badge variant={STATUS_VARIANT[e.status]}>{e.status}</Badge>,
+      header: t('staffEmployees.list.columns.status'),
+      render: (e) => <Badge variant={STATUS_VARIANT[e.status]}>{t(`common.status.${e.status}`, e.status)}</Badge>,
     },
-    { key: 'docs', header: 'Documents', render: docsBadge },
+    { key: 'docs', header: t('staffEmployees.list.columns.documents'), render: (e) => docsBadge(e, t) },
     {
       key: 'createdBy',
-      header: 'Added by',
+      header: t('common.addedBy'),
       hideOnMobile: true,
       render: (e) =>
         e.createdBy ? (
@@ -163,7 +175,7 @@ export default function EmployeeListPage() {
             {e.createdBy.name}
             {e.createdBy.role === 'Coordinator' && (
               <Badge variant="primary" className="ml-1.5">
-                Coordinator
+                {t('staffEmployees.list.coordinator')}
               </Badge>
             )}
           </span>
@@ -178,16 +190,16 @@ export default function EmployeeListPage() {
       render: (e) => (
         <span className="flex justify-end gap-2">
           <Button size="sm" variant="secondary" onClick={() => navigate(`/employees/${e._id}`)}>
-            View
+            {t('common.view')}
           </Button>
           {canWrite && (
             <Button size="sm" variant="ghost" onClick={() => navigate(`/employees/${e._id}/edit`)}>
-              Edit
+              {t('common.edit')}
             </Button>
           )}
           {canDelete && (
             <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(e)}>
-              Delete
+              {t('common.delete')}
             </Button>
           )}
         </span>
@@ -200,15 +212,15 @@ export default function EmployeeListPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Employees"
-        description="The company's workforce register."
+        title={t('staffEmployees.list.title')}
+        description={t('staffEmployees.list.description')}
         onBack={() => navigate(-1)}
-        actions={canCreate && <Button onClick={() => navigate('/employees/new')}>Add employee</Button>}
+        actions={canCreate && <Button onClick={() => navigate('/employees/new')}>{t('staffEmployees.list.addEmployee')}</Button>}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
         <Input
-          placeholder="Search name, ID, mobile…"
+          placeholder={t('staffEmployees.list.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
@@ -220,10 +232,10 @@ export default function EmployeeListPage() {
           className="sm:max-w-[180px]"
           aria-label="Filter by status"
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {EMPLOYEE_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
@@ -233,10 +245,10 @@ export default function EmployeeListPage() {
           className="sm:max-w-[180px]"
           aria-label="Filter by type"
         >
-          <option value="">All types</option>
-          {EMPLOYEE_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          <option value="">{t('common.allTypes')}</option>
+          {EMPLOYEE_TYPES.map((ty) => (
+            <option key={ty} value={ty}>
+              {t(`common.employeeType.${ty}`, ty)}
             </option>
           ))}
         </Select>
@@ -244,25 +256,25 @@ export default function EmployeeListPage() {
           variant={params.alerts ? 'primary' : 'secondary'}
           onClick={() => setParams((p) => ({ ...p, alerts: !p.alerts, page: 1 }))}
         >
-          Expiring documents
+          {t('staffEmployees.list.expiringDocuments')}
         </Button>
         {user.role === 'Manager' && (
           <Button
             variant={params.team ? 'primary' : 'secondary'}
             onClick={() => setParams((p) => ({ ...p, team: !p.team, page: 1 }))}
           >
-            My team
+            {t('staffEmployees.list.myTeam')}
           </Button>
         )}
       </div>
 
       {isError ? (
         <EmptyState
-          title="Could not load employees"
-          description="Check your connection and try again."
+          title={t('staffEmployees.list.couldNotLoad')}
+          description={t('common.checkConnection')}
           action={
             <Button variant="secondary" onClick={() => queryClient.invalidateQueries({ queryKey: ['employees'] })}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
         />
@@ -279,15 +291,11 @@ export default function EmployeeListPage() {
             onRowClick={(e) => navigate(`/employees/${e._id}`)}
             emptyState={
               <EmptyState
-                title={noFilters ? 'No employees yet' : 'No employees match'}
-                description={
-                  noFilters
-                    ? 'Add your first employee to start building the register.'
-                    : 'Try clearing the search or filters.'
-                }
+                title={noFilters ? t('staffEmployees.list.emptyTitle') : t('staffEmployees.list.emptyTitleFiltered')}
+                description={noFilters ? t('staffEmployees.list.emptyDescription') : t('common.tryClearingFilters')}
                 action={
                   noFilters && canCreate ? (
-                    <Button onClick={() => navigate('/employees/new')}>Add employee</Button>
+                    <Button onClick={() => navigate('/employees/new')}>{t('staffEmployees.list.addEmployee')}</Button>
                   ) : null
                 }
               />
@@ -297,8 +305,11 @@ export default function EmployeeListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–
-                {Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', {
+                  from: (data.page - 1) * params.limit + 1,
+                  to: Math.min(data.page * params.limit, data.total),
+                  total: data.total,
+                })}
               </span>
               <span className="flex items-center gap-2">
                 <Button
@@ -307,18 +318,16 @@ export default function EmployeeListPage() {
                   disabled={data.page <= 1}
                   onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}
                 >
-                  Previous
+                  {t('common.previous')}
                 </Button>
-                <span className="tabular-nums">
-                  {data.page} / {data.pages}
-                </span>
+                <span className="tabular-nums">{t('common.pageOf', { page: data.page, pages: data.pages })}</span>
                 <Button
                   size="sm"
                   variant="secondary"
                   disabled={data.page >= data.pages}
                   onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}
                 >
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>
@@ -328,8 +337,8 @@ export default function EmployeeListPage() {
 
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete employee?"
-        message={`${toDelete?.fullName} (${toDelete?.employeeId}) will be permanently removed, along with their login (if any) and attendance history. For staff who left the company, set status to "Exited" instead.`}
+        title={t('staffEmployees.list.deleteTitle')}
+        message={t('staffEmployees.list.deleteMessage', { name: toDelete?.fullName, code: toDelete?.employeeId })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}

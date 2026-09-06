@@ -7,6 +7,7 @@
  * reachable from the dashboard, not in this tab bar.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { cn } from '../../../lib/utils.js';
@@ -18,35 +19,40 @@ import OfficeLocationSettings from '../components/OfficeLocationSettings.jsx';
 export default function AttendancePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const isAdmin = user.role === 'Admin';
 
   const tabs = [
-    { key: 'records', label: 'Records' },
-    { key: 'signinout', label: 'Sign In/Out' },
+    { key: 'records', label: t('staffAttendance.tabs.records') },
+    { key: 'signinout', label: t('staffAttendance.tabs.signInOut') },
     // P2-M3: Worker self-mark geofence config — Admin-only, it's a security setting.
-    ...(isAdmin ? [{ key: 'office', label: 'Office Location' }] : []),
+    ...(isAdmin ? [{ key: 'office', label: t('staffAttendance.tabs.officeLocation') }] : []),
   ];
   const [tab, setTab] = useState(tabs[0].key);
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Attendance"
-        description="Mark daily attendance and review sign-in/sign-out."
+        title={t('staffAttendance.title')}
+        description={t('staffAttendance.description')}
         onBack={() => navigate(-1)}
       />
 
-      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
-        {tabs.map((t) => (
+      {/* overflow-y-hidden is load-bearing, not decorative — see Tabs.jsx's
+          doc comment: overflow-x-auto alone forces the y-axis to 'auto' too,
+          growing a real native scrollbar the moment this row is a sub-pixel
+          taller than its own shrink-wrapped height. */}
+      <div className="mb-6 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-border">
+        {tabs.map((tabItem) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={cn(
               '-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
-              tab === t.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-text'
+              tab === tabItem.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-text'
             )}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>

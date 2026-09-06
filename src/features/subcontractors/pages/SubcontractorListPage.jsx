@@ -4,6 +4,7 @@
  * HolidayListPage — no sub-workflow here, just records.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +33,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function SubcontractorListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -75,7 +77,7 @@ export default function SubcontractorListPage() {
     mutationFn: (values) =>
       editing?._id ? updateSubcontractor(editing._id, values) : createSubcontractor(values),
     onSuccess: () => {
-      toast.success(editing?._id ? 'Subcontractor updated.' : 'Subcontractor added.');
+      toast.success(editing?._id ? t('staffSubcontractors.updatedToast') : t('staffSubcontractors.addedToast'));
       closeModal();
       invalidate();
     },
@@ -85,7 +87,7 @@ export default function SubcontractorListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteSubcontractor(id),
     onSuccess: () => {
-      toast.success(`${toDelete.name} removed.`);
+      toast.success(t('staffSubcontractors.removedToast', { name: toDelete.name }));
       setToDelete(null);
       invalidate();
     },
@@ -105,14 +107,14 @@ export default function SubcontractorListPage() {
   }
 
   const columns = [
-    { key: 'name', header: 'Name', render: (s) => s.name },
-    { key: 'contactPerson', header: 'Contact', hideOnMobile: true, render: (s) => s.contactPerson || '—' },
-    { key: 'phone', header: 'Phone', hideOnMobile: true, render: (s) => s.phone || '—' },
-    { key: 'email', header: 'Email', hideOnMobile: true, render: (s) => s.email || '—' },
+    { key: 'name', header: t('staffSubcontractors.columns.name'), render: (s) => s.name },
+    { key: 'contactPerson', header: t('staffSubcontractors.columns.contact'), hideOnMobile: true, render: (s) => s.contactPerson || '—' },
+    { key: 'phone', header: t('staffSubcontractors.columns.phone'), hideOnMobile: true, render: (s) => s.phone || '—' },
+    { key: 'email', header: t('staffSubcontractors.columns.email'), hideOnMobile: true, render: (s) => s.email || '—' },
     {
       key: 'status',
-      header: 'Status',
-      render: (s) => <Badge variant={s.status === 'Active' ? 'success' : 'default'}>{s.status}</Badge>,
+      header: t('staffSubcontractors.columns.status'),
+      render: (s) => <Badge variant={s.status === 'Active' ? 'success' : 'default'}>{t(`common.status.${s.status}`, s.status)}</Badge>,
     },
     {
       key: 'actions',
@@ -122,12 +124,12 @@ export default function SubcontractorListPage() {
         <span className="flex justify-end gap-2">
           {canWrite && (
             <Button size="sm" variant="ghost" onClick={() => openEdit(s)}>
-              Edit
+              {t('common.edit')}
             </Button>
           )}
           {canDelete && (
             <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(s)}>
-              Delete
+              {t('common.delete')}
             </Button>
           )}
         </span>
@@ -140,13 +142,13 @@ export default function SubcontractorListPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
-        title="Subcontractors"
-        description="Companies a mobilisation is sometimes routed through."
+        title={t('staffSubcontractors.pageTitle')}
+        description={t('staffSubcontractors.pageDescription')}
         onBack={() => navigate(-1)}
         actions={
           canWrite && (
             <Button size="sm" onClick={openNew}>
-              Add subcontractor
+              {t('staffSubcontractors.addSubcontractor')}
             </Button>
           )
         }
@@ -154,22 +156,22 @@ export default function SubcontractorListPage() {
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
-          placeholder="Search name, contact, phone, email…"
+          placeholder={t('staffSubcontractors.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
-          aria-label="Search subcontractors"
+          aria-label={t('staffSubcontractors.searchAriaLabel')}
         />
         <Select
           value={params.status}
           onChange={(e) => setParams((p) => ({ ...p, status: e.target.value, page: 1 }))}
           className="sm:max-w-[160px]"
-          aria-label="Filter by status"
+          aria-label={t('staffSubcontractors.filterStatusAriaLabel')}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {SUBCONTRACTOR_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
@@ -177,9 +179,9 @@ export default function SubcontractorListPage() {
 
       {isError ? (
         <EmptyState
-          title="Could not load subcontractors"
-          description="Please try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('staffSubcontractors.couldNotLoad')}
+          description={t('staffSubcontractors.couldNotLoadDescription')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       ) : (
         <>
@@ -190,15 +192,15 @@ export default function SubcontractorListPage() {
             loading={isPending}
             emptyState={
               <EmptyState
-                title={noFilters ? 'No subcontractors yet' : 'No subcontractors match'}
+                title={noFilters ? t('staffSubcontractors.emptyTitleNoFilters') : t('staffSubcontractors.emptyTitleFiltered')}
                 description={
                   noFilters
                     ? canWrite
-                      ? 'Add one when a mobilisation needs to be routed through a subcontractor.'
-                      : 'Nothing has been added yet.'
-                    : 'Try clearing the search or filters.'
+                      ? t('staffSubcontractors.emptyDescriptionManage')
+                      : t('staffSubcontractors.emptyDescriptionView')
+                    : t('common.tryClearingFilters')
                 }
-                action={canWrite && noFilters && <Button variant="secondary" onClick={openNew}>Add subcontractor</Button>}
+                action={canWrite && noFilters && <Button variant="secondary" onClick={openNew}>{t('staffSubcontractors.addSubcontractor')}</Button>}
               />
             }
           />
@@ -206,17 +208,17 @@ export default function SubcontractorListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–{Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * params.limit + 1, to: Math.min(data.page * params.limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>
@@ -224,29 +226,29 @@ export default function SubcontractorListPage() {
         </>
       )}
 
-      <Modal open={!!editing} onClose={closeModal} title={editing?._id ? 'Edit subcontractor' : 'Add subcontractor'} size="lg">
+      <Modal open={!!editing} onClose={closeModal} title={editing?._id ? t('staffSubcontractors.modalEditTitle') : t('staffSubcontractors.modalAddTitle')} size="lg">
         <form onSubmit={handleSubmit((values) => saveMutation.mutate(values))} noValidate className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Name *" error={errors.name?.message} {...register('name')} />
-            <Input label="Contact person" error={errors.contactPerson?.message} {...register('contactPerson')} />
-            <Input label="Phone" error={errors.phone?.message} {...register('phone')} />
-            <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-            <Select label="Status" error={errors.status?.message} {...register('status')}>
+            <Input label={t('staffSubcontractors.form.name')} error={errors.name?.message} {...register('name')} />
+            <Input label={t('staffSubcontractors.form.contactPerson')} error={errors.contactPerson?.message} {...register('contactPerson')} />
+            <Input label={t('staffSubcontractors.form.phone')} error={errors.phone?.message} {...register('phone')} />
+            <Input label={t('staffSubcontractors.form.email')} type="email" error={errors.email?.message} {...register('email')} />
+            <Select label={t('staffSubcontractors.form.status')} error={errors.status?.message} {...register('status')}>
               {SUBCONTRACTOR_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {t(`common.status.${s}`, s)}
                 </option>
               ))}
             </Select>
           </div>
-          <Textarea label="Notes" placeholder="Optional" error={errors.notes?.message} {...register('notes')} />
+          <Textarea label={t('staffSubcontractors.form.notes')} placeholder={t('common.optional')} error={errors.notes?.message} {...register('notes')} />
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={closeModal} disabled={saveMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={saveMutation.isPending}>
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </form>
@@ -254,8 +256,8 @@ export default function SubcontractorListPage() {
 
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete subcontractor?"
-        message={`${toDelete?.name} will be permanently removed.`}
+        title={t('staffSubcontractors.deleteConfirmTitle')}
+        message={t('staffSubcontractors.deleteConfirmMessage', { name: toDelete?.name })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}

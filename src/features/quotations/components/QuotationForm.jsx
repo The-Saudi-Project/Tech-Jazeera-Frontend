@@ -6,6 +6,7 @@
  */
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { quotationFormSchema, emptyLineItem, computeTotals } from '../quotations.schema.js';
@@ -20,25 +21,26 @@ import Card from '../../../components/ui/Card.jsx';
 
 /** Live totals row — reads the current lineItems via useWatch. */
 function TotalsPreview({ control }) {
+  const { t } = useTranslation();
   const lineItems = useWatch({ control, name: 'lineItems' }) ?? [];
-  const t = computeTotals(lineItems);
+  const totals = computeTotals(lineItems);
   return (
     <div className="ml-auto w-full max-w-xs space-y-1.5 text-sm">
       <div className="flex justify-between text-muted">
-        <span>Subtotal</span>
-        <span className="tabular-nums">{formatMoney(t.subtotal)}</span>
+        <span>{t('staffQuotations.totals.subtotal')}</span>
+        <span className="tabular-nums">{formatMoney(totals.subtotal)}</span>
       </div>
       <div className="flex justify-between text-muted">
-        <span>Discount</span>
-        <span className="tabular-nums">−{formatMoney(t.discountTotal)}</span>
+        <span>{t('staffQuotations.totals.discount')}</span>
+        <span className="tabular-nums">−{formatMoney(totals.discountTotal)}</span>
       </div>
       <div className="flex justify-between text-muted">
-        <span>VAT / Tax</span>
-        <span className="tabular-nums">{formatMoney(t.taxTotal)}</span>
+        <span>{t('staffQuotations.totals.vatTax')}</span>
+        <span className="tabular-nums">{formatMoney(totals.taxTotal)}</span>
       </div>
       <div className="flex justify-between border-t border-border pt-1.5 text-base font-semibold">
-        <span>Grand total</span>
-        <span className="tabular-nums">{formatMoney(t.grandTotal)}</span>
+        <span>{t('staffQuotations.totals.grandTotal')}</span>
+        <span className="tabular-nums">{formatMoney(totals.grandTotal)}</span>
       </div>
     </div>
   );
@@ -46,6 +48,7 @@ function TotalsPreview({ control }) {
 
 export default function QuotationForm({ defaultValues, onSubmit, submitLabel, submitting }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const {
     register,
     control,
@@ -69,8 +72,8 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
       <Card>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2">
-            <Select label="Client *" error={errors.client?.message} {...register('client')}>
-              <option value="">Select a client…</option>
+            <Select label={t('staffQuotations.form.clientLabel')} error={errors.client?.message} {...register('client')}>
+              <option value="">{t('staffQuotations.form.selectClient')}</option>
               {clients.map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.companyName}
@@ -79,31 +82,31 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
             </Select>
             {clientData && clients.length === 0 && (
               <p className="mt-1 text-xs text-muted">
-                No approved clients yet —{' '}
+                {t('staffQuotations.form.noApprovedClients')}{' '}
                 <Link to="/clients/new" className="text-primary hover:underline">
-                  add one first
+                  {t('staffQuotations.form.addOneFirst')}
                 </Link>
                 .
               </p>
             )}
           </div>
-          <Select label="Status" error={errors.status?.message} {...register('status')}>
+          <Select label={t('staffQuotations.form.status')} error={errors.status?.message} {...register('status')}>
             {QUOTATION_STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {t(`common.status.${s}`, s)}
               </option>
             ))}
           </Select>
-          <Input label="Date" type="date" error={errors.date?.message} {...register('date')} />
-          <Input label="Valid until" type="date" error={errors.validUntil?.message} {...register('validUntil')} />
+          <Input label={t('staffQuotations.form.date')} type="date" error={errors.date?.message} {...register('date')} />
+          <Input label={t('staffQuotations.form.validUntil')} type="date" error={errors.validUntil?.message} {...register('validUntil')} />
         </div>
       </Card>
 
       <Card>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Line items</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffQuotations.form.lineItemsTitle')}</h2>
           <Button size="sm" variant="secondary" onClick={() => append({ ...emptyLineItem })}>
-            Add line
+            {t('staffQuotations.form.addLine')}
           </Button>
         </div>
 
@@ -114,18 +117,18 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
         <div className="space-y-3">
           {fields.map((field, i) => (
             <div key={field.id} className="grid grid-cols-2 gap-2 rounded-lg border border-border p-3 lg:grid-cols-12">
-              <Select className="lg:col-span-2" aria-label="Type" error={errors.lineItems?.[i]?.type?.message} {...register(`lineItems.${i}.type`)}>
-                {QUOTATION_LINE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+              <Select className="lg:col-span-2" aria-label={t('staffQuotations.form.typeAriaLabel')} error={errors.lineItems?.[i]?.type?.message} {...register(`lineItems.${i}.type`)}>
+                {QUOTATION_LINE_TYPES.map((lt) => (
+                  <option key={lt} value={lt}>
+                    {t(`staffQuotations.lineTypeLabels.${lt}`, lt)}
                   </option>
                 ))}
               </Select>
-              <Input className="col-span-2 lg:col-span-4" placeholder="Description" error={errors.lineItems?.[i]?.description?.message} {...register(`lineItems.${i}.description`)} />
-              <Input type="number" min="0" step="1" placeholder="Qty" aria-label="Quantity" error={errors.lineItems?.[i]?.quantity?.message} {...register(`lineItems.${i}.quantity`)} />
-              <Input type="number" min="0" step="0.01" placeholder="Unit price" aria-label="Unit price" error={errors.lineItems?.[i]?.unitPrice?.message} {...register(`lineItems.${i}.unitPrice`)} />
-              <Input type="number" min="0" max="100" step="1" placeholder="Disc%" aria-label="Discount %" error={errors.lineItems?.[i]?.discount?.message} {...register(`lineItems.${i}.discount`)} />
-              <Input type="number" min="0" max="100" step="1" placeholder="Tax%" aria-label="Tax %" error={errors.lineItems?.[i]?.taxRate?.message} {...register(`lineItems.${i}.taxRate`)} />
+              <Input className="col-span-2 lg:col-span-4" placeholder={t('staffQuotations.form.descriptionPlaceholder')} error={errors.lineItems?.[i]?.description?.message} {...register(`lineItems.${i}.description`)} />
+              <Input type="number" min="0" step="1" placeholder={t('staffQuotations.form.qtyPlaceholder')} aria-label={t('staffQuotations.form.quantityAriaLabel')} error={errors.lineItems?.[i]?.quantity?.message} {...register(`lineItems.${i}.quantity`)} />
+              <Input type="number" min="0" step="0.01" placeholder={t('staffQuotations.form.unitPricePlaceholder')} aria-label={t('staffQuotations.form.unitPriceAriaLabel')} error={errors.lineItems?.[i]?.unitPrice?.message} {...register(`lineItems.${i}.unitPrice`)} />
+              <Input type="number" min="0" max="100" step="1" placeholder={t('staffQuotations.form.discPlaceholder')} aria-label={t('staffQuotations.form.discountAriaLabel')} error={errors.lineItems?.[i]?.discount?.message} {...register(`lineItems.${i}.discount`)} />
+              <Input type="number" min="0" max="100" step="1" placeholder={t('staffQuotations.form.taxPlaceholder')} aria-label={t('staffQuotations.form.taxAriaLabel')} error={errors.lineItems?.[i]?.taxRate?.message} {...register(`lineItems.${i}.taxRate`)} />
               <div className="flex items-center justify-end lg:col-span-1">
                 <Button
                   size="sm"
@@ -133,7 +136,7 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
                   className="hover:text-danger"
                   disabled={fields.length === 1}
                   onClick={() => remove(i)}
-                  aria-label={`Remove line ${i + 1}`}
+                  aria-label={t('staffQuotations.form.removeLineAriaLabel', { index: i + 1 })}
                 >
                   ✕
                 </Button>
@@ -148,12 +151,12 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
       </Card>
 
       <Card>
-        <Textarea label="Notes" placeholder="Payment terms, scope, conditions…" error={errors.notes?.message} {...register('notes')} />
+        <Textarea label={t('staffQuotations.form.notes')} placeholder={t('staffQuotations.form.notesPlaceholder')} error={errors.notes?.message} {...register('notes')} />
       </Card>
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={() => navigate(-1)} disabled={submitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" isLoading={submitting}>
           {submitLabel}

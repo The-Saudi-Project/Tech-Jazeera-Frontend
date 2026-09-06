@@ -4,6 +4,7 @@
  * Admin/Manager/HR can add, edit, or remove an entry.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +28,7 @@ import RamadanPeriodsSection from '../../ramadan/components/RamadanPeriodsSectio
 
 export default function HolidayListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -52,7 +54,7 @@ export default function HolidayListPage() {
   const saveMutation = useMutation({
     mutationFn: (values) => (editing?._id ? updateHoliday(editing._id, values) : createHoliday(values)),
     onSuccess: () => {
-      toast.success(editing?._id ? 'Holiday updated.' : 'Holiday added.');
+      toast.success(editing?._id ? t('staffHolidays.updatedSuccess') : t('staffHolidays.addedSuccess'));
       setEditing(null);
       invalidate();
     },
@@ -62,7 +64,7 @@ export default function HolidayListPage() {
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteHoliday(id),
     onSuccess: () => {
-      toast.success(`${toDelete.name} removed.`);
+      toast.success(t('staffHolidays.removedSuccess', { name: toDelete.name }));
       setToDelete(null);
       invalidate();
     },
@@ -80,29 +82,29 @@ export default function HolidayListPage() {
 
   function dayCount(holiday) {
     const days = Math.round((new Date(holiday.endDate) - new Date(holiday.startDate)) / 86_400_000) + 1;
-    return `${days} day${days > 1 ? 's' : ''}`;
+    return t('staffHolidays.dayCount', { count: days });
   }
 
   const columns = [
     {
       key: 'name',
-      header: 'Holiday',
+      header: t('staffHolidays.columns.holiday'),
       render: (h) => (
         <span className="font-medium text-text">
           {h.name}
-          {!h.isPaid && <Badge variant="default" className="ml-2">Unpaid</Badge>}
+          {!h.isPaid && <Badge variant="default" className="ml-2">{t('staffHolidays.unpaid')}</Badge>}
         </span>
       ),
     },
     {
       key: 'dates',
-      header: 'Dates',
+      header: t('staffHolidays.columns.dates'),
       render: (h) =>
         h.startDate.slice(0, 10) === h.endDate.slice(0, 10)
           ? formatDate(h.startDate)
           : `${formatDate(h.startDate)} – ${formatDate(h.endDate)}`,
     },
-    { key: 'days', header: 'Length', hideOnMobile: true, render: (h) => dayCount(h) },
+    { key: 'days', header: t('staffHolidays.columns.length'), hideOnMobile: true, render: (h) => dayCount(h) },
     {
       key: 'actions',
       header: '',
@@ -111,10 +113,10 @@ export default function HolidayListPage() {
         canManage ? (
           <span className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => openEdit(h)}>
-              Edit
+              {t('common.edit')}
             </Button>
             <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(h)}>
-              Delete
+              {t('common.delete')}
             </Button>
           </span>
         ) : null,
@@ -124,13 +126,13 @@ export default function HolidayListPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
-        title="Holidays & Ramadan"
-        description="The official public holiday calendar, plus the Ramadan reduced-hours period used for overtime."
+        title={t('staffHolidays.pageTitle')}
+        description={t('staffHolidays.pageDescription')}
         onBack={() => navigate(-1)}
         actions={
           canManage && (
             <Button size="sm" onClick={openNew}>
-              Add holiday
+              {t('staffHolidays.addHoliday')}
             </Button>
           )
         }
@@ -138,9 +140,9 @@ export default function HolidayListPage() {
 
       {isError ? (
         <EmptyState
-          title="Could not load holidays"
-          description="Check your connection and try again."
-          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+          title={t('staffHolidays.couldNotLoad')}
+          description={t('staffHolidays.couldNotLoadDescription')}
+          action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>}
         />
       ) : (
         <Table
@@ -150,16 +152,16 @@ export default function HolidayListPage() {
           loading={isPending}
           emptyState={
             <EmptyState
-              title="No holidays yet"
+              title={t('staffHolidays.emptyTitle')}
               description={
                 canManage
-                  ? 'Add National Day, Eid, and any other paid observance so they show up across the app.'
-                  : 'HR has not added any holidays yet.'
+                  ? t('staffHolidays.emptyDescriptionManage')
+                  : t('staffHolidays.emptyDescriptionView')
               }
               action={
                 canManage && (
                   <Button variant="secondary" onClick={openNew}>
-                    Add holiday
+                    {t('staffHolidays.addHoliday')}
                   </Button>
                 )
               }
@@ -168,24 +170,24 @@ export default function HolidayListPage() {
         />
       )}
 
-      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?._id ? 'Edit holiday' : 'Add holiday'}>
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?._id ? t('staffHolidays.modalEditTitle') : t('staffHolidays.modalAddTitle')}>
         <form onSubmit={handleSubmit((values) => saveMutation.mutate(values))} noValidate className="space-y-4">
-          <Input label="Name *" placeholder="e.g. Eid al-Fitr" error={errors.name?.message} {...register('name')} />
+          <Input label={t('staffHolidays.form.name')} placeholder={t('staffHolidays.form.namePlaceholder')} error={errors.name?.message} {...register('name')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Start date *" type="date" error={errors.startDate?.message} {...register('startDate')} />
-            <Input label="End date *" type="date" error={errors.endDate?.message} {...register('endDate')} />
+            <Input label={t('staffHolidays.form.startDate')} type="date" error={errors.startDate?.message} {...register('startDate')} />
+            <Input label={t('staffHolidays.form.endDate')} type="date" error={errors.endDate?.message} {...register('endDate')} />
           </div>
-          <Textarea label="Notes" placeholder="Optional" error={errors.notes?.message} {...register('notes')} />
+          <Textarea label={t('staffHolidays.form.notes')} placeholder={t('common.optional')} error={errors.notes?.message} {...register('notes')} />
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" className="h-4 w-4 rounded border-border" {...register('isPaid')} />
-            Paid holiday
+            {t('staffHolidays.form.paidHoliday')}
           </label>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setEditing(null)} disabled={saveMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={saveMutation.isPending}>
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </form>
@@ -193,8 +195,8 @@ export default function HolidayListPage() {
 
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete holiday?"
-        message={`"${toDelete?.name}" will be permanently removed from the calendar.`}
+        title={t('staffHolidays.deleteConfirmTitle')}
+        message={t('staffHolidays.deleteConfirmMessage', { name: toDelete?.name })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(toDelete._id)}
         onCancel={() => setToDelete(null)}

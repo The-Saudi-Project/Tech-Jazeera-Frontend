@@ -10,7 +10,14 @@
  * problem), not a breakpoint collapse to a <Select> — a <select> would hide
  * every non-active tab behind a closed dropdown, which is exactly wrong for
  * discovering a still-new nav pattern, and Select is a form-field primitive
- * (see its own doc comment), not a navigation one.
+ * (see its own doc comment), not a navigation one. `overflow-y-hidden` is
+ * required alongside it, not decorative: per the CSS overflow spec, setting
+ * only overflow-x to a non-visible value forces the OTHER axis's computed
+ * value to 'auto' too, so a tab row that's even a sub-pixel taller than its
+ * own shrink-wrapped height (font hinting, zoom level, OS DPI) grows a real
+ * native vertical scrollbar — the stray up/down-arrow box a user once
+ * reported next to this exact tab bar, root-caused by inspecting computed
+ * styles rather than guessing from a screenshot.
  *
  * Content mounting: a tab's `content` isn't rendered until its first visit
  * (so page load only pays for the active tab's own queries), but once
@@ -95,7 +102,7 @@ export default function Tabs({ tabs, value, onChange }) {
       <div
         role="tablist"
         onKeyDown={handleKeyDown}
-        className="flex gap-1 overflow-x-auto whitespace-nowrap border-b border-border"
+        className="flex gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap border-b border-border"
       >
         {tabs.map((tab, i) => {
           const selected = tab.key === value;

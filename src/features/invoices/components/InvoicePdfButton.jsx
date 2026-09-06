@@ -3,12 +3,14 @@
  * state. Mirrors QuotationPdfButton.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { downloadInvoicePdf } from '../invoices.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Button from '../../../components/ui/Button.jsx';
 
 export default function InvoicePdfButton({ id, number, size = 'md', variant = 'secondary' }) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
 
@@ -17,7 +19,7 @@ export default function InvoicePdfButton({ id, number, size = 'md', variant = 's
     try {
       await downloadInvoicePdf(id, number);
     } catch (error) {
-      toast.error(apiMessage(error, 'Could not generate the PDF.'));
+      toast.error(apiMessage(error, t('staffInvoices.pdfButton.failedToast')));
     } finally {
       setBusy(false);
     }
@@ -25,7 +27,7 @@ export default function InvoicePdfButton({ id, number, size = 'md', variant = 's
 
   return (
     <Button size={size} variant={variant} onClick={handle} isLoading={busy}>
-      PDF
+      {t('staffInvoices.pdfButton.label')}
     </Button>
   );
 }

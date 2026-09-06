@@ -4,6 +4,7 @@
  * co-coordinators and submitting for review happen on MobilisationDetailPage.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createMobilisation } from '../mobilisations.api.js';
 import { emptyMobilisationForm } from '../mobilisations.schema.js';
@@ -20,6 +21,7 @@ import MobilisationForm from '../components/MobilisationForm.jsx';
 
 export default function MobilisationNewPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -43,7 +45,7 @@ export default function MobilisationNewPage() {
   const mutation = useMutation({
     mutationFn: createMobilisation,
     onSuccess: (mobilisation) => {
-      toast.success('Mobilisation created.');
+      toast.success(t('staffMobilisations.new.createdToast'));
       queryClient.invalidateQueries({ queryKey: ['mobilisations'] });
       navigate(`/mobilisations/${mobilisation._id}`);
     },
@@ -71,8 +73,8 @@ export default function MobilisationNewPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="New mobilisation"
-        description="Place a worker with a client and record its billing terms."
+        title={t('staffMobilisations.new.pageTitle')}
+        description={t('staffMobilisations.new.pageDescription')}
         onBack={() => navigate(-1)}
       />
       <Card>
@@ -84,7 +86,7 @@ export default function MobilisationNewPage() {
           defaultValues={emptyMobilisationForm}
           onSubmit={handleSubmit}
           onCancel={() => navigate('/mobilisations')}
-          submitLabel="Save draft"
+          submitLabel={t('staffMobilisations.new.submitLabel')}
           submitting={mutation.isPending}
         />
       </Card>

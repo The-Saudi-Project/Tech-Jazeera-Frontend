@@ -8,15 +8,17 @@
  * other conditional dashboard widgets.
  */
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Card from '../../../components/ui/Card.jsx';
 
 export default function MyPendingActions({ items }) {
+  const { t } = useTranslation();
   const safeItems = items ?? [];
   if (safeItems.length === 0) return null;
 
   return (
     <Card>
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Waiting on you</h2>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffDashboard.waitingOnYou')}</h2>
       <ul className="space-y-2">
         {safeItems.map((item) => (
           <li key={item.url + item.label}>
@@ -24,12 +26,12 @@ export default function MyPendingActions({ items }) {
               to={item.url}
               className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-muted/50 hover:bg-border/20"
             >
-              <span className="font-medium text-text">{item.label}</span>
+              <span className="font-medium text-text">{t(`staffDashboard.pendingModules.${item.label}`, item.label)}</span>
               <span className="flex items-center gap-2 text-primary">
                 <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold tabular-nums">
                   {item.count}
                 </span>
-                Review →
+                {t('staffDashboard.review')}
               </span>
             </Link>
           </li>

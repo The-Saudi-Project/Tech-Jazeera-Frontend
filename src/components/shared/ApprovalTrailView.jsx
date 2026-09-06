@@ -3,18 +3,26 @@
  * step-by-step progress and decision history. Renders nothing for a request
  * with no `workflow` — the legacy single-decision flow already shows
  * decidedBy/At/Note wherever it's used, nothing new to add there. Shared
- * across every request type's review screen (Leave today; Salary Advance,
- * Reimbursement, Timesheet reuse it unchanged once wired to a workflow).
+ * across every request type's review screen.
+ *
+ * `pendingStatus` defaults to 'PendingReview' (Leave's own value) purely for
+ * backward compatibility with existing callers that don't pass it — every
+ * OTHER type's actual pending status is a different string (Timesheet:
+ * 'Submitted'; SalaryAdvance/Reimbursement/ExitReentry/Certificate:
+ * 'Pending'), so a caller that never passes this prop never shows the
+ * "Step X of Y" in-progress badge, only the decided-so-far trail below it —
+ * a real, still-open gap in those callers, not something this default
+ * silently fixes for them.
  */
 import Badge from '../ui/Badge.jsx';
 import { formatDateTime } from '../../lib/utils.js';
 
-export default function ApprovalTrailView({ request }) {
+export default function ApprovalTrailView({ request, pendingStatus = 'PendingReview' }) {
   if (!request.workflow) return null;
 
   const steps = request.steps ?? [];
   const trail = request.approvalTrail ?? [];
-  const isPending = request.status === 'PendingReview';
+  const isPending = request.status === pendingStatus;
   const currentStep = steps[request.currentStep];
 
   return (

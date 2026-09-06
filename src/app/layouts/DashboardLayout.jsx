@@ -14,12 +14,15 @@
  * just visually cluttered — a real bug, independent of the regrouping).
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext.jsx';
 import ChangePasswordModal from '../../features/auth/components/ChangePasswordModal.jsx';
 import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.jsx';
 import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
 import NotificationBell from '../../components/shared/NotificationBell.jsx';
+import LanguageSwitcher from '../../components/shared/LanguageSwitcher.jsx';
+import { STAFF_SUPPORTED_LANGUAGES } from '../../i18n/index.js';
 import { cn } from '../../lib/utils.js';
 import { DASHBOARD_ITEM, NAV_GROUPS, EXECUTIVE_NAV_ITEMS } from '../navConfig.js';
 
@@ -33,6 +36,7 @@ function NavIcon({ d }) {
 
 function Sidebar({ onNavigate }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   // Executive gets its own short, explicit nav — see EXECUTIVE_NAV_ITEMS's
   // doc comment for why this can't just be another `roles`-filtered slice
   // of the grouped nav below (every unguarded group item, which is most of
@@ -59,7 +63,7 @@ function Sidebar({ onNavigate }) {
           as misaligned at the seam even though they're pixel-identical. */}
       <div className="flex h-16 items-center gap-2.5 border-b border-border bg-surface/70 px-5 backdrop-blur-xl">
         <img src="/logo.png" alt="Al Jazeera" className="h-9 w-9 rounded-xl shadow-glow" />
-        <span className="font-semibold tracking-tight">Al Jazeera ERP</span>
+        <span className="font-semibold tracking-tight">{t('common.appName')}</span>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {items.map((item) => (
@@ -78,7 +82,7 @@ function Sidebar({ onNavigate }) {
             }
           >
             <NavIcon d={item.icon} />
-            {item.label}
+            {item.labelKey ? t(item.labelKey, item.label) : item.label}
           </NavLink>
         ))}
       </nav>
@@ -95,6 +99,7 @@ function Sidebar({ onNavigate }) {
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -130,7 +135,7 @@ export default function DashboardLayout() {
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-surface/70 px-4 backdrop-blur-xl sm:px-6">
           <button
             onClick={() => setDrawerOpen(true)}
-            aria-label="Open menu"
+            aria-label={t('header.openMenu')}
             className="rounded-lg p-2 text-muted hover:bg-border/40 hover:text-text lg:hidden"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-6 w-6">
@@ -143,12 +148,13 @@ export default function DashboardLayout() {
               <p className="text-sm font-medium leading-tight">{user.name}</p>
               <p className="text-xs text-muted">{user.role}</p>
             </div>
+            <LanguageSwitcher className="hidden w-auto sm:flex" languages={STAFF_SUPPORTED_LANGUAGES} />
             <ThemeToggle />
             <NotificationBell />
             <button
               onClick={() => setAvatarModalOpen(true)}
-              title="Update profile photo"
-              aria-label="Update profile photo"
+              title={t('header.updateProfilePhoto')}
+              aria-label={t('header.updateProfilePhoto')}
               className="rounded-full"
             >
               {user.avatarUrl ? (
@@ -165,8 +171,8 @@ export default function DashboardLayout() {
             </button>
             <button
               onClick={() => setChangePasswordOpen(true)}
-              title="Change password"
-              aria-label="Change password"
+              title={t('header.changePassword')}
+              aria-label={t('header.changePassword')}
               className="rounded-lg p-2 text-muted hover:bg-border/40 hover:text-text"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
@@ -179,8 +185,8 @@ export default function DashboardLayout() {
             </button>
             <button
               onClick={handleLogout}
-              title="Log out"
-              aria-label="Log out"
+              title={t('header.logOut')}
+              aria-label={t('header.logOut')}
               className="rounded-lg p-2 text-muted hover:bg-border/40 hover:text-danger"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">

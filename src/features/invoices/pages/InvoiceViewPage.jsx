@@ -4,6 +4,7 @@
  * a Quotation); only payments and delete (before any payment) are actions.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,6 +35,7 @@ function lineAmount(li) {
 
 export default function InvoiceViewPage() {
   const { id } = useParams();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -61,7 +63,7 @@ export default function InvoiceViewPage() {
   const paymentMutation = useMutation({
     mutationFn: (values) => recordPayment(id, values),
     onSuccess: (updated) => {
-      toast.success(`Payment recorded — invoice ${updated.status.toLowerCase()}.`);
+      toast.success(t('staffInvoices.view.paymentRecordedToast', { status: t(`common.status.${updated.status}`, updated.status) }));
       setRecordingPayment(false);
       invalidate();
     },
@@ -71,7 +73,7 @@ export default function InvoiceViewPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteInvoice(id),
     onSuccess: () => {
-      toast.success(`${inv.invoiceNumber} deleted.`);
+      toast.success(t('staffInvoices.view.deletedToast', { number: inv.invoiceNumber }));
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       navigate('/invoices', { replace: true });
     },
@@ -97,9 +99,9 @@ export default function InvoiceViewPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Invoice not found"
-        description="It may have been deleted."
-        action={<Link to="/invoices"><Button variant="secondary">Back to invoices</Button></Link>}
+        title={t('staffInvoices.view.notFoundTitle')}
+        description={t('staffInvoices.view.notFoundDescription')}
+        action={<Link to="/invoices"><Button variant="secondary">{t('staffInvoices.view.backToList')}</Button></Link>}
       />
     );
   }
@@ -113,13 +115,13 @@ export default function InvoiceViewPage() {
         actions={
           <>
             <Badge variant={INVOICE_STATUS_VARIANT[inv.status]} className="mr-1">
-              {inv.status}
+              {t(`common.status.${inv.status}`, inv.status)}
             </Badge>
             <InvoicePdfButton id={inv._id} number={inv.invoiceNumber} />
-            {canWrite && inv.status !== 'Paid' && <Button onClick={openRecordPayment}>Record payment</Button>}
+            {canWrite && inv.status !== 'Paid' && <Button onClick={openRecordPayment}>{t('staffInvoices.view.recordPayment')}</Button>}
             {canDelete && inv.payments.length === 0 && (
               <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
-                Delete
+                {t('common.delete')}
               </Button>
             )}
           </>
@@ -129,15 +131,15 @@ export default function InvoiceViewPage() {
       <Card className="space-y-5">
         <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
           <div>
-            <span className="block text-xs uppercase tracking-wide text-muted">Date</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t('staffInvoices.view.date')}</span>
             {formatDate(inv.date)}
           </div>
           <div>
-            <span className="block text-xs uppercase tracking-wide text-muted">Due date</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t('staffInvoices.view.dueDate')}</span>
             {inv.dueDate ? formatDate(inv.dueDate) : '—'}
           </div>
           <div>
-            <span className="block text-xs uppercase tracking-wide text-muted">From quotation</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t('staffInvoices.view.fromQuotation')}</span>
             <Link to={`/quotations/${inv.quotation}`} className="text-primary hover:underline">
               {inv.quotationNumber}
             </Link>
@@ -148,19 +150,19 @@ export default function InvoiceViewPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
-                <th className="py-2 pr-2 font-medium">Type</th>
-                <th className="py-2 pr-2 font-medium">Description</th>
-                <th className="py-2 pr-2 text-right font-medium">Qty</th>
-                <th className="py-2 pr-2 text-right font-medium">Unit</th>
-                <th className="py-2 pr-2 text-right font-medium">Disc%</th>
-                <th className="py-2 pr-2 text-right font-medium">Tax%</th>
-                <th className="py-2 text-right font-medium">Amount</th>
+                <th className="py-2 pr-2 font-medium">{t('staffInvoices.view.columns.type')}</th>
+                <th className="py-2 pr-2 font-medium">{t('staffInvoices.view.columns.description')}</th>
+                <th className="py-2 pr-2 text-right font-medium">{t('staffInvoices.view.columns.qty')}</th>
+                <th className="py-2 pr-2 text-right font-medium">{t('staffInvoices.view.columns.unit')}</th>
+                <th className="py-2 pr-2 text-right font-medium">{t('staffInvoices.view.columns.disc')}</th>
+                <th className="py-2 pr-2 text-right font-medium">{t('staffInvoices.view.columns.tax')}</th>
+                <th className="py-2 text-right font-medium">{t('staffInvoices.view.columns.amount')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {inv.lineItems.map((li, i) => (
                 <tr key={i}>
-                  <td className="py-2 pr-2">{li.type}</td>
+                  <td className="py-2 pr-2">{t(`staffQuotations.lineTypeLabels.${li.type}`, li.type)}</td>
                   <td className="py-2 pr-2">{li.description}</td>
                   <td className="py-2 pr-2 text-right tabular-nums">{li.quantity}</td>
                   <td className="py-2 pr-2 text-right tabular-nums">{formatMoney(li.unitPrice)}</td>
@@ -175,43 +177,43 @@ export default function InvoiceViewPage() {
 
         <div className="ml-auto w-full max-w-xs space-y-1.5 text-sm">
           <div className="flex justify-between text-muted">
-            <span>Subtotal</span>
+            <span>{t('staffQuotations.totals.subtotal')}</span>
             <span className="tabular-nums">{formatMoney(inv.subtotal)}</span>
           </div>
           <div className="flex justify-between text-muted">
-            <span>Discount</span>
+            <span>{t('staffQuotations.totals.discount')}</span>
             <span className="tabular-nums">−{formatMoney(inv.discountTotal)}</span>
           </div>
           <div className="flex justify-between text-muted">
-            <span>VAT / Tax</span>
+            <span>{t('staffQuotations.totals.vatTax')}</span>
             <span className="tabular-nums">{formatMoney(inv.taxTotal)}</span>
           </div>
           <div className="flex justify-between border-t border-border pt-1.5 text-base font-semibold">
-            <span>Grand total</span>
+            <span>{t('staffQuotations.totals.grandTotal')}</span>
             <span className="tabular-nums">{formatMoney(inv.grandTotal)}</span>
           </div>
           <div className="flex justify-between text-muted">
-            <span>Paid</span>
+            <span>{t('staffInvoices.view.paid')}</span>
             <span className="tabular-nums">{formatMoney(inv.amountPaid)}</span>
           </div>
           <div className="flex justify-between border-t border-border pt-1.5 text-base font-semibold">
-            <span>Balance due</span>
+            <span>{t('staffInvoices.view.balanceDueLabel')}</span>
             <span className="tabular-nums">{formatMoney(inv.balanceDue)}</span>
           </div>
         </div>
 
         {inv.notes && (
           <div>
-            <span className="block text-xs uppercase tracking-wide text-muted">Notes</span>
+            <span className="block text-xs uppercase tracking-wide text-muted">{t('staffInvoices.view.notes')}</span>
             <p className="mt-1 whitespace-pre-wrap text-sm">{inv.notes}</p>
           </div>
         )}
       </Card>
 
       <div className="mt-6">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Payments</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffInvoices.view.paymentsTitle')}</h2>
         {inv.payments.length === 0 ? (
-          <EmptyState title="No payments yet" description="Record a payment as it's received." />
+          <EmptyState title={t('staffInvoices.view.noPaymentsTitle')} description={t('staffInvoices.view.noPaymentsDescription')} />
         ) : (
           <Card className="divide-y divide-border">
             {inv.payments.map((p, i) => (
@@ -230,21 +232,21 @@ export default function InvoiceViewPage() {
         )}
       </div>
 
-      <Modal open={recordingPayment} onClose={() => setRecordingPayment(false)} title="Record a payment">
+      <Modal open={recordingPayment} onClose={() => setRecordingPayment(false)} title={t('staffInvoices.view.recordPaymentModalTitle')}>
         <form onSubmit={handleSubmit((values) => paymentMutation.mutate(values))} noValidate className="space-y-4">
           <p className="text-sm text-muted">
-            Balance due: <span className="font-semibold text-text">{formatMoney(inv.balanceDue)}</span>
+            {t('staffInvoices.view.balanceDueLabel')}: <span className="font-semibold text-text">{formatMoney(inv.balanceDue)}</span>
           </p>
-          <Input label="Amount *" type="number" step="0.01" min="0.01" error={errors.amount?.message} {...register('amount')} />
-          <Input label="Date *" type="date" error={errors.date?.message} {...register('date')} />
-          <Input label="Method" placeholder="Bank Transfer, Cheque, Cash…" error={errors.method?.message} {...register('method')} />
-          <Input label="Reference" placeholder="Optional" error={errors.reference?.message} {...register('reference')} />
+          <Input label={t('staffInvoices.view.amount')} type="number" step="0.01" min="0.01" error={errors.amount?.message} {...register('amount')} />
+          <Input label={t('staffInvoices.view.paymentDate')} type="date" error={errors.date?.message} {...register('date')} />
+          <Input label={t('staffInvoices.view.method')} placeholder={t('staffInvoices.view.methodPlaceholder')} error={errors.method?.message} {...register('method')} />
+          <Input label={t('staffInvoices.view.reference')} placeholder={t('common.optional')} error={errors.reference?.message} {...register('reference')} />
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setRecordingPayment(false)} disabled={paymentMutation.isPending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={paymentMutation.isPending}>
-              Save payment
+              {t('staffInvoices.view.savePayment')}
             </Button>
           </div>
         </form>
@@ -252,8 +254,8 @@ export default function InvoiceViewPage() {
 
       <ConfirmDialog
         open={confirmingDelete}
-        title="Delete invoice?"
-        message={`${inv.invoiceNumber} will be permanently removed.`}
+        title={t('staffInvoices.view.deleteConfirmTitle')}
+        message={t('staffInvoices.view.deleteConfirmMessage', { number: inv.invoiceNumber })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setConfirmingDelete(false)}

@@ -10,28 +10,28 @@ import Badge from '../../../components/ui/Badge.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import InvoicePdfButton from './InvoicePdfButton.jsx';
 
-export function buildInvoiceColumns({ showClient = false } = {}) {
+export function buildInvoiceColumns({ showClient = false, t } = {}) {
   return [
     {
       key: 'invoiceNumber',
-      header: 'Number',
+      header: t('staffInvoices.columns.number'),
       render: (inv) => (
         <Link to={`/invoices/${inv._id}`} className="font-medium text-text hover:text-primary">
           {inv.invoiceNumber}
         </Link>
       ),
     },
-    ...(showClient ? [{ key: 'clientName', header: 'Client', render: (inv) => inv.clientName }] : []),
-    { key: 'date', header: 'Date', hideOnMobile: true, render: (inv) => formatDate(inv.date) },
-    { key: 'dueDate', header: 'Due', hideOnMobile: true, render: (inv) => formatDate(inv.dueDate) },
+    ...(showClient ? [{ key: 'clientName', header: t('staffInvoices.columns.client'), render: (inv) => inv.clientName }] : []),
+    { key: 'date', header: t('staffInvoices.columns.date'), hideOnMobile: true, render: (inv) => formatDate(inv.date) },
+    { key: 'dueDate', header: t('staffInvoices.columns.due'), hideOnMobile: true, render: (inv) => formatDate(inv.dueDate) },
     {
       key: 'status',
-      header: 'Status',
-      render: (inv) => <Badge variant={INVOICE_STATUS_VARIANT[inv.status]}>{inv.status}</Badge>,
+      header: t('staffInvoices.columns.status'),
+      render: (inv) => <Badge variant={INVOICE_STATUS_VARIANT[inv.status]}>{t(`common.status.${inv.status}`, inv.status)}</Badge>,
     },
     {
       key: 'balanceDue',
-      header: 'Balance due',
+      header: t('staffInvoices.columns.balanceDue'),
       className: 'text-right tabular-nums',
       render: (inv) => formatMoney(inv.balanceDue),
     },
@@ -43,7 +43,7 @@ export function buildInvoiceColumns({ showClient = false } = {}) {
         <span className="flex justify-end gap-2">
           <Link to={`/invoices/${inv._id}`}>
             <Button size="sm" variant="secondary">
-              View
+              {t('common.view')}
             </Button>
           </Link>
           <InvoicePdfButton id={inv._id} number={inv.invoiceNumber} size="sm" variant="ghost" />

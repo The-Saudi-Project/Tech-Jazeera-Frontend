@@ -5,6 +5,7 @@
  * the company-wide view.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listDocuments } from '../documents.api.js';
@@ -21,6 +22,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function DocumentListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canWrite = DOCUMENT_WRITE_ROLES.includes(user.role);
   const [uploading, setUploading] = useState(false);
@@ -56,36 +58,36 @@ export default function DocumentListPage() {
     placeholderData: keepPreviousData,
   });
 
-  const columns = buildDocumentColumns({ showOwner: true });
+  const columns = buildDocumentColumns({ showOwner: true, t });
   const noFilters = !params.search && !params.ownerType && !params.category && !params.expiring;
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Documents"
-        description="Every uploaded document across employees and clients."
+        title={t('staffDocuments.list.pageTitle')}
+        description={t('staffDocuments.list.pageDescription')}
         onBack={() => navigate(-1)}
-        actions={canWrite && <Button onClick={() => setUploading(true)}>Upload document</Button>}
+        actions={canWrite && <Button onClick={() => setUploading(true)}>{t('staffDocuments.list.uploadDocument')}</Button>}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
-          placeholder="Search by title…"
+          placeholder={t('staffDocuments.list.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
-          aria-label="Search documents"
+          aria-label={t('staffDocuments.list.searchAriaLabel')}
         />
         <Select
           value={params.ownerType}
           onChange={(e) => setParams((p) => ({ ...p, ownerType: e.target.value, page: 1 }))}
           className="sm:max-w-[160px]"
-          aria-label="Filter by owner type"
+          aria-label={t('staffDocuments.list.filterOwnerAriaLabel')}
         >
-          <option value="">All owners</option>
-          {DOCUMENT_OWNER_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          <option value="">{t('staffDocuments.list.allOwners')}</option>
+          {DOCUMENT_OWNER_TYPES.map((ot) => (
+            <option key={ot} value={ot}>
+              {t(`staffDocuments.ownerTypeLabels.${ot}`, ot)}
             </option>
           ))}
         </Select>
@@ -93,12 +95,12 @@ export default function DocumentListPage() {
           value={params.category}
           onChange={(e) => setParams((p) => ({ ...p, category: e.target.value, page: 1 }))}
           className="sm:max-w-[200px]"
-          aria-label="Filter by category"
+          aria-label={t('staffDocuments.list.filterCategoryAriaLabel')}
         >
-          <option value="">All categories</option>
+          <option value="">{t('staffDocuments.list.allCategories')}</option>
           {DOCUMENT_CATEGORIES.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {t(`staffDocuments.categoryLabels.${c}`, c)}
             </option>
           ))}
         </Select>
@@ -106,12 +108,12 @@ export default function DocumentListPage() {
           variant={params.expiring ? 'primary' : 'secondary'}
           onClick={() => setParams((p) => ({ ...p, expiring: !p.expiring, page: 1 }))}
         >
-          Expiring soon
+          {t('staffDocuments.list.expiringSoon')}
         </Button>
       </div>
 
       {isError ? (
-        <EmptyState title="Could not load documents" description="Please try again." />
+        <EmptyState title={t('staffDocuments.list.couldNotLoad')} description={t('staffDocuments.list.couldNotLoadDescription')} />
       ) : (
         <>
           <Table
@@ -121,13 +123,13 @@ export default function DocumentListPage() {
             loading={isPending}
             emptyState={
               <EmptyState
-                title={noFilters ? 'No documents yet' : 'No documents match'}
+                title={noFilters ? t('staffDocuments.list.emptyTitleNoFilters') : t('staffDocuments.list.emptyTitleFiltered')}
                 description={
                   noFilters
-                    ? 'Upload a document, or add them from an employee or client profile.'
-                    : 'Try clearing the search or filters.'
+                    ? t('staffDocuments.list.emptyDescriptionNoFilters')
+                    : t('common.tryClearingFilters')
                 }
-                action={noFilters && canWrite ? <Button onClick={() => setUploading(true)}>Upload document</Button> : null}
+                action={noFilters && canWrite ? <Button onClick={() => setUploading(true)}>{t('staffDocuments.list.uploadDocument')}</Button> : null}
               />
             }
           />
@@ -135,18 +137,17 @@ export default function DocumentListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–
-                {Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * params.limit + 1, to: Math.min(data.page * params.limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>

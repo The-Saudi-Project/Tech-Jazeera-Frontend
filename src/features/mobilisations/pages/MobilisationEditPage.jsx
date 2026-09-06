@@ -4,6 +4,7 @@
  * Marketing Manager review, documents); this page is Section 1 only.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getMobilisation, updateMobilisation } from '../mobilisations.api.js';
 import { mobilisationToForm } from '../mobilisations.schema.js';
@@ -23,6 +24,7 @@ import MobilisationForm from '../components/MobilisationForm.jsx';
 export default function MobilisationEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -50,7 +52,7 @@ export default function MobilisationEditPage() {
   const mutation = useMutation({
     mutationFn: (values) => updateMobilisation(id, values),
     onSuccess: () => {
-      toast.success('Mobilisation updated.');
+      toast.success(t('staffMobilisations.edit.updatedToast'));
       queryClient.invalidateQueries({ queryKey: ['mobilisations'] });
       queryClient.invalidateQueries({ queryKey: ['mobilisation', id] });
       navigate(`/mobilisations/${id}`);
@@ -72,9 +74,9 @@ export default function MobilisationEditPage() {
   if (isError || !mobilisation) {
     return (
       <EmptyState
-        title="Mobilisation not found"
-        description="It may have been removed, or you don't have access to it."
-        action={<Button variant="secondary" onClick={() => navigate('/mobilisations')}>Back to mobilisations</Button>}
+        title={t('staffMobilisations.edit.notFoundTitle')}
+        description={t('staffMobilisations.edit.notFoundDescription')}
+        action={<Button variant="secondary" onClick={() => navigate('/mobilisations')}>{t('staffMobilisations.edit.backToList')}</Button>}
       />
     );
   }
@@ -82,9 +84,9 @@ export default function MobilisationEditPage() {
   if (!['Draft', 'Rejected'].includes(mobilisation.status)) {
     return (
       <EmptyState
-        title="This mobilisation can no longer be edited"
-        description={`Only a Draft or Rejected mobilisation can be edited — this one is ${mobilisation.status}.`}
-        action={<Button variant="secondary" onClick={() => navigate(`/mobilisations/${id}`)}>Back to mobilisation</Button>}
+        title={t('staffMobilisations.edit.cannotEditTitle')}
+        description={t('staffMobilisations.edit.cannotEditDescription', { status: t(`common.status.${mobilisation.status}`, mobilisation.status) })}
+        action={<Button variant="secondary" onClick={() => navigate(`/mobilisations/${id}`)}>{t('staffMobilisations.edit.backToMobilisation')}</Button>}
       />
     );
   }
@@ -97,8 +99,8 @@ export default function MobilisationEditPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Edit mobilisation"
-        description={`${mobilisation.workerName} — ${mobilisation.clientName}`}
+        title={t('staffMobilisations.edit.pageTitle')}
+        description={t('staffMobilisations.edit.descriptionLine', { worker: mobilisation.workerName, client: mobilisation.clientName })}
         onBack={() => navigate(-1)}
       />
       <Card>
@@ -110,7 +112,7 @@ export default function MobilisationEditPage() {
           defaultValues={mobilisationToForm(mobilisation)}
           onSubmit={(values) => mutation.mutate(values)}
           onCancel={() => navigate(`/mobilisations/${id}`)}
-          submitLabel="Save changes"
+          submitLabel={t('staffMobilisations.edit.submitLabel')}
           submitting={mutation.isPending}
         />
       </Card>

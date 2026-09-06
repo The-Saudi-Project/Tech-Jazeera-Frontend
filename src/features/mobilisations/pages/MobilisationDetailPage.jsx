@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -70,6 +71,7 @@ function userId(entry) {
  * reads defaultValues at mount.)
  */
 function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReject }) {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -78,27 +80,27 @@ function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReje
 
   return (
     <Card>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Marketing Manager review</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.marketingManagerReview')}</h2>
       <form onSubmit={handleSubmit(onSave)} noValidate className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Client quotation" disabled={!canDecide} error={errors.clientQuotation?.message} {...register('clientQuotation')} />
-          <Input label="Client quotation date" type="date" disabled={!canDecide} error={errors.clientQuotationDate?.message} {...register('clientQuotationDate')} />
-          <Input label="Client PO" disabled={!canDecide} error={errors.clientPO?.message} {...register('clientPO')} />
-          <Input label="Client PO date" type="date" disabled={!canDecide} error={errors.clientPODate?.message} {...register('clientPODate')} />
-          <Input label="Sub quotation" disabled={!canDecide} error={errors.subQuotation?.message} {...register('subQuotation')} />
-          <Input label="Sub quotation date" type="date" disabled={!canDecide} error={errors.subQuotationDate?.message} {...register('subQuotationDate')} />
-          <Input label="Sub PO" disabled={!canDecide} error={errors.subPO?.message} {...register('subPO')} />
+          <Input label={t('staffMobilisations.detail.clientQuotation')} disabled={!canDecide} error={errors.clientQuotation?.message} {...register('clientQuotation')} />
+          <Input label={t('staffMobilisations.detail.clientQuotationDate')} type="date" disabled={!canDecide} error={errors.clientQuotationDate?.message} {...register('clientQuotationDate')} />
+          <Input label={t('staffMobilisations.detail.clientPO')} disabled={!canDecide} error={errors.clientPO?.message} {...register('clientPO')} />
+          <Input label={t('staffMobilisations.detail.clientPODate')} type="date" disabled={!canDecide} error={errors.clientPODate?.message} {...register('clientPODate')} />
+          <Input label={t('staffMobilisations.detail.subQuotation')} disabled={!canDecide} error={errors.subQuotation?.message} {...register('subQuotation')} />
+          <Input label={t('staffMobilisations.detail.subQuotationDate')} type="date" disabled={!canDecide} error={errors.subQuotationDate?.message} {...register('subQuotationDate')} />
+          <Input label={t('staffMobilisations.detail.subPO')} disabled={!canDecide} error={errors.subPO?.message} {...register('subPO')} />
         </div>
         {canDecide && (
           <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button type="submit" variant="secondary" isLoading={saving}>
-              Save details
+              {t('staffMobilisations.detail.saveDetails')}
             </Button>
             <Button type="button" className="hover:text-danger" variant="ghost" onClick={onReject}>
-              Reject
+              {t('common.reject')}
             </Button>
             <Button type="button" onClick={onApprove}>
-              Approve
+              {t('common.approve')}
             </Button>
           </div>
         )}
@@ -109,6 +111,7 @@ function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReje
 
 export default function MobilisationDetailPage() {
   const { id } = useParams();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -139,7 +142,7 @@ export default function MobilisationDetailPage() {
   const commercialMutation = useMutation({
     mutationFn: (values) => saveCommercialDetails(id, values),
     onSuccess: () => {
-      toast.success('Commercial details saved.');
+      toast.success(t('staffMobilisations.detail.commercialSavedToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -148,7 +151,7 @@ export default function MobilisationDetailPage() {
   const addMutation = useMutation({
     mutationFn: (uid) => addCoordinator(id, uid),
     onSuccess: () => {
-      toast.success('Coordinator invited.');
+      toast.success(t('staffMobilisations.detail.invitedToast'));
       setInviteId('');
       invalidate();
     },
@@ -157,7 +160,7 @@ export default function MobilisationDetailPage() {
   const removeMutation = useMutation({
     mutationFn: (uid) => removeCoordinator(id, uid),
     onSuccess: () => {
-      toast.success('Coordinator removed.');
+      toast.success(t('staffMobilisations.detail.removedToast'));
       setToRemove(null);
       invalidate();
     },
@@ -166,7 +169,7 @@ export default function MobilisationDetailPage() {
   const confirmMutation = useMutation({
     mutationFn: () => confirmCoordinator(id, user.id),
     onSuccess: () => {
-      toast.success('Confirmed.');
+      toast.success(t('staffMobilisations.detail.confirmedToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -174,7 +177,7 @@ export default function MobilisationDetailPage() {
   const submitMutation = useMutation({
     mutationFn: () => submitMobilisation(id),
     onSuccess: () => {
-      toast.success('Mobilisation submitted for review.');
+      toast.success(t('staffMobilisations.detail.submittedToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -182,7 +185,7 @@ export default function MobilisationDetailPage() {
   const decideMutation = useMutation({
     mutationFn: (values) => decideMobilisation(id, values),
     onSuccess: (updated) => {
-      toast.success(`Mobilisation ${updated.status.toLowerCase()}.`);
+      toast.success(updated.status === 'Approved' ? t('staffMobilisations.detail.approvedToast') : t('staffMobilisations.detail.rejectedToast'));
       setPendingDecision(null);
       setDecideNote('');
       invalidate();
@@ -192,7 +195,7 @@ export default function MobilisationDetailPage() {
   const uploadMutation = useMutation({
     mutationFn: () => uploadMobilisationDocuments(id, files, category),
     onSuccess: () => {
-      toast.success('Document(s) uploaded.');
+      toast.success(t('staffMobilisations.detail.documentUploadedToast'));
       setFiles([]);
       invalidate();
     },
@@ -201,7 +204,7 @@ export default function MobilisationDetailPage() {
   const deleteDocMutation = useMutation({
     mutationFn: (fileId) => deleteMobilisationDocument(id, fileId),
     onSuccess: () => {
-      toast.success('Document removed.');
+      toast.success(t('staffMobilisations.detail.documentRemovedToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -218,9 +221,9 @@ export default function MobilisationDetailPage() {
   if (isError || !m) {
     return (
       <EmptyState
-        title="Mobilisation not found"
-        description="It may have been removed, or you don't have access to it."
-        action={<Button variant="secondary" onClick={() => navigate('/mobilisations')}>Back to mobilisations</Button>}
+        title={t('staffMobilisations.detail.notFoundTitle')}
+        description={t('staffMobilisations.detail.notFoundDescription')}
+        action={<Button variant="secondary" onClick={() => navigate('/mobilisations')}>{t('staffMobilisations.detail.backToList')}</Button>}
       />
     );
   }
@@ -244,10 +247,10 @@ export default function MobilisationDetailPage() {
         onBack={() => navigate(-1)}
         actions={
           <div className="flex items-center gap-2">
-            <Badge variant={MOBILISATION_STATUS_VARIANT[m.status]}>{m.status}</Badge>
+            <Badge variant={MOBILISATION_STATUS_VARIANT[m.status]}>{t(`common.status.${m.status}`, m.status)}</Badge>
             {canManage && (
               <Button size="sm" variant="secondary" onClick={() => navigate(`/mobilisations/${id}/edit`)}>
-                Edit
+                {t('common.edit')}
               </Button>
             )}
           </div>
@@ -255,59 +258,59 @@ export default function MobilisationDetailPage() {
       />
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Details</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.detailsTitle')}</h2>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <Field label="Iqama number" value={m.iqamaNumber} />
-          <Field label="Nationality" value={m.nationality} />
-          <Field label="Trade" value={m.trade} />
-          <Field label="Phone" value={m.phone} />
-          <Field label="Mobilisation date" value={formatDate(m.mobilisationDate)} />
-          <Field label="Checkout date" value={m.checkoutDate && formatDate(m.checkoutDate)} />
+          <Field label={t('staffMobilisations.detail.fields.iqamaNumber')} value={m.iqamaNumber} />
+          <Field label={t('staffMobilisations.detail.fields.nationality')} value={m.nationality} />
+          <Field label={t('staffMobilisations.detail.fields.trade')} value={m.trade} />
+          <Field label={t('staffMobilisations.detail.fields.phone')} value={m.phone} />
+          <Field label={t('staffMobilisations.detail.fields.mobilisationDate')} value={formatDate(m.mobilisationDate)} />
+          <Field label={t('staffMobilisations.detail.fields.checkoutDate')} value={m.checkoutDate && formatDate(m.checkoutDate)} />
           {hasCommercialFields && (
             <>
-              <Field label="Client rate" value={formatMoney(m.clientRate)} />
-              <Field label="Client commission" value={formatMoney(m.clientCommission)} />
-              <Field label="FTA allowance" value={formatMoney(m.ftaAllowance)} />
+              <Field label={t('staffMobilisations.detail.fields.clientRate')} value={formatMoney(m.clientRate)} />
+              <Field label={t('staffMobilisations.detail.fields.clientCommission')} value={formatMoney(m.clientCommission)} />
+              <Field label={t('staffMobilisations.detail.fields.ftaAllowance')} value={formatMoney(m.ftaAllowance)} />
               {m.hasSubcontractor && (
                 <>
-                  <Field label="Subcontractor" value={m.subcontractorName} />
-                  <Field label="Subcontractor commission" value={formatMoney(m.subcontractorCommission)} />
+                  <Field label={t('staffMobilisations.detail.fields.subcontractor')} value={m.subcontractorName} />
+                  <Field label={t('staffMobilisations.detail.fields.subcontractorCommission')} value={formatMoney(m.subcontractorCommission)} />
                 </>
               )}
-              <Field label="Profit" value={formatMoney(m.profit)} />
+              <Field label={t('staffMobilisations.detail.fields.profit')} value={formatMoney(m.profit)} />
             </>
           )}
-          <Field label="Overtime rate" value={m.overtimeRate ? formatMoney(m.overtimeRate) : null} />
-          <Field label="Overtime hours" value={m.overtimeHours || null} />
+          <Field label={t('staffMobilisations.detail.fields.overtimeRate')} value={m.overtimeRate ? formatMoney(m.overtimeRate) : null} />
+          <Field label={t('staffMobilisations.detail.fields.overtimeHours')} value={m.overtimeHours || null} />
           {hasCommercialFields && (
             <>
-              <Field label="OT amount" value={m.otAmount ? formatMoney(m.otAmount) : null} />
-              <Field label="OT commission in" value={m.otCommissionIn ? formatMoney(m.otCommissionIn) : null} />
-              <Field label="OT commission out" value={m.otCommissionOut ? formatMoney(m.otCommissionOut) : null} />
+              <Field label={t('staffMobilisations.detail.fields.otAmount')} value={m.otAmount ? formatMoney(m.otAmount) : null} />
+              <Field label={t('staffMobilisations.detail.fields.otCommissionIn')} value={m.otCommissionIn ? formatMoney(m.otCommissionIn) : null} />
+              <Field label={t('staffMobilisations.detail.fields.otCommissionOut')} value={m.otCommissionOut ? formatMoney(m.otCommissionOut) : null} />
             </>
           )}
         </dl>
         {m.remark && (
           <div className="mt-4">
-            <p className="text-xs uppercase tracking-wide text-muted">Remark</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t('staffMobilisations.detail.remark')}</p>
             <p className="text-sm">{m.remark}</p>
           </div>
         )}
       </Card>
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Coordinators</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.coordinatorsTitle')}</h2>
         <ul className="space-y-2">
           {m.coordinators.map((c) => (
             <li key={userId(c)} className="flex items-center justify-between gap-3 text-sm">
               <span>
-                {c.user.name ?? userId(c)} {c.isPrimary && <span className="text-xs text-muted">(primary)</span>}
+                {c.user.name ?? userId(c)} {c.isPrimary && <span className="text-xs text-muted">{t('staffMobilisations.detail.primary')}</span>}
               </span>
               <span className="flex items-center gap-2">
-                <Badge variant={c.confirmed ? 'success' : 'warning'}>{c.confirmed ? 'Confirmed' : 'Pending'}</Badge>
+                <Badge variant={c.confirmed ? 'success' : 'warning'}>{c.confirmed ? t('staffMobilisations.detail.confirmed') : t('staffMobilisations.detail.pending')}</Badge>
                 {canManage && !c.isPrimary && !c.confirmed && (
                   <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToRemove(c)}>
-                    Remove
+                    {t('staffMobilisations.detail.remove')}
                   </Button>
                 )}
               </span>
@@ -317,9 +320,9 @@ export default function MobilisationDetailPage() {
 
         {needsMyConfirmation && (
           <div className="mt-4 rounded-lg bg-warning/10 p-3 text-sm">
-            <p className="mb-2">You've been added as a coordinator on this mobilisation — confirm your involvement.</p>
+            <p className="mb-2">{t('staffMobilisations.detail.needsConfirmationHint')}</p>
             <Button size="sm" isLoading={confirmMutation.isPending} onClick={() => confirmMutation.mutate()}>
-              Confirm I am also a coordinator
+              {t('staffMobilisations.detail.confirmButton')}
             </Button>
           </div>
         )}
@@ -327,12 +330,12 @@ export default function MobilisationDetailPage() {
         {canManage && (
           <div className="mt-4 flex flex-wrap items-end gap-2">
             <Select
-              label="Add a joint coordinator"
+              label={t('staffMobilisations.detail.addJointCoordinator')}
               value={inviteId}
               onChange={(e) => setInviteId(e.target.value)}
               className="min-w-[200px]"
             >
-              <option value="">Select a coordinator…</option>
+              <option value="">{t('staffMobilisations.detail.selectCoordinator')}</option>
               {availableCandidates.map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.name}
@@ -346,7 +349,7 @@ export default function MobilisationDetailPage() {
               isLoading={addMutation.isPending}
               onClick={() => addMutation.mutate(inviteId)}
             >
-              Invite
+              {t('staffMobilisations.detail.invite')}
             </Button>
           </div>
         )}
@@ -355,11 +358,11 @@ export default function MobilisationDetailPage() {
           <div className="mt-4 border-t border-border pt-4">
             {!canSubmit && unconfirmed.length > 0 && (
               <p className="mb-2 text-xs text-muted">
-                Waiting on confirmation from: {unconfirmed.map((c) => c.user.name ?? userId(c)).join(', ')}
+                {t('staffMobilisations.detail.waitingOnConfirmation', { names: unconfirmed.map((c) => c.user.name ?? userId(c)).join(', ') })}
               </p>
             )}
             <Button isLoading={submitMutation.isPending} disabled={!canSubmit} onClick={() => submitMutation.mutate()}>
-              Submit for review
+              {t('staffMobilisations.detail.submitForReview')}
             </Button>
           </div>
         )}
@@ -379,23 +382,23 @@ export default function MobilisationDetailPage() {
       )}
 
       <Card>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Documents</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.documentsTitle')}</h2>
         {(m.documents ?? []).length === 0 ? (
-          <p className="text-sm text-muted">No documents attached yet.</p>
+          <p className="text-sm text-muted">{t('staffMobilisations.detail.noDocuments')}</p>
         ) : (
           <ul className="mb-4 divide-y divide-border">
             {m.documents.map((d) => (
               <li key={d._id} className="flex items-center justify-between gap-3 py-2 text-sm">
                 <span className="min-w-0 truncate">
-                  {d.originalName} <span className="text-xs text-muted">({MOBILISATION_DOCUMENT_CATEGORY_LABELS[d.category]})</span>
+                  {d.originalName} <span className="text-xs text-muted">({t(`staffMobilisations.documentCategoryLabels.${d.category}`, MOBILISATION_DOCUMENT_CATEGORY_LABELS[d.category])})</span>
                 </span>
                 <span className="flex shrink-0 gap-2">
                   <Button size="sm" variant="ghost" onClick={() => downloadMobilisationDocument(id, d._id, d.originalName)}>
-                    Download
+                    {t('common.download')}
                   </Button>
                   {canTouchDocuments && (
                     <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={deleteDocMutation.isPending} onClick={() => deleteDocMutation.mutate(d._id)}>
-                      Delete
+                      {t('common.delete')}
                     </Button>
                   )}
                 </span>
@@ -406,15 +409,15 @@ export default function MobilisationDetailPage() {
 
         {canTouchDocuments && (
           <div className="flex flex-wrap items-end gap-2">
-            <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} className="min-w-[140px]">
+            <Select label={t('staffMobilisations.detail.category')} value={category} onChange={(e) => setCategory(e.target.value)} className="min-w-[140px]">
               {MOBILISATION_DOCUMENT_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {MOBILISATION_DOCUMENT_CATEGORY_LABELS[c]}
+                  {t(`staffMobilisations.documentCategoryLabels.${c}`, MOBILISATION_DOCUMENT_CATEGORY_LABELS[c])}
                 </option>
               ))}
             </Select>
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Files</label>
+              <label className="mb-1.5 block text-sm font-medium">{t('staffMobilisations.detail.filesLabel')}</label>
               <input
                 type="file"
                 multiple
@@ -424,7 +427,7 @@ export default function MobilisationDetailPage() {
               />
             </div>
             <Button size="sm" disabled={files.length === 0} isLoading={uploadMutation.isPending} onClick={() => uploadMutation.mutate()}>
-              Upload
+              {t('staffMobilisations.detail.upload')}
             </Button>
           </div>
         )}
@@ -432,8 +435,8 @@ export default function MobilisationDetailPage() {
 
       <ConfirmDialog
         open={Boolean(toRemove)}
-        title="Remove coordinator?"
-        message={`${toRemove?.user?.name ?? 'This coordinator'} will be removed from this mobilisation.`}
+        title={t('staffMobilisations.detail.removeCoordinatorConfirmTitle')}
+        message={t('staffMobilisations.detail.removeCoordinatorConfirmMessage', { name: toRemove?.user?.name ?? t('staffMobilisations.detail.defaultCoordinatorName') })}
         loading={removeMutation.isPending}
         onConfirm={() => removeMutation.mutate(userId(toRemove))}
         onCancel={() => setToRemove(null)}
@@ -446,25 +449,25 @@ export default function MobilisationDetailPage() {
           setPendingDecision(null);
           setDecideNote('');
         }}
-        title={pendingDecision === 'Approved' ? 'Approve mobilisation?' : 'Reject mobilisation?'}
+        title={pendingDecision === 'Approved' ? t('staffMobilisations.detail.approveModalTitle') : t('staffMobilisations.detail.rejectModalTitle')}
       >
         <div className="space-y-4">
           <p className="text-sm text-muted">
             {pendingDecision === 'Approved'
-              ? 'This mobilisation will be marked Approved and become read-only for its coordinators except for operational fields.'
-              : 'This mobilisation will be sent back to its coordinator to fix.'}
+              ? t('staffMobilisations.detail.approveModalMessage')
+              : t('staffMobilisations.detail.rejectModalMessage')}
           </p>
           {pendingDecision === 'Rejected' && (
             <Textarea
-              label="Note (required)"
+              label={t('staffMobilisations.detail.noteRequired')}
               value={decideNote}
               onChange={(e) => setDecideNote(e.target.value)}
-              placeholder="Explain what needs fixing…"
+              placeholder={t('staffMobilisations.detail.notePlaceholder')}
             />
           )}
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" disabled={decideMutation.isPending} onClick={() => setPendingDecision(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant={pendingDecision === 'Rejected' ? 'danger' : 'primary'}
@@ -473,13 +476,13 @@ export default function MobilisationDetailPage() {
                 const values = { status: pendingDecision, decisionNote: decideNote };
                 const result = decideMobilisationFormSchema.safeParse(values);
                 if (!result.success) {
-                  toast.error(result.error.issues[0]?.message ?? 'Explain what needs fixing before rejecting.');
+                  toast.error(result.error.issues[0]?.message ?? t('staffMobilisations.detail.defaultRejectError'));
                   return;
                 }
                 decideMutation.mutate(values);
               }}
             >
-              {pendingDecision === 'Approved' ? 'Approve' : 'Reject'}
+              {pendingDecision === 'Approved' ? t('common.approve') : t('common.reject')}
             </Button>
           </div>
         </div>

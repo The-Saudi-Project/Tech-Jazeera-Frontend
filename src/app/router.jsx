@@ -31,6 +31,7 @@ import MobilisationDetailPage from '../features/mobilisations/pages/Mobilisation
 import MobilisationEditPage from '../features/mobilisations/pages/MobilisationEditPage.jsx';
 import MobilisationSettingsPage from '../features/mobilisationSettings/pages/MobilisationSettingsPage.jsx';
 import CompanySettingsPage from '../features/companySettings/pages/CompanySettingsPage.jsx';
+import SectionAccessPage from '../features/sectionAccess/pages/SectionAccessPage.jsx';
 import SubcontractorListPage from '../features/subcontractors/pages/SubcontractorListPage.jsx';
 import AttendancePage from '../features/attendance/pages/AttendancePage.jsx';
 import AttendanceSummaryPage from '../features/attendance/pages/AttendanceSummaryPage.jsx';
@@ -148,6 +149,7 @@ export const router = createBrowserRouter([
               { path: '/mobilisations/:id/edit', element: <MobilisationEditPage /> },
               { path: '/mobilisation-settings', element: <MobilisationSettingsPage /> },
               { path: '/company-settings', element: <CompanySettingsPage /> },
+              { path: '/section-access', element: <SectionAccessPage /> },
               { path: '/subcontractors', element: <SubcontractorListPage /> },
               { path: '/attendance', element: <AttendancePage /> },
               { path: '/attendance/summary', element: <AttendanceSummaryPage /> },

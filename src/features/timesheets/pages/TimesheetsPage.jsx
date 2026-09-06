@@ -5,6 +5,7 @@
  * docs/TABS-notes.md for why tabs replaced the original vertical stack.
  */
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -30,11 +31,6 @@ import Select from '../../../components/ui/Select.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
 /**
  * MonthlyReportPanel — a full day-by-day monthly report built from real
  * Attendance records (phone self-punch or staff-marked), in the same
@@ -45,6 +41,7 @@ const MONTHS = [
  * reliable way to know that in advance).
  */
 function MonthlyReportPanel() {
+  const { t } = useTranslation();
   const toast = useToast();
   const now = new Date();
   const [employeeId, setEmployeeId] = useState('');
@@ -69,33 +66,32 @@ function MonthlyReportPanel() {
 
   return (
     <Card>
-      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Generate monthly report</h2>
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffTimesheets.monthlyReport.title')}</h2>
       <p className="mb-4 text-xs text-muted">
-        A full day-by-day report for one employee's whole month, built from their real attendance — same format as
-        the Timesheet Processor's export. Available to Admin and anyone set up in the Approval Hierarchy.
+        {t('staffTimesheets.monthlyReport.description')}
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Select
-          label="Employee"
+          label={t('staffTimesheets.monthlyReport.employee')}
           value={employeeId}
           onChange={(e) => setEmployeeId(e.target.value)}
           className="sm:col-span-2"
         >
-          <option value="">Select employee…</option>
+          <option value="">{t('staffTimesheets.monthlyReport.selectEmployee')}</option>
           {employees.map((emp) => (
             <option key={emp._id} value={emp._id}>
               {emp.fullName} ({emp.employeeId})
             </option>
           ))}
         </Select>
-        <Select label="Month" value={month} onChange={(e) => setMonth(e.target.value)}>
-          {MONTHS.map((name, i) => (
-            <option key={name} value={i + 1}>
-              {name}
+        <Select label={t('staffTimesheets.monthlyReport.month')} value={month} onChange={(e) => setMonth(e.target.value)}>
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+            <option key={m} value={m}>
+              {t(`common.months.${m}`)}
             </option>
           ))}
         </Select>
-        <Select label="Year" value={year} onChange={(e) => setYear(e.target.value)}>
+        <Select label={t('staffTimesheets.monthlyReport.year')} value={year} onChange={(e) => setYear(e.target.value)}>
           {years.map((y) => (
             <option key={y} value={y}>
               {y}
@@ -109,7 +105,7 @@ function MonthlyReportPanel() {
           isLoading={reportMutation.isPending}
           onClick={() => reportMutation.mutate()}
         >
-          Generate report
+          {t('staffTimesheets.monthlyReport.generate')}
         </Button>
       </div>
     </Card>
@@ -134,13 +130,14 @@ function canBulkApprove(t) {
  * hours are actually entered.
  */
 function SubmitTimesheetPanel() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
 
   const submitMutation = useMutation({
     mutationFn: () => submitTimesheet({ periodStart: new Date().toISOString() }),
     onSuccess: (timesheet) => {
-      toast.success(`Timesheet submitted — ${formatHours(timesheet.totalHours)} hrs this week.`);
+      toast.success(t('staffTimesheets.submit.submittedToast', { hours: formatHours(timesheet.totalHours) }));
       queryClient.invalidateQueries({ queryKey: ['timesheets'] });
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -150,11 +147,11 @@ function SubmitTimesheetPanel() {
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Submit your own timesheet</h2>
-          <p className="mt-1 text-xs text-muted">Summarizes this week's attendance so far and sends it for approval.</p>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffTimesheets.submit.title')}</h2>
+          <p className="mt-1 text-xs text-muted">{t('staffTimesheets.submit.description')}</p>
         </div>
         <Button isLoading={submitMutation.isPending} onClick={() => submitMutation.mutate()}>
-          Submit this week
+          {t('staffTimesheets.submit.submitButton')}
         </Button>
       </div>
     </Card>
@@ -169,6 +166,7 @@ function SubmitTimesheetPanel() {
  * inside a possibly-hidden tab would be confusing.
  */
 function ReviewQueue() {
+  const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('Submitted');
@@ -195,7 +193,7 @@ function ReviewQueue() {
   const decideMutation = useMutation({
     mutationFn: ({ id, decision }) => decideTimesheet(id, { status: decision }),
     onSuccess: (timesheet) => {
-      toast.success(`Timesheet ${timesheet.status.toLowerCase()}.`);
+      toast.success(timesheet.status === 'Approved' ? t('staffTimesheets.queue.approvedToast') : t('staffTimesheets.queue.rejectedToast'));
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -207,8 +205,8 @@ function ReviewQueue() {
     onSuccess: (result) => {
       toast.success(
         result.skipped > 0
-          ? `${result.approved} approved, ${result.skipped} skipped (not yet at their final step, or not yours to decide).`
-          : `${result.approved} timesheet(s) approved.`
+          ? t('staffTimesheets.queue.bulkResultSkipped', { approved: result.approved, skipped: result.skipped })
+          : t('staffTimesheets.queue.bulkResultAllApproved', { count: result.approved })
       );
       invalidate();
     },
@@ -234,18 +232,18 @@ function ReviewQueue() {
   return (
     <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Timesheets</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffTimesheets.queue.title')}</h2>
         <div className="flex items-center gap-2">
           {selected.size > 0 && (
             <Button size="sm" onClick={() => setConfirmingBulk(true)}>
-              Approve {selected.size} selected
+              {t('staffTimesheets.queue.approveSelected', { count: selected.size })}
             </Button>
           )}
-          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
-            <option value="">All statuses</option>
+          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label={t('staffTimesheets.queue.filterAriaLabel')}>
+            <option value="">{t('common.allStatuses')}</option>
             {TIMESHEET_STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {t(`common.status.${s}`, s)}
               </option>
             ))}
           </Select>
@@ -255,59 +253,64 @@ function ReviewQueue() {
       {isPending ? (
         <Skeleton className="h-32 w-full" />
       ) : isError ? (
-        <EmptyState title="Could not load timesheets" description="Check your connection and try again." action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>} />
+        <EmptyState title={t('staffTimesheets.queue.couldNotLoad')} description={t('common.checkConnection')} action={<Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>} />
       ) : data.items.length === 0 ? (
-        <EmptyState title="No timesheets" description="Nothing matches this filter." />
+        <EmptyState title={t('staffTimesheets.queue.emptyTitle')} description={t('staffTimesheets.queue.emptyDescription')} />
       ) : (
         <>
           {submittedIds.length > 0 && (
             <label className="mb-3 flex items-center gap-2 border-b border-border pb-3 text-xs text-muted">
               <input type="checkbox" className="h-4 w-4 rounded border-border" checked={allSelected} onChange={toggleAll} />
-              Select all submitted
+              {t('staffTimesheets.queue.selectAllSubmitted')}
             </label>
           )}
           <div className="divide-y divide-border">
-            {data.items.map((t) => {
-              const incomplete = t.recordedDays < 7;
+            {data.items.map((ts) => {
+              const incomplete = ts.recordedDays < 7;
               return (
-                <div key={t._id} className="flex flex-wrap items-start justify-between gap-3 py-3 text-sm">
+                <div key={ts._id} className="flex flex-wrap items-start justify-between gap-3 py-3 text-sm">
                   <div className="flex min-w-0 items-start gap-3">
-                    {canBulkApprove(t) && (
+                    {canBulkApprove(ts) && (
                       <input
                         type="checkbox"
                         className="mt-1 h-4 w-4 rounded border-border"
-                        checked={selected.has(t._id)}
-                        onChange={() => toggleOne(t._id)}
+                        checked={selected.has(ts._id)}
+                        onChange={() => toggleOne(ts._id)}
                       />
                     )}
                     <div className="min-w-0">
                       <p className="font-medium">
-                        {t.employee?.fullName} <span className="font-normal text-muted">({t.employee?.employeeId})</span>
+                        {ts.employee?.fullName} <span className="font-normal text-muted">({ts.employee?.employeeId})</span>
                       </p>
                       <p className="text-xs text-muted">
-                        {formatDate(t.periodStart)} – {formatDate(t.periodEnd)} · {formatHours(t.totalHours)} hrs
-                        {t.overtimeHours > 0 && (
-                          <span className="text-warning"> ({formatHours(t.overtimeHours)} overtime)</span>
+                        {formatDate(ts.periodStart)} – {formatDate(ts.periodEnd)} · {formatHours(ts.totalHours)} hrs
+                        {ts.overtimeHours > 0 && (
+                          <span className="text-warning"> {t('staffTimesheets.queue.overtimeSuffix', { hours: formatHours(ts.overtimeHours) })}</span>
                         )}{' '}
-                        · {t.daysPresent} present, {t.daysAbsent} absent, {t.daysLeaveOrSick} leave/sick, {t.daysOff} off
+                        · {t('staffTimesheets.queue.daysSummary', {
+                          present: ts.daysPresent,
+                          absent: ts.daysAbsent,
+                          leaveOrSick: ts.daysLeaveOrSick,
+                          off: ts.daysOff,
+                        })}
                       </p>
                       {incomplete && (
-                        <p className="mt-1 text-xs text-warning">Only {t.recordedDays} of 7 days have attendance recorded.</p>
+                        <p className="mt-1 text-xs text-warning">{t('staffTimesheets.queue.incompleteWarning', { recorded: ts.recordedDays })}</p>
                       )}
-                      {t.notes && <p className="mt-1 text-xs text-muted">{t.notes}</p>}
-                      {t.decisionNote && <p className="mt-1 text-xs italic text-muted">Note: {t.decisionNote}</p>}
-                      <ApprovalTrailView request={t} />
+                      {ts.notes && <p className="mt-1 text-xs text-muted">{ts.notes}</p>}
+                      {ts.decisionNote && <p className="mt-1 text-xs italic text-muted">{t('staffTimesheets.queue.noteLabel', { note: ts.decisionNote })}</p>}
+                      <ApprovalTrailView request={ts} />
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    <Badge variant={TIMESHEET_STATUS_VARIANT[t.status]}>{t.status}</Badge>
-                    {t.canDecideCurrentStep && t.status === 'Submitted' && (
+                    <Badge variant={TIMESHEET_STATUS_VARIANT[ts.status]}>{t(`common.status.${ts.status}`, ts.status)}</Badge>
+                    {ts.canDecideCurrentStep && ts.status === 'Submitted' && (
                       <div className="flex gap-2">
-                        <Button size="sm" variant="secondary" onClick={() => setConfirming({ timesheet: t, decision: 'Approved' })}>
-                          Approve
+                        <Button size="sm" variant="secondary" onClick={() => setConfirming({ timesheet: ts, decision: 'Approved' })}>
+                          {t('staffTimesheets.queue.approve')}
                         </Button>
-                        <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ timesheet: t, decision: 'Rejected' })}>
-                          Reject
+                        <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ timesheet: ts, decision: 'Rejected' })}>
+                          {t('staffTimesheets.queue.reject')}
                         </Button>
                       </div>
                     )}
@@ -321,12 +324,17 @@ function ReviewQueue() {
 
       <ConfirmDialog
         open={!!confirming}
-        title={confirming?.decision === 'Approved' ? 'Approve timesheet?' : 'Reject timesheet?'}
+        title={confirming?.decision === 'Approved' ? t('staffTimesheets.queue.approveTitle') : t('staffTimesheets.queue.rejectTitle')}
         message={
           confirming &&
-          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.timesheet.employee?.fullName}'s timesheet for ${formatDate(confirming.timesheet.periodStart)} – ${formatDate(confirming.timesheet.periodEnd)}? This cannot be undone.`
+          t('staffTimesheets.queue.confirmMessage', {
+            action: confirming.decision === 'Approved' ? t('staffTimesheets.queue.approve') : t('staffTimesheets.queue.reject'),
+            name: confirming.timesheet.employee?.fullName,
+            start: formatDate(confirming.timesheet.periodStart),
+            end: formatDate(confirming.timesheet.periodEnd),
+          })
         }
-        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmLabel={confirming?.decision === 'Approved' ? t('staffTimesheets.queue.approve') : t('staffTimesheets.queue.reject')}
         confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
         loading={decideMutation.isPending}
         onConfirm={() => decideMutation.mutate({ id: confirming.timesheet._id, decision: confirming.decision })}
@@ -335,9 +343,9 @@ function ReviewQueue() {
 
       <ConfirmDialog
         open={confirmingBulk}
-        title="Approve selected timesheets?"
-        message={`Approve ${selected.size} selected timesheet(s)? Any not yet at their final step, or not yours to decide, will be skipped. This cannot be undone.`}
-        confirmLabel="Approve"
+        title={t('staffTimesheets.queue.bulkApproveTitle')}
+        message={t('staffTimesheets.queue.bulkApproveMessage', { count: selected.size })}
+        confirmLabel={t('staffTimesheets.queue.approve')}
         confirmVariant="primary"
         loading={bulkMutation.isPending}
         onConfirm={() => bulkMutation.mutate([...selected])}
@@ -349,20 +357,21 @@ function ReviewQueue() {
 
 export default function TimesheetsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const tabs = [
-    { key: 'requests', label: 'Requests', content: <ReviewQueue /> },
-    user.role !== 'Admin' && { key: 'submit', label: 'Submit Timesheet', content: <SubmitTimesheetPanel /> },
-    { key: 'monthly-report', label: 'Monthly Report', content: <MonthlyReportPanel /> },
+    { key: 'requests', label: t('staffTimesheets.tabs.requests'), content: <ReviewQueue /> },
+    user.role !== 'Admin' && { key: 'submit', label: t('staffTimesheets.tabs.submit'), content: <SubmitTimesheetPanel /> },
+    { key: 'monthly-report', label: t('staffTimesheets.tabs.monthlyReport'), content: <MonthlyReportPanel /> },
   ].filter(Boolean);
   const [activeTab, setActiveTab] = useTabParam(tabs, 'requests');
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
-        title="Timesheets"
-        description="Weekly hours submitted by workers, summarized from their attendance."
+        title={t('staffTimesheets.page.title')}
+        description={t('staffTimesheets.page.description')}
         onBack={() => navigate(-1)}
       />
       <Tabs tabs={tabs} value={activeTab} onChange={setActiveTab} />

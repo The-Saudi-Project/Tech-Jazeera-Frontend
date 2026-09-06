@@ -3,6 +3,7 @@
  * client name). Same shape as the quotations list.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listInvoices } from '../invoices.api.js';
@@ -17,6 +18,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function InvoiceListPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [params, setParams] = useState({ page: 1, limit: 20, search: '', status: '' });
 
@@ -39,42 +41,42 @@ export default function InvoiceListPage() {
     placeholderData: keepPreviousData,
   });
 
-  const columns = buildInvoiceColumns({ showClient: true });
+  const columns = buildInvoiceColumns({ showClient: true, t });
   const noFilters = !params.search && !params.status;
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
-        title="Invoices"
-        description="Billed amounts and payments received, created from approved quotations."
+        title={t('staffInvoices.list.pageTitle')}
+        description={t('staffInvoices.list.pageDescription')}
         onBack={() => navigate(-1)}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
         <Input
-          placeholder="Search number or client…"
+          placeholder={t('staffInvoices.list.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
-          aria-label="Search invoices"
+          aria-label={t('staffInvoices.list.searchAriaLabel')}
         />
         <Select
           value={params.status}
           onChange={(e) => setParams((p) => ({ ...p, status: e.target.value, page: 1 }))}
           className="sm:max-w-[180px]"
-          aria-label="Filter by status"
+          aria-label={t('staffInvoices.list.filterStatusAriaLabel')}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {INVOICE_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
       </div>
 
       {isError ? (
-        <EmptyState title="Could not load invoices" description="Please try again." />
+        <EmptyState title={t('staffInvoices.list.couldNotLoad')} description={t('staffInvoices.list.couldNotLoadDescription')} />
       ) : (
         <>
           <Table
@@ -84,11 +86,11 @@ export default function InvoiceListPage() {
             loading={isPending}
             emptyState={
               <EmptyState
-                title={noFilters ? 'No invoices yet' : 'No invoices match'}
+                title={noFilters ? t('staffInvoices.list.emptyTitleNoFilters') : t('staffInvoices.list.emptyTitleFiltered')}
                 description={
                   noFilters
-                    ? 'Approve a quotation, then create an invoice from it.'
-                    : 'Try clearing the search or filters.'
+                    ? t('staffInvoices.list.emptyDescriptionNoFilters')
+                    : t('common.tryClearingFilters')
                 }
               />
             }
@@ -97,18 +99,17 @@ export default function InvoiceListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–
-                {Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * params.limit + 1, to: Math.min(data.page * params.limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>

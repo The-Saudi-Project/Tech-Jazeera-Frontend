@@ -21,9 +21,8 @@ import {
 import { expenseFormSchema, emptyExpenseForm, expenseToForm } from '../expenses.schema.js';
 import { listClients } from '../../clients/clients.api.js';
 import { listDeployments } from '../../deployments/deployments.api.js';
-import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
-import { EXPENSE_CATEGORIES, EXPENSE_WRITE_ROLES, EXPENSE_DELETE_ROLES } from '../../../lib/constants.js';
+import { EXPENSE_CATEGORIES } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
@@ -72,11 +71,8 @@ function SummaryBar() {
 
 export default function ExpenseListPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canWrite = EXPENSE_WRITE_ROLES.includes(user.role);
-  const canDelete = EXPENSE_DELETE_ROLES.includes(user.role);
 
   const [search, setSearch] = useState('');
   const [params, setParams] = useState({ page: 1, limit: 20, search: '', category: '', from: '', to: '' });
@@ -92,7 +88,7 @@ export default function ExpenseListPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data, isPending, isError, refetch } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['expenses', params],
     queryFn: () =>
       listExpenses({
@@ -230,16 +226,12 @@ export default function ExpenseListPage() {
       className: 'text-right',
       render: (e) => (
         <span className="flex justify-end gap-2">
-          {canWrite && (
-            <Button size="sm" variant="ghost" onClick={() => openEdit(e)}>
-              Edit
-            </Button>
-          )}
-          {canDelete && (
-            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(e)}>
-              Delete
-            </Button>
-          )}
+          <Button size="sm" variant="ghost" onClick={() => openEdit(e)}>
+            Edit
+          </Button>
+          <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(e)}>
+            Delete
+          </Button>
         </span>
       ),
     },
@@ -254,7 +246,7 @@ export default function ExpenseListPage() {
         description="Company costs — rent, fuel, purchases, utilities — the other half of profit alongside invoices."
         onBack={() => navigate(-1)}
         actions={
-          canWrite && (
+          !isError && (
             <Button size="sm" onClick={openNew}>
               Add expense
             </Button>
@@ -302,7 +294,11 @@ export default function ExpenseListPage() {
       </div>
 
       {isError ? (
-        <EmptyState title="Could not load expenses" description="Please try again." action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>} />
+        <EmptyState
+          title="You don't have access to this page"
+          description={apiMessage(error) || 'Expenses can only be opened by whoever an Admin has granted access.'}
+          action={<Button variant="secondary" onClick={() => refetch()}>Retry</Button>}
+        />
       ) : (
         <>
           <Table
@@ -313,8 +309,8 @@ export default function ExpenseListPage() {
             emptyState={
               <EmptyState
                 title={noFilters ? 'No expenses recorded yet' : 'No expenses match'}
-                description={noFilters ? (canWrite ? 'Record your first company expense above.' : 'Nothing has been recorded yet.') : 'Try clearing the search or filters.'}
-                action={canWrite && noFilters && <Button variant="secondary" onClick={openNew}>Add expense</Button>}
+                description={noFilters ? 'Record your first company expense above.' : 'Try clearing the search or filters.'}
+                action={noFilters && <Button variant="secondary" onClick={openNew}>Add expense</Button>}
               />
             }
           />

@@ -11,11 +11,11 @@ import QuotationPdfButton from './QuotationPdfButton.jsx';
 
 export const STATUS_VARIANT = { Draft: 'default', Approved: 'success', Rejected: 'danger' };
 
-export function buildQuotationColumns({ showClient = false } = {}) {
+export function buildQuotationColumns({ showClient = false, t } = {}) {
   return [
     {
       key: 'quotationNumber',
-      header: 'Number',
+      header: t('staffQuotations.columns.number'),
       render: (q) => (
         <Link to={`/quotations/${q._id}`} className="font-medium text-text hover:text-primary">
           {q.quotationNumber}
@@ -23,17 +23,17 @@ export function buildQuotationColumns({ showClient = false } = {}) {
       ),
     },
     ...(showClient
-      ? [{ key: 'clientName', header: 'Client', render: (q) => q.clientName }]
+      ? [{ key: 'clientName', header: t('staffQuotations.columns.client'), render: (q) => q.clientName }]
       : []),
-    { key: 'date', header: 'Date', render: (q) => formatDate(q.date) },
+    { key: 'date', header: t('staffQuotations.columns.date'), render: (q) => formatDate(q.date) },
     {
       key: 'status',
-      header: 'Status',
-      render: (q) => <Badge variant={STATUS_VARIANT[q.status]}>{q.status}</Badge>,
+      header: t('staffQuotations.columns.status'),
+      render: (q) => <Badge variant={STATUS_VARIANT[q.status]}>{t(`common.status.${q.status}`, q.status)}</Badge>,
     },
     {
       key: 'grandTotal',
-      header: 'Total',
+      header: t('staffQuotations.columns.total'),
       className: 'text-right tabular-nums',
       render: (q) => formatMoney(q.grandTotal),
     },
@@ -45,7 +45,7 @@ export function buildQuotationColumns({ showClient = false } = {}) {
         <span className="flex justify-end gap-2">
           <Link to={`/quotations/${q._id}`}>
             <Button size="sm" variant="secondary">
-              View
+              {t('common.view')}
             </Button>
           </Link>
           <QuotationPdfButton id={q._id} number={q.quotationNumber} size="sm" variant="ghost" />

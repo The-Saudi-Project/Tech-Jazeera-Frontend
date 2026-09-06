@@ -3,6 +3,7 @@
  * charting library — the stack is locked and this is ~20 lines). Shows each
  * status's share of the total.
  */
+import { useTranslation } from 'react-i18next';
 import Card from '../../../components/ui/Card.jsx';
 import { cn } from '../../../lib/utils.js';
 
@@ -15,13 +16,14 @@ const BAR_COLOR = {
 };
 
 export default function StatusBreakdown({ title, data, colors }) {
+  const { t } = useTranslation();
   const total = Object.values(data).reduce((a, b) => a + b, 0);
 
   return (
     <Card>
       <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{title}</h2>
       {total === 0 ? (
-        <p className="text-sm text-muted">No data yet.</p>
+        <p className="text-sm text-muted">{t('staffDashboard.noDataYet')}</p>
       ) : (
         <div className="space-y-3">
           {Object.entries(data).map(([label, count]) => {
@@ -29,7 +31,7 @@ export default function StatusBreakdown({ title, data, colors }) {
             return (
               <div key={label}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span>{label}</span>
+                  <span>{t(`common.status.${label}`, label)}</span>
                   <span className="tabular-nums text-muted">
                     {count} · {pct}%
                   </span>

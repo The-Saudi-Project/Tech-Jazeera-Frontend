@@ -5,6 +5,7 @@
  * natural place to manage one worker's placement).
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listDeployments } from '../deployments.api.js';
@@ -22,6 +23,7 @@ import EmptyState from '../../../components/ui/EmptyState.jsx';
 const STATUS_VARIANT = { Active: 'success', Ended: 'default' };
 
 export default function DeploymentListPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const canWrite = DEPLOYMENT_WRITE_ROLES.includes(user.role);
@@ -57,17 +59,17 @@ export default function DeploymentListPage() {
   const columns = [
     {
       key: 'worker',
-      header: 'Worker',
+      header: t('staffDeployments.list.columns.worker'),
       render: (d) => (
         <Link to={`/employees/${d.worker?._id}`} className="font-medium text-text hover:text-primary">
-          {d.worker?.fullName ?? 'Unknown'}
+          {d.worker?.fullName ?? t('staffDeployments.list.unknownWorker')}
           <span className="block text-xs font-normal text-muted">{d.worker?.employeeId}</span>
         </Link>
       ),
     },
     {
       key: 'client',
-      header: 'Client / Site',
+      header: t('staffDeployments.list.columns.clientSite'),
       render: (d) => (
         <span>
           {d.clientName}
@@ -75,10 +77,10 @@ export default function DeploymentListPage() {
         </span>
       ),
     },
-    { key: 'shift', header: 'Shift', hideOnMobile: true, render: (d) => d.shift },
+    { key: 'shift', header: t('staffDeployments.list.columns.shift'), hideOnMobile: true, render: (d) => t(`staffDeployments.shiftLabels.${d.shift}`, d.shift) },
     {
       key: 'startDate',
-      header: 'Period',
+      header: t('staffDeployments.list.columns.period'),
       render: (d) => (
         <span className="text-sm">
           {formatDate(d.startDate)}
@@ -88,10 +90,10 @@ export default function DeploymentListPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('staffDeployments.list.columns.status'),
       render: (d) => (
         <Badge variant={STATUS_VARIANT[d.status]}>
-          {d.status}
+          {t(`common.status.${d.status}`, d.status)}
           {d.endReason ? ` · ${d.endReason}` : ''}
         </Badge>
       ),
@@ -101,10 +103,10 @@ export default function DeploymentListPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Deployments"
-        description="Where every worker is placed — current and past."
+        title={t('staffDeployments.list.pageTitle')}
+        description={t('staffDeployments.list.pageDescription')}
         onBack={() => navigate(-1)}
-        actions={canWrite && <Button onClick={() => navigate('/deployments/new')}>Assign worker</Button>}
+        actions={canWrite && <Button onClick={() => navigate('/deployments/new')}>{t('staffDeployments.list.assignWorker')}</Button>}
       />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -112,12 +114,12 @@ export default function DeploymentListPage() {
           value={params.status}
           onChange={(e) => setParams((p) => ({ ...p, status: e.target.value, page: 1 }))}
           className="sm:max-w-[180px]"
-          aria-label="Filter by status"
+          aria-label={t('staffDeployments.list.filterStatusAriaLabel')}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {DEPLOYMENT_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
@@ -125,9 +127,9 @@ export default function DeploymentListPage() {
           value={params.client}
           onChange={(e) => setParams((p) => ({ ...p, client: e.target.value, page: 1 }))}
           className="sm:max-w-xs"
-          aria-label="Filter by client"
+          aria-label={t('staffDeployments.list.filterClientAriaLabel')}
         >
-          <option value="">All clients</option>
+          <option value="">{t('staffDeployments.list.allClients')}</option>
           {(clientData?.items ?? []).map((c) => (
             <option key={c._id} value={c._id}>
               {c.companyName}
@@ -137,7 +139,7 @@ export default function DeploymentListPage() {
       </div>
 
       {isError ? (
-        <EmptyState title="Could not load deployments" description="Please try again." />
+        <EmptyState title={t('staffDeployments.list.couldNotLoad')} description={t('staffDeployments.list.couldNotLoadDescription')} />
       ) : (
         <>
           <Table
@@ -148,15 +150,15 @@ export default function DeploymentListPage() {
             onRowClick={(d) => d.worker?._id && navigate(`/employees/${d.worker._id}`)}
             emptyState={
               <EmptyState
-                title={params.status || params.client ? 'No deployments match' : 'No deployments yet'}
+                title={params.status || params.client ? t('staffDeployments.list.emptyTitleFiltered') : t('staffDeployments.list.emptyTitleNoFilters')}
                 description={
                   params.status || params.client
-                    ? 'Try clearing the filters.'
-                    : 'Assign a worker to a client site to create the first deployment.'
+                    ? t('common.tryClearingFilters')
+                    : t('staffDeployments.list.emptyDescriptionNoFilters')
                 }
                 action={
                   !params.status && !params.client && canWrite ? (
-                    <Button onClick={() => navigate('/deployments/new')}>Assign worker</Button>
+                    <Button onClick={() => navigate('/deployments/new')}>{t('staffDeployments.list.assignWorker')}</Button>
                   ) : null
                 }
               />
@@ -166,18 +168,17 @@ export default function DeploymentListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * params.limit + 1}–
-                {Math.min(data.page * params.limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * params.limit + 1, to: Math.min(data.page * params.limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setParams((p) => ({ ...p, page: p.page - 1 }))}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setParams((p) => ({ ...p, page: p.page + 1 }))}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>

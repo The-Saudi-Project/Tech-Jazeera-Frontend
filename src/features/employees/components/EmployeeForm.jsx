@@ -5,6 +5,7 @@
  * apart in layout or rules.
  */
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
@@ -28,14 +29,9 @@ import Textarea from '../../../components/ui/Textarea.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Card from '../../../components/ui/Card.jsx';
 
-/** The five identity documents, rendered uniformly from this config. */
-const DOCUMENTS = [
-  ['passport', 'Passport'],
-  ['visa', 'Visa'],
-  ['iqama', 'Iqama'],
-  ['medical', 'Medical'],
-  ['drivingLicense', 'Driving License'],
-];
+/** The five identity documents, rendered uniformly from this config —
+ *  `key` doubles as the i18n key under staffEmployees.form.documents.*. */
+const DOCUMENTS = ['passport', 'visa', 'iqama', 'medical', 'drivingLicense'];
 
 /** Section wrapper: consistent heading + responsive field grid. */
 function Section({ title, children }) {
@@ -49,12 +45,22 @@ function Section({ title, children }) {
 
 export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, submitting }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   // A Coordinator adding their own worker never picks a coordinator — the
   // server always assigns it to themselves regardless of what's submitted
   // (see employee.service.js), so showing an editable picker here would just
   // be confusing. Everyone else keeps the normal picker.
   const isCoordinator = user.role === 'Coordinator';
+  // The server always overrides 'Own' to 'Client' for a Coordinator's own
+  // submission (a Coordinator can never create an internal-staff record —
+  // see employee.service.js's createEmployee) AND, since that override runs
+  // after Zod validation, requires nationality/mobile/joiningDate that the
+  // 'Own' branch of the schema doesn't ask for — offering 'Own' here would
+  // let a Coordinator fill a form that validates, then 400s server-side on
+  // fields they were never shown as required. Simplest correct fix: never
+  // offer the type they can't actually end up with.
+  const selectableTypes = isCoordinator ? EMPLOYEE_TYPES.filter((t) => t !== 'Own') : EMPLOYEE_TYPES;
   const {
     register,
     handleSubmit,
@@ -142,69 +148,66 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
         ))}
       </datalist>
 
-      <Section title="Employee type">
+      <Section title={t('staffEmployees.form.sections.employeeType')}>
         <div className="sm:col-span-2">
-          <Select label="Type *" error={errors.type?.message} {...register('type')}>
-            {EMPLOYEE_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {EMPLOYEE_TYPE_LABELS[t]}
+          <Select label={`${t('staffEmployees.form.type')} *`} error={errors.type?.message} {...register('type')}>
+            {selectableTypes.map((ty) => (
+              <option key={ty} value={ty}>
+                {t(`common.employeeType.${ty}`, EMPLOYEE_TYPE_LABELS[ty])}
               </option>
             ))}
           </Select>
           <p className="mt-1 text-xs text-muted">
-            {type === 'Own' &&
-              'Internal staff (Manager/HR/Coordinator/IT/Office). Nationality, mobile, joining date and salary are optional.'}
-            {type === 'Client' &&
-              'This company’s own workforce, supplied to clients — visa/iqama tracking and payroll both apply.'}
-            {type === 'Subcontracted' &&
-              'Sourced from an outside subcontractor, placed with a client — visa/iqama tracking applies, but payroll does not: the subcontractor pays them, not this company.'}
+            {type === 'Own' && t('staffEmployees.form.typeHintOwn')}
+            {type === 'Client' && t('staffEmployees.form.typeHintClient')}
+            {type === 'Subcontracted' && t('staffEmployees.form.typeHintSubcontracted')}
           </p>
         </div>
         {type === 'Subcontracted' && (
           <div className="sm:col-span-2">
-            <Select label="Subcontractor *" error={errors.subcontractor?.message} {...register('subcontractor')}>
-              <option value="">Select a subcontractor…</option>
+            <Select label={`${t('staffEmployees.form.subcontractor')} *`} error={errors.subcontractor?.message} {...register('subcontractor')}>
+              <option value="">{t('staffEmployees.form.selectSubcontractor')}</option>
               {subcontractors.map((s) => (
                 <option key={s._id} value={s._id}>
                   {s.name}
                 </option>
               ))}
             </Select>
-            <p className="mt-1 text-xs text-muted">Who this worker is actually employed by.</p>
+            <p className="mt-1 text-xs text-muted">{t('staffEmployees.form.subcontractorHint')}</p>
           </div>
         )}
       </Section>
 
-      <Section title="Personal details">
-        <Input label="Employee ID *" placeholder="AJ-001" error={errors.employeeId?.message} {...register('employeeId')} />
-        <Input label="Full name *" error={errors.fullName?.message} {...register('fullName')} />
+      <Section title={t('staffEmployees.form.sections.personalDetails')}>
+        <Input label={`${t('staffEmployees.form.employeeId')} *`} placeholder="AJ-001" error={errors.employeeId?.message} {...register('employeeId')} />
+        <Input label={`${t('staffEmployees.form.fullName')} *`} error={errors.fullName?.message} {...register('fullName')} />
         <Input
-          label={`Nationality${isWorkforce ? ' *' : ''}`}
+          label={`${t('staffEmployees.form.nationality')}${isWorkforce ? ' *' : ''}`}
           list="country-list"
           autoComplete="off"
           error={errors.nationality?.message}
           {...register('nationality')}
         />
         <Input
-          label={`Mobile${isWorkforce ? ' *' : ''}`}
+          label={`${t('staffEmployees.form.mobile')}${isWorkforce ? ' *' : ''}`}
           placeholder="+966 5x xxx xxxx"
           error={errors.mobile?.message}
           {...register('mobile')}
         />
-        <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
+        <Input label={t('staffEmployees.form.email')} type="email" error={errors.email?.message} {...register('email')} />
       </Section>
 
-      <Section title="Employment">
+      <Section title={t('staffEmployees.form.sections.employment')}>
         <Input
-          label={`Joining date${isWorkforce ? ' *' : ''}`}
+          label={`${t('staffEmployees.form.joiningDate')}${isWorkforce ? ' *' : ''}`}
           type="date"
           error={errors.joiningDate?.message}
           {...register('joiningDate')}
         />
-        <Input label="Designation *" placeholder="Electrician" error={errors.designation?.message} {...register('designation')} />
-        <Input label="Department" placeholder="Maintenance" error={errors.department?.message} {...register('department')} />
+        <Input label={`${t('staffEmployees.form.designation')} *`} placeholder="Electrician" error={errors.designation?.message} {...register('designation')} />
+        <Input label={t('staffEmployees.form.department')} placeholder="Maintenance" error={errors.department?.message} {...register('department')} />
         <Input
-          label={`Salary (SAR/month)${type === 'Client' ? ' *' : ''}`}
+          label={`${t('staffEmployees.form.salaryPerMonth')}${type === 'Client' ? ' *' : ''}`}
           type="number"
           min="0"
           step="50"
@@ -212,19 +215,17 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           {...register('salary')}
         />
         <div className="sm:col-span-2">
-          <p className="mb-2 text-xs font-medium text-muted">
-            WPS salary breakdown (optional — leave blank to show the full salary as Basic on payslips)
-          </p>
+          <p className="mb-2 text-xs font-medium text-muted">{t('staffEmployees.form.wpsBreakdownHint')}</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Input label="Basic" type="number" min="0" step="50" error={errors.basicSalary?.message} {...register('basicSalary')} />
-            <Input label="Housing allowance" type="number" min="0" step="50" error={errors.housingAllowance?.message} {...register('housingAllowance')} />
-            <Input label="Transport allowance" type="number" min="0" step="50" error={errors.transportAllowance?.message} {...register('transportAllowance')} />
+            <Input label={t('staffEmployees.form.basic')} type="number" min="0" step="50" error={errors.basicSalary?.message} {...register('basicSalary')} />
+            <Input label={t('staffEmployees.form.housingAllowance')} type="number" min="0" step="50" error={errors.housingAllowance?.message} {...register('housingAllowance')} />
+            <Input label={t('staffEmployees.form.transportAllowance')} type="number" min="0" step="50" error={errors.transportAllowance?.message} {...register('transportAllowance')} />
           </div>
         </div>
-        <Input label="Accommodation" placeholder="Company camp, room 12" error={errors.accommodation?.message} {...register('accommodation')} />
+        <Input label={t('staffEmployees.form.accommodation')} placeholder="Company camp, room 12" error={errors.accommodation?.message} {...register('accommodation')} />
         <div>
           <Input
-            label="Expected daily hours"
+            label={t('staffEmployees.form.expectedDailyHours')}
             type="number"
             min="0"
             max="24"
@@ -233,40 +234,35 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
             error={errors.expectedDailyHours?.message}
             {...register('expectedDailyHours')}
           />
-          <p className="mt-1 text-xs text-muted">
-            Warns this worker in My Attendance if they sign out before this many hours. Leave blank for no warning.
-          </p>
+          <p className="mt-1 text-xs text-muted">{t('staffEmployees.form.expectedDailyHoursHint')}</p>
         </div>
         <div>
-          <Select label="Weekly off day" error={errors.weeklyOffDay?.message} {...register('weeklyOffDay')}>
-            <option value="">No fixed day off</option>
+          <Select label={t('staffEmployees.form.weeklyOffDay')} error={errors.weeklyOffDay?.message} {...register('weeklyOffDay')}>
+            <option value="">{t('staffEmployees.form.noFixedDayOff')}</option>
             {WEEKDAY_LABELS.map((label, i) => (
               <option key={i} value={i}>
                 {label}
               </option>
             ))}
           </Select>
-          <p className="mt-1 text-xs text-muted">
-            Shown as an inferred "Off" day on the Attendance Records grid when nothing was recorded — a real record
-            for that day always overrides it.
-          </p>
+          <p className="mt-1 text-xs text-muted">{t('staffEmployees.form.weeklyOffDayHint')}</p>
         </div>
-        <Select label="Status" error={errors.status?.message} {...register('status')}>
+        <Select label={t('staffEmployees.form.status')} error={errors.status?.message} {...register('status')}>
           {EMPLOYEE_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {t(`common.status.${s}`, s)}
             </option>
           ))}
         </Select>
         {isCoordinator ? (
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">Coordinator</p>
-            <p className="mt-0.5 text-sm font-medium">{user.name} (you)</p>
-            <p className="mt-1 text-xs text-muted">Employees you add are automatically assigned to your team.</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">{t('staffEmployees.form.coordinator')}</p>
+            <p className="mt-0.5 text-sm font-medium">{t('staffEmployees.form.coordinatorYou', { name: user.name })}</p>
+            <p className="mt-1 text-xs text-muted">{t('staffEmployees.form.coordinatorSelfHint')}</p>
           </div>
         ) : (
-          <Select label="Coordinator" error={errors.coordinator?.message} {...register('coordinator')}>
-            <option value="">Not assigned</option>
+          <Select label={t('staffEmployees.form.coordinator')} error={errors.coordinator?.message} {...register('coordinator')}>
+            <option value="">{t('common.notAssigned')}</option>
             {(coordinators ?? []).map((c) => (
               <option key={c._id} value={c._id}>
                 {c.name}
@@ -275,8 +271,8 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           </Select>
         )}
         <div>
-          <Select label="Manager" error={errors.manager?.message} {...register('manager')}>
-            <option value="">Not assigned</option>
+          <Select label={t('staffEmployees.form.manager')} error={errors.manager?.message} {...register('manager')}>
+            <option value="">{t('common.notAssigned')}</option>
             {managers.map((m) => (
               <option key={m._id} value={m._id}>
                 {m.name} ({m.role})
@@ -284,65 +280,60 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
             ))}
           </Select>
           <p className="mt-1 text-xs text-muted">
-            {type === 'Own'
-              ? 'Who this employee reports to.'
-              : "Optional — alongside or instead of a coordinator, if they report to a manager directly."}
+            {type === 'Own' ? t('staffEmployees.form.managerHintOwn') : t('staffEmployees.form.managerHintOther')}
           </p>
         </div>
         <div>
-          <Select label="Approval workflow override" error={errors.approvalWorkflow?.message} {...register('approvalWorkflow')}>
-            <option value="">Use the company default</option>
+          <Select label={t('staffEmployees.form.approvalWorkflowOverride')} error={errors.approvalWorkflow?.message} {...register('approvalWorkflow')}>
+            <option value="">{t('staffEmployees.form.useCompanyDefault')}</option>
             {activeWorkflows.map((w) => (
               <option key={w._id} value={w._id}>
                 {w.name}
               </option>
             ))}
           </Select>
-          <p className="mt-1 text-xs text-muted">
-            Which approval chain this employee's Leave/Salary Advance/Reimbursement/Timesheet requests route
-            through. Leave as the default unless this person needs a different chain — configure roles and
-            workflows under Admin &amp; Tools → Approval Hierarchy.
-          </p>
+          <p className="mt-1 text-xs text-muted">{t('staffEmployees.form.approvalWorkflowHint')}</p>
         </div>
       </Section>
 
       <Card>
-        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">Documents</h2>
-        <p className="mb-4 text-sm text-muted">
-          Leave blank if not issued yet — expiry dates drive the renewal alerts.
-        </p>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffEmployees.form.sections.documents')}</h2>
+        <p className="mb-4 text-sm text-muted">{t('staffEmployees.form.documentsHint')}</p>
         <div className="space-y-4">
-          {DOCUMENTS.map(([key, label]) => (
-            <div key={key} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                label={`${label} number`}
-                error={errors[key]?.number?.message}
-                {...register(`${key}.number`)}
-              />
-              <Input
-                label={`${label} expiry`}
-                type="date"
-                error={errors[key]?.expiry?.message}
-                {...register(`${key}.expiry`)}
-              />
-            </div>
-          ))}
+          {DOCUMENTS.map((key) => {
+            const label = t(`staffEmployees.form.documents.${key}`);
+            return (
+              <div key={key} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Input
+                  label={t('staffEmployees.form.documentNumber', { document: label })}
+                  error={errors[key]?.number?.message}
+                  {...register(`${key}.number`)}
+                />
+                <Input
+                  label={t('staffEmployees.form.documentExpiry', { document: label })}
+                  type="date"
+                  error={errors[key]?.expiry?.message}
+                  {...register(`${key}.expiry`)}
+                />
+              </div>
+            );
+          })}
         </div>
       </Card>
 
-      <Section title="Emergency contact">
-        <Input label="Name" error={errors.emergencyContact?.name?.message} {...register('emergencyContact.name')} />
-        <Input label="Phone" error={errors.emergencyContact?.phone?.message} {...register('emergencyContact.phone')} />
-        <Input label="Relation" placeholder="Wife, brother…" error={errors.emergencyContact?.relation?.message} {...register('emergencyContact.relation')} />
+      <Section title={t('staffEmployees.form.sections.emergencyContact')}>
+        <Input label={t('staffEmployees.form.emergencyName')} error={errors.emergencyContact?.name?.message} {...register('emergencyContact.name')} />
+        <Input label={t('staffEmployees.form.emergencyPhone')} error={errors.emergencyContact?.phone?.message} {...register('emergencyContact.phone')} />
+        <Input label={t('staffEmployees.form.emergencyRelation')} placeholder="Wife, brother…" error={errors.emergencyContact?.relation?.message} {...register('emergencyContact.relation')} />
       </Section>
 
       <Card>
-        <Textarea label="Notes" placeholder="Certifications, restrictions, anything the office should know." error={errors.notes?.message} {...register('notes')} />
+        <Textarea label={t('staffEmployees.form.notes')} placeholder={t('staffEmployees.form.notesPlaceholder')} error={errors.notes?.message} {...register('notes')} />
       </Card>
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={() => navigate(-1)} disabled={submitting}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" isLoading={submitting}>
           {submitLabel}

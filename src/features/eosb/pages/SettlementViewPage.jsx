@@ -4,6 +4,7 @@
  * recomputing (see settlement.model.js), never edited in place.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSettlement, deleteSettlement } from '../eosb.api.js';
@@ -20,10 +21,10 @@ import Button from '../../../components/ui/Button.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
-function fractionLabel(f) {
-  if (f === 1) return 'Full award';
-  if (f === 0) return 'Forfeited (under 2 years)';
-  return `${Math.round(f * 100)}% of the award`;
+function fractionLabel(f, t) {
+  if (f === 1) return t('staffEosb.view.fraction.full');
+  if (f === 0) return t('staffEosb.view.fraction.forfeited');
+  return t('staffEosb.view.fraction.percent', { percent: Math.round(f * 100) });
 }
 
 function Row({ label, value, note, bold }) {
@@ -40,6 +41,7 @@ function Row({ label, value, note, bold }) {
 
 export default function SettlementViewPage() {
   const { id } = useParams();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ export default function SettlementViewPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteSettlement(id),
     onSuccess: () => {
-      toast.success('Settlement deleted.');
+      toast.success(t('staffEosb.view.deletedToast'));
       queryClient.invalidateQueries({ queryKey: ['eosb'] });
       navigate('/eosb', { replace: true });
     },
@@ -76,11 +78,11 @@ export default function SettlementViewPage() {
   if (isError) {
     return (
       <EmptyState
-        title="Settlement not found"
-        description="It may have been deleted."
+        title={t('staffEosb.view.notFoundTitle')}
+        description={t('staffEosb.view.notFoundDescription')}
         action={
           <Link to="/eosb">
-            <Button variant="secondary">Back to settlements</Button>
+            <Button variant="secondary">{t('staffEosb.view.backToList')}</Button>
           </Link>
         }
       />
@@ -91,17 +93,17 @@ export default function SettlementViewPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader
         title={s.employeeName}
-        description={`${s.employeeCode} · exited ${formatDate(s.exitDate)}`}
+        description={t('staffEosb.view.descriptionLine', { code: s.employeeCode, date: formatDate(s.exitDate) })}
         onBack={() => navigate(-1)}
         actions={
           <>
             <Badge variant={s.exitReason === 'Resignation' ? 'warning' : 'default'} className="mr-1">
-              {EXIT_REASON_LABELS[s.exitReason]}
+              {t(`staffEosb.exitReasonLabels.${s.exitReason}`, EXIT_REASON_LABELS[s.exitReason])}
             </Badge>
             <SettlementPdfButton id={s._id} employeeCode={s.employeeCode} />
             {canDelete && (
               <Button variant="ghost" className="hover:text-danger" onClick={() => setConfirmingDelete(true)}>
-                Delete
+                {t('common.delete')}
               </Button>
             )}
           </>
@@ -111,48 +113,48 @@ export default function SettlementViewPage() {
       <Card>
         <div className="mb-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Joining date</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t('staffEosb.view.joiningDate')}</p>
             <p className="mt-0.5 font-medium">{formatDate(s.joiningDate)}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Service</p>
-            <p className="mt-0.5 font-medium">{s.serviceYears} years</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t('staffEosb.view.service')}</p>
+            <p className="mt-0.5 font-medium">{t('staffEosb.view.serviceYears', { years: s.serviceYears })}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Monthly wage</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t('staffEosb.view.monthlyWage')}</p>
             <p className="mt-0.5 font-medium">{formatMoney(s.monthlyWage)}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Computed</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t('staffEosb.view.computed')}</p>
             <p className="mt-0.5 font-medium">{formatDate(s.createdAt)}</p>
           </div>
         </div>
 
-        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">End of service award (Articles 84–85)</h2>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffEosb.view.eosbSectionTitle')}</h2>
         <Row
-          label="Gross award"
+          label={t('staffEosb.view.grossAward')}
           value={formatMoney(s.eosbGross)}
-          note="Half a month's wage per year for the first 5 years, a full month's wage per year after."
+          note={t('staffEosb.view.grossAwardNote')}
         />
         <Row
-          label="Reduction applied"
-          value={fractionLabel(s.reductionFactor)}
-          note={s.exitReason === 'Resignation' ? 'Article 85 resignation tiering, by length of service.' : 'Not a resignation — full award, no reduction.'}
+          label={t('staffEosb.view.reductionApplied')}
+          value={fractionLabel(s.reductionFactor, t)}
+          note={s.exitReason === 'Resignation' ? t('staffEosb.view.reductionNoteResignation') : t('staffEosb.view.reductionNoteOther')}
         />
-        <Row label="Net end-of-service award" value={formatMoney(s.eosbNet)} bold />
+        <Row label={t('staffEosb.view.netAward')} value={formatMoney(s.eosbNet)} bold />
 
-        <h2 className="mb-1 mt-6 text-sm font-semibold uppercase tracking-wide text-muted">Vacation pay settlement</h2>
-        <Row label="Unused annual leave" value={`${s.unusedLeaveDays} day${s.unusedLeaveDays === 1 ? '' : 's'}`} />
-        <Row label="Leave encashment" value={formatMoney(s.leaveEncashment)} />
+        <h2 className="mb-1 mt-6 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffEosb.view.vacationSectionTitle')}</h2>
+        <Row label={t('staffEosb.view.unusedLeave')} value={t('staffEosb.view.unusedLeaveDays', { count: s.unusedLeaveDays })} />
+        <Row label={t('staffEosb.view.leaveEncashment')} value={formatMoney(s.leaveEncashment)} />
 
         <div className="mt-4 flex items-center justify-between rounded-xl bg-primary/5 px-4 py-3">
-          <p className="font-semibold">Total settlement</p>
+          <p className="font-semibold">{t('staffEosb.view.totalSettlement')}</p>
           <p className="text-lg font-bold tabular-nums">{formatMoney(s.totalSettlement)}</p>
         </div>
 
         {s.notes && (
           <div className="mt-4 border-t border-border pt-4">
-            <p className="text-xs uppercase tracking-wide text-muted">Notes</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{t('staffEosb.view.notes')}</p>
             <p className="mt-1 text-sm">{s.notes}</p>
           </div>
         )}
@@ -160,8 +162,8 @@ export default function SettlementViewPage() {
 
       <ConfirmDialog
         open={confirmingDelete}
-        title="Delete settlement?"
-        message={`This settlement for ${s.employeeName} will be permanently removed.`}
+        title={t('staffEosb.view.deleteConfirmTitle')}
+        message={t('staffEosb.view.deleteConfirmMessage', { name: s.employeeName })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setConfirmingDelete(false)}

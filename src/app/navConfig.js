@@ -14,9 +14,6 @@ import {
   COORDINATOR_ACTIVITY_VIEW_ROLES,
   EOSB_VIEW_ROLES,
   FINANCIAL_REQUEST_VIEW_ROLES,
-  EXIT_DOCUMENTS_ROLES,
-  PAYROLL_VIEW_ROLES,
-  EXPENSE_VIEW_ROLES,
   APPROVALS_MANAGE_ROLES,
   MOBILISATION_SETTINGS_MANAGE_ROLES,
 } from '../lib/constants.js';
@@ -66,7 +63,7 @@ const ICON = {
     'M3.375 19.5h6a1.125 1.125 0 001.125-1.125v-6a1.125 1.125 0 00-1.125-1.125h-6A1.125 1.125 0 002.25 12.375v6c0 .621.504 1.125 1.125 1.125zM3.375 6.75h6a1.125 1.125 0 001.125-1.125v-3a1.125 1.125 0 00-1.125-1.125h-6A1.125 1.125 0 002.25 2.625v3c0 .621.504 1.125 1.125 1.125zM13.5 19.5h6a1.125 1.125 0 001.125-1.125v-3a1.125 1.125 0 00-1.125-1.125h-6a1.125 1.125 0 00-1.125 1.125v3c0 .621.504 1.125 1.125 1.125zM13.5 6.75h6a1.125 1.125 0 001.125-1.125v-3A1.125 1.125 0 0019.5 1.5h-6a1.125 1.125 0 00-1.125 1.125v3c0 .621.504 1.125 1.125 1.125z',
 };
 
-export const DASHBOARD_ITEM = { to: '/', label: 'Dashboard', icon: ICON.dashboard };
+export const DASHBOARD_ITEM = { to: '/', label: 'Dashboard', labelKey: 'staffNav.dashboard', icon: ICON.dashboard };
 
 /**
  * The Executive (GM/COO) sidebar — deliberately NOT a filtered slice of
@@ -80,10 +77,18 @@ export const DASHBOARD_ITEM = { to: '/', label: 'Dashboard', icon: ICON.dashboar
  * nav specifically for this role.
  */
 export const EXECUTIVE_NAV_ITEMS = [
-  { to: '/leave', label: 'Leave', icon: ICON.calendarOff, description: 'Requests awaiting your review.' },
-  { to: '/timesheets', label: 'Timesheets', icon: ICON.list, description: 'Weekly hours awaiting your review.' },
-  { to: '/financial-requests', label: 'Financial Requests', icon: ICON.financialRequest, description: 'Salary advances and reimbursements.' },
-  { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order.' },
+  { to: '/leave', label: 'Leave', icon: ICON.calendarOff, description: 'Requests awaiting your review.', labelKey: 'staffNav.executive.leave.label', descriptionKey: 'staffNav.executive.leave.description' },
+  { to: '/timesheets', label: 'Timesheets', icon: ICON.list, description: 'Weekly hours awaiting your review.', labelKey: 'staffNav.executive.timesheets.label', descriptionKey: 'staffNav.executive.timesheets.description' },
+  { to: '/financial-requests', label: 'Financial Requests', icon: ICON.financialRequest, description: 'Salary advances and reimbursements.', labelKey: 'staffNav.executive.financialRequests.label', descriptionKey: 'staffNav.executive.financialRequests.description' },
+  { to: '/exit-documents', label: 'Exit & Documents', icon: ICON.exit, description: 'Re-entry visas and certificates awaiting your review.', labelKey: 'staffNav.executive.exitDocuments.label', descriptionKey: 'staffNav.executive.exitDocuments.description' },
+  { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order.', labelKey: 'staffNav.executive.approvalLog.label', descriptionKey: 'staffNav.executive.approvalLog.description' },
+  // Payroll/Expenses aren't part of Executive's default circle — they show
+  // up here unconditionally (same "visible, page decides" pattern as the
+  // grouped nav below) purely so a COO/Financial-Manager-titled Executive an
+  // Admin DID grant Section Access to has somewhere to click through to; an
+  // ungranted Executive just gets that page's own explained 403.
+  { to: '/payroll', label: 'Payroll', icon: ICON.banknotes, description: 'Monthly runs and payslips — if you\'ve been granted access.', labelKey: 'staffNav.executive.payroll.label', descriptionKey: 'staffNav.executive.payroll.description' },
+  { to: '/expenses', label: 'Expenses', icon: ICON.expense, description: 'Company spending — if you\'ve been granted access.', labelKey: 'staffNav.executive.expenses.label', descriptionKey: 'staffNav.executive.expenses.description' },
 ];
 
 export const NAV_GROUPS = [
@@ -91,63 +96,79 @@ export const NAV_GROUPS = [
     key: 'workforce',
     to: '/workforce',
     label: 'Workforce',
+    labelKey: 'staffNav.workforce.label',
     icon: ICON.users,
     description: 'Employees, attendance, leave and everything tied to their employment lifecycle.',
+    descriptionKey: 'staffNav.workforce.description',
     items: [
-      { to: '/employees', label: 'Employees', icon: ICON.users, description: 'Records, profiles, documents.' },
-      { to: '/attendance', label: 'Attendance', icon: ICON.calendar, description: 'Daily sign-in/out and records.' },
-      { to: '/leave', label: 'Leave', icon: ICON.calendarOff, description: 'Types, requests and approvals.' },
-      { to: '/holidays', label: 'Holidays', icon: ICON.holidays, description: 'The company holiday calendar.' },
-      { to: '/timesheets', label: 'Timesheets', icon: ICON.list, description: 'Weekly hours, submitted for approval.' },
-      { to: '/eosb', label: 'End of Service', icon: ICON.eosb, roles: EOSB_VIEW_ROLES, description: 'EOSB settlements on exit.' },
-      { to: '/exit-documents', label: 'Exit & Documents', icon: ICON.exit, roles: EXIT_DOCUMENTS_ROLES, description: 'Re-entry visas, certificates.' },
+      { to: '/employees', label: 'Employees', icon: ICON.users, description: 'Records, profiles, documents.', labelKey: 'staffNav.workforce.employees.label', descriptionKey: 'staffNav.workforce.employees.description' },
+      { to: '/attendance', label: 'Attendance', icon: ICON.calendar, description: 'Daily sign-in/out and records.', labelKey: 'staffNav.workforce.attendance.label', descriptionKey: 'staffNav.workforce.attendance.description' },
+      { to: '/leave', label: 'Leave', icon: ICON.calendarOff, description: 'Types, requests and approvals.', labelKey: 'staffNav.workforce.leave.label', descriptionKey: 'staffNav.workforce.leave.description' },
+      { to: '/holidays', label: 'Holidays', icon: ICON.holidays, description: 'The company holiday calendar.', labelKey: 'staffNav.workforce.holidays.label', descriptionKey: 'staffNav.workforce.holidays.description' },
+      { to: '/timesheets', label: 'Timesheets', icon: ICON.list, description: 'Weekly hours, submitted for approval.', labelKey: 'staffNav.workforce.timesheets.label', descriptionKey: 'staffNav.workforce.timesheets.description' },
+      { to: '/eosb', label: 'End of Service', icon: ICON.eosb, roles: EOSB_VIEW_ROLES, description: 'EOSB settlements on exit.', labelKey: 'staffNav.workforce.eosb.label', descriptionKey: 'staffNav.workforce.eosb.description' },
+      // No static roles gate — matches Leave: everyone reaching this hub can
+      // submit their own request, decide capability is per-row via
+      // canDecideCurrentStep, and issuing stays a narrower internal check.
+      { to: '/exit-documents', label: 'Exit & Documents', icon: ICON.exit, description: 'Re-entry visas, certificates.', labelKey: 'staffNav.workforce.exitDocuments.label', descriptionKey: 'staffNav.workforce.exitDocuments.description' },
     ],
   },
   {
     key: 'sales',
     to: '/sales',
     label: 'Sales & Clients',
+    labelKey: 'staffNav.sales.label',
     icon: ICON.building,
     description: 'Client relationships, worker placements and quotations.',
+    descriptionKey: 'staffNav.sales.description',
     items: [
-      { to: '/clients', label: 'Clients', icon: ICON.building, description: 'Companies your workers are placed with.' },
-      { to: '/deployments', label: 'Deployments', icon: ICON.map, description: 'Which worker is placed where.' },
-      { to: '/quotations', label: 'Quotations', icon: ICON.quotation, description: 'Pricing sent to clients, pre-invoice.' },
-      { to: '/mobilisations', label: 'Mobilisations', icon: ICON.team, description: 'Worker placements with client billing terms.' },
-      { to: '/subcontractors', label: 'Subcontractors', icon: ICON.building, description: 'Companies a mobilisation is sometimes routed through.' },
+      { to: '/clients', label: 'Clients', icon: ICON.building, description: 'Companies your workers are placed with.', labelKey: 'staffNav.sales.clients.label', descriptionKey: 'staffNav.sales.clients.description' },
+      { to: '/deployments', label: 'Deployments', icon: ICON.map, description: 'Which worker is placed where.', labelKey: 'staffNav.sales.deployments.label', descriptionKey: 'staffNav.sales.deployments.description' },
+      { to: '/quotations', label: 'Quotations', icon: ICON.quotation, description: 'Pricing sent to clients, pre-invoice.', labelKey: 'staffNav.sales.quotations.label', descriptionKey: 'staffNav.sales.quotations.description' },
+      { to: '/mobilisations', label: 'Mobilisations', icon: ICON.team, description: 'Worker placements with client billing terms.', labelKey: 'staffNav.sales.mobilisations.label', descriptionKey: 'staffNav.sales.mobilisations.description' },
+      { to: '/subcontractors', label: 'Subcontractors', icon: ICON.building, description: 'Companies a mobilisation is sometimes routed through.', labelKey: 'staffNav.sales.subcontractors.label', descriptionKey: 'staffNav.sales.subcontractors.description' },
     ],
   },
   {
     key: 'financial',
     to: '/financial',
     label: 'Financial',
+    labelKey: 'staffNav.financial.label',
     icon: ICON.banknotes,
     description: 'Money in, money out, and payroll.',
+    descriptionKey: 'staffNav.financial.description',
     items: [
-      { to: '/invoices', label: 'Invoices', icon: ICON.invoice, description: 'Billed to clients, payments tracked.' },
-      { to: '/payroll', label: 'Payroll', icon: ICON.banknotes, roles: PAYROLL_VIEW_ROLES, description: 'Monthly runs and payslips.' },
-      { to: '/expenses', label: 'Expenses', icon: ICON.expense, roles: EXPENSE_VIEW_ROLES, description: 'Company spending, internal only.' },
-      { to: '/financial-requests', label: 'Financial Requests', icon: ICON.financialRequest, roles: FINANCIAL_REQUEST_VIEW_ROLES, description: 'Salary advances and reimbursements.' },
+      { to: '/invoices', label: 'Invoices', icon: ICON.invoice, description: 'Billed to clients, payments tracked.', labelKey: 'staffNav.financial.invoices.label', descriptionKey: 'staffNav.financial.invoices.description' },
+      // No static roles gate — access is the admin-configurable Section
+      // Access mechanism (see docs/SECTION-ACCESS-notes.md); visible to
+      // every staff role that reaches this hub, page 403s if not granted —
+      // same dynamic-eligibility pattern as Company Settings/Approval Log.
+      { to: '/payroll', label: 'Payroll', icon: ICON.banknotes, description: 'Monthly runs and payslips.', labelKey: 'staffNav.financial.payroll.label', descriptionKey: 'staffNav.financial.payroll.description' },
+      { to: '/expenses', label: 'Expenses', icon: ICON.expense, description: 'Company spending, internal only.', labelKey: 'staffNav.financial.expenses.label', descriptionKey: 'staffNav.financial.expenses.description' },
+      { to: '/financial-requests', label: 'Financial Requests', icon: ICON.financialRequest, roles: FINANCIAL_REQUEST_VIEW_ROLES, description: 'Salary advances and reimbursements.', labelKey: 'staffNav.financial.financialRequests.label', descriptionKey: 'staffNav.financial.financialRequests.description' },
     ],
   },
   {
     key: 'admin',
     to: '/admin-tools',
     label: 'Admin & Tools',
+    labelKey: 'staffNav.admin.label',
     icon: ICON.cog,
     description: 'Company-wide configuration, records and internal tools.',
+    descriptionKey: 'staffNav.admin.description',
     items: [
-      { to: '/company-settings', label: 'Company Settings', icon: ICON.building, description: 'Legal identity, contact, bank and signatory details — printed on every generated document.' },
-      { to: '/documents', label: 'Documents', icon: ICON.document, description: 'Company & employee document store.' },
-      { to: '/assets', label: 'Assets', icon: ICON.asset, description: 'Equipment issued to employees.' },
-      { to: '/team', label: 'Team', icon: ICON.team, roles: STAFF_USER_VIEW_ROLES, description: 'Staff logins and roles.' },
-      { to: '/approvals', label: 'Approval Hierarchy', icon: ICON.hierarchy, roles: APPROVALS_MANAGE_ROLES, description: 'Approval roles and multi-step workflow chains.' },
-      { to: '/mobilisation-settings', label: 'Mobilisation Settings', icon: ICON.cog, roles: MOBILISATION_SETTINGS_MANAGE_ROLES, description: 'Which roles can view every mobilisation or self-mobilise.' },
-      { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order. Visible if you sit in the hierarchy.' },
-      { to: '/timesheet-processor', label: 'Timesheet Processor', icon: ICON.clock, roles: ['Admin'], description: 'Bulk-import device attendance exports.' },
-      { to: '/nfc', label: 'NFC Customers', icon: ICON.nfc, roles: ['Admin'], description: 'NFC business-card program.' },
-      { to: '/security-log', label: 'Security Log', icon: ICON.check, roles: ['Admin'], description: 'Auth & CRUD audit trail.' },
-      { to: '/coordinator-activity', label: 'Coordinator Activity', icon: ICON.activity, roles: COORDINATOR_ACTIVITY_VIEW_ROLES, description: 'What Coordinators added themselves.' },
+      { to: '/company-settings', label: 'Company Settings', icon: ICON.building, description: 'Legal identity, contact, bank and signatory details — printed on every generated document.', labelKey: 'staffNav.admin.companySettings.label', descriptionKey: 'staffNav.admin.companySettings.description' },
+      { to: '/section-access', label: 'Section Access', icon: ICON.cog, roles: ['Admin'], description: 'Which roles or approval roles can open Payroll, Expenses, and other governed sections.', labelKey: 'staffNav.admin.sectionAccess.label', descriptionKey: 'staffNav.admin.sectionAccess.description' },
+      { to: '/documents', label: 'Documents', icon: ICON.document, description: 'Company & employee document store.', labelKey: 'staffNav.admin.documents.label', descriptionKey: 'staffNav.admin.documents.description' },
+      { to: '/assets', label: 'Assets', icon: ICON.asset, description: 'Equipment issued to employees.', labelKey: 'staffNav.admin.assets.label', descriptionKey: 'staffNav.admin.assets.description' },
+      { to: '/team', label: 'Team', icon: ICON.team, roles: STAFF_USER_VIEW_ROLES, description: 'Staff logins and roles.', labelKey: 'staffNav.admin.team.label', descriptionKey: 'staffNav.admin.team.description' },
+      { to: '/approvals', label: 'Approval Hierarchy', icon: ICON.hierarchy, roles: APPROVALS_MANAGE_ROLES, description: 'Approval roles and multi-step workflow chains.', labelKey: 'staffNav.admin.approvals.label', descriptionKey: 'staffNav.admin.approvals.description' },
+      { to: '/mobilisation-settings', label: 'Mobilisation Settings', icon: ICON.cog, roles: MOBILISATION_SETTINGS_MANAGE_ROLES, description: 'Which roles can view every mobilisation or self-mobilise.', labelKey: 'staffNav.admin.mobilisationSettings.label', descriptionKey: 'staffNav.admin.mobilisationSettings.description' },
+      { to: '/approvals/log', label: 'Approval Log', icon: ICON.activity, description: 'Every request decided through a workflow, in order. Visible if you sit in the hierarchy.', labelKey: 'staffNav.admin.approvalsLog.label', descriptionKey: 'staffNav.admin.approvalsLog.description' },
+      { to: '/timesheet-processor', label: 'Timesheet Processor', icon: ICON.clock, roles: ['Admin'], description: 'Bulk-import device attendance exports.', labelKey: 'staffNav.admin.timesheetProcessor.label', descriptionKey: 'staffNav.admin.timesheetProcessor.description' },
+      { to: '/nfc', label: 'NFC Customers', icon: ICON.nfc, roles: ['Admin'], description: 'NFC business-card program.', labelKey: 'staffNav.admin.nfc.label', descriptionKey: 'staffNav.admin.nfc.description' },
+      { to: '/security-log', label: 'Security Log', icon: ICON.check, roles: ['Admin'], description: 'Auth & CRUD audit trail.', labelKey: 'staffNav.admin.securityLog.label', descriptionKey: 'staffNav.admin.securityLog.description' },
+      { to: '/coordinator-activity', label: 'Coordinator Activity', icon: ICON.activity, roles: COORDINATOR_ACTIVITY_VIEW_ROLES, description: 'What Coordinators added themselves.', labelKey: 'staffNav.admin.coordinatorActivity.label', descriptionKey: 'staffNav.admin.coordinatorActivity.description' },
     ],
   },
 ];

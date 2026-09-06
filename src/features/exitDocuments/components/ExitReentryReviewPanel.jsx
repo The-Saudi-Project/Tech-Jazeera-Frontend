@@ -1,8 +1,11 @@
 /**
  * ExitReentryReviewPanel — the staff review queue for Exit Re-Entry visa
- * requests: approve/reject, then mark issued once HR has actually
- * processed it with Jawazat/Muqeem (an external process this app can't
- * perform — see exitReentry.model.js).
+ * requests: approve/reject (per-row canDecideCurrentStep, via the
+ * Configurable Approval Hierarchy engine — same as Leave), then mark issued
+ * once HR has actually processed it with Jawazat/Muqeem (an external
+ * process this app can't perform — see exitReentry.model.js). Marking
+ * issued stays a separate, static-role check (EXIT_DOCUMENTS_ISSUE_ROLES) —
+ * an HR/compliance recording step, not part of the approval chain.
  */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listExitReentry, decideExitReentry, markExitReentryIssued } from '../exitReentry.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
-import { EXIT_REENTRY_STATUSES, EXIT_REENTRY_STATUS_VARIANT, EXIT_DOCUMENTS_ROLES } from '../../../lib/constants.js';
+import { EXIT_REENTRY_STATUSES, EXIT_REENTRY_STATUS_VARIANT, EXIT_DOCUMENTS_ISSUE_ROLES } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -18,6 +21,8 @@ import Button from '../../../components/ui/Button.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
+import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
+import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 
@@ -25,9 +30,11 @@ export default function ExitReentryReviewPanel() {
   const { user } = useAuth();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const canAct = EXIT_DOCUMENTS_ROLES.includes(user.role);
+  const canIssue = EXIT_DOCUMENTS_ISSUE_ROLES.includes(user.role);
   const [status, setStatus] = useState('');
   const [issuing, setIssuing] = useState(null);
+  // { req, decision } while the "are you sure?" dialog is open.
+  const [confirming, setConfirming] = useState(null);
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: ['exit-documents', 'exit-reentry', { status }],
@@ -47,6 +54,7 @@ export default function ExitReentryReviewPanel() {
       invalidate();
     },
     onError: (error) => toast.error(apiMessage(error)),
+    onSettled: () => setConfirming(null),
   });
 
   const { register, handleSubmit, reset } = useForm({ defaultValues: { visaReferenceNumber: '' } });
@@ -98,20 +106,21 @@ export default function ExitReentryReviewPanel() {
                 </p>
                 {r.reason && <p className="mt-1 text-xs text-muted">{r.reason}</p>}
                 {r.visaReferenceNumber && <p className="mt-1 text-xs text-muted">Ref: {r.visaReferenceNumber}</p>}
+                <ApprovalTrailView request={r} pendingStatus="Pending" />
               </div>
               <div className="flex shrink-0 flex-col items-end gap-2">
                 <Badge variant={EXIT_REENTRY_STATUS_VARIANT[r.status]}>{r.status}</Badge>
-                {canAct && r.status === 'Pending' && (
+                {r.canDecideCurrentStep && r.status === 'Pending' && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="secondary" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: r._id, decision: 'Approved' })}>
+                    <Button size="sm" variant="secondary" onClick={() => setConfirming({ req: r, decision: 'Approved' })}>
                       Approve
                     </Button>
-                    <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={decideMutation.isPending} onClick={() => decideMutation.mutate({ id: r._id, decision: 'Rejected' })}>
+                    <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ req: r, decision: 'Rejected' })}>
                       Reject
                     </Button>
                   </div>
                 )}
-                {canAct && r.status === 'Approved' && (
+                {canIssue && r.status === 'Approved' && (
                   <Button size="sm" variant="ghost" onClick={() => openIssue(r)}>
                     Mark issued
                   </Button>
@@ -121,6 +130,20 @@ export default function ExitReentryReviewPanel() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirming}
+        title={confirming?.decision === 'Approved' ? 'Approve exit re-entry request?' : 'Reject exit re-entry request?'}
+        message={
+          confirming &&
+          `${confirming.decision === 'Approved' ? 'Approve' : 'Reject'} ${confirming.req.employee?.fullName}'s ${confirming.req.visaType} exit re-entry request? This cannot be undone.`
+        }
+        confirmLabel={confirming?.decision === 'Approved' ? 'Approve' : 'Reject'}
+        confirmVariant={confirming?.decision === 'Approved' ? 'primary' : 'danger'}
+        loading={decideMutation.isPending}
+        onConfirm={() => decideMutation.mutate({ id: confirming.req._id, decision: confirming.decision })}
+        onCancel={() => setConfirming(null)}
+      />
 
       <Modal open={!!issuing} onClose={() => setIssuing(null)} title="Mark visa issued">
         <form onSubmit={handleSubmit((values) => issueMutation.mutate({ id: issuing._id, values }))} noValidate className="space-y-4">

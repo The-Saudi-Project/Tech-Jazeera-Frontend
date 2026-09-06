@@ -6,6 +6,7 @@
  * this (see DashboardPage.jsx / dashboard.service.js).
  */
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Card from '../../../components/ui/Card.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import { timeAgo } from '../../../lib/utils.js';
@@ -14,21 +15,22 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 
 export default function RecentActivity({ items }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   // Defensive: every current caller always passes an array, but this widget
   // shouldn't crash the page if a future caller ever passes null/undefined.
   const safeItems = items ?? [];
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Recent activity</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffDashboard.recentActivity.title')}</h2>
         {user.role === 'Admin' && (
           <Link to="/security-log" className="text-xs font-medium text-primary hover:underline">
-            View full log
+            {t('staffDashboard.recentActivity.viewFullLog')}
           </Link>
         )}
       </div>
       {safeItems.length === 0 ? (
-        <EmptyState title="No activity yet" description="Actions across the system will appear here." />
+        <EmptyState title={t('staffDashboard.recentActivity.empty')} description={t('staffDashboard.recentActivity.emptyDescription')} />
       ) : (
         <ul className="space-y-3">
           {safeItems.map((a) => (

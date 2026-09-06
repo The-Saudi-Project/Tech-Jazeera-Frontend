@@ -7,6 +7,7 @@
  * The object URL is revoked when the modal closes to avoid leaking memory.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchFileBlob, downloadDocumentFile } from '../documents.api.js';
 import { currentVersion } from '../documents.schema.js';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
@@ -23,6 +24,7 @@ function fileSize(bytes) {
 }
 
 export default function DocumentPreviewModal({ doc, open, onClose }) {
+  const { t } = useTranslation();
   const [url, setUrl] = useState(null);
   const [error, setError] = useState(null);
   const version = doc ? currentVersion(doc) : null;
@@ -39,7 +41,7 @@ export default function DocumentPreviewModal({ doc, open, onClose }) {
         objectUrl = URL.createObjectURL(blob);
         setUrl(objectUrl);
       })
-      .catch((e) => !cancelled && setError(apiMessage(e, 'Could not load the file.')));
+      .catch((e) => !cancelled && setError(apiMessage(e, t('staffDocuments.preview.couldNotLoad'))));
     return () => {
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -66,9 +68,9 @@ export default function DocumentPreviewModal({ doc, open, onClose }) {
             <img src={url} alt={doc.title} className="max-h-full w-auto object-contain" />
           ) : (
             <p className="p-6 text-center text-sm text-muted">
-              This file type can’t be previewed in the browser.
+              {t('staffDocuments.preview.cannotPreview')}
               <br />
-              Download it to view.
+              {t('staffDocuments.preview.downloadToView')}
             </p>
           )}
         </div>
@@ -77,7 +79,7 @@ export default function DocumentPreviewModal({ doc, open, onClose }) {
         <div className="space-y-5 lg:w-80 lg:shrink-0">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="primary">{doc.category}</Badge>
+              <Badge variant="primary">{t(`staffDocuments.categoryLabels.${doc.category}`, doc.category)}</Badge>
               <ExpiryBadge date={doc.expiryDate} />
             </div>
             <Button
@@ -85,13 +87,13 @@ export default function DocumentPreviewModal({ doc, open, onClose }) {
               className="mt-3 w-full"
               onClick={() => downloadDocumentFile(doc._id, version.version, version.originalName)}
             >
-              Download current version
+              {t('staffDocuments.preview.downloadCurrent')}
             </Button>
           </div>
 
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-              Versions ({doc.versions.length})
+              {t('staffDocuments.preview.versionsCount', { count: doc.versions.length })}
             </p>
             <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
               {[...doc.versions].reverse().map((v) => (
@@ -109,7 +111,7 @@ export default function DocumentPreviewModal({ doc, open, onClose }) {
                     variant="ghost"
                     onClick={() => downloadDocumentFile(doc._id, v.version, v.originalName)}
                   >
-                    Download
+                    {t('staffDocuments.actionsCell.download')}
                   </Button>
                 </div>
               ))}

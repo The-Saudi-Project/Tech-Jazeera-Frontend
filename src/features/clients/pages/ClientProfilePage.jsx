@@ -11,6 +11,7 @@
  *                  quotation (P2-M6).
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getClient, deleteClient } from '../clients.api.js';
@@ -46,18 +47,19 @@ function Field({ label, children }) {
 
 /** Overview tab — the client record. */
 function OverviewTab({ client }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       {client.approvalStatus === 'Rejected' && (
         <Card className="border-danger/30 bg-danger/5">
           <div className="flex items-start gap-3">
-            <Badge variant="danger">Rejected</Badge>
+            <Badge variant="danger">{t('common.status.Rejected')}</Badge>
             <div>
-              <p className="text-sm font-medium">This submission was rejected.</p>
+              <p className="text-sm font-medium">{t('staffClients.form.rejectedTitle')}</p>
               {client.decisionNote && <p className="mt-1 text-sm text-muted">{client.decisionNote}</p>}
               {client.decidedBy?.name && (
                 <p className="mt-1 text-xs text-muted">
-                  By {client.decidedBy.name}, {formatDate(client.decidedAt)}
+                  {t('staffClients.profile.rejectedBy', { name: client.decidedBy.name, date: formatDate(client.decidedAt) })}
                 </p>
               )}
             </div>
@@ -67,29 +69,29 @@ function OverviewTab({ client }) {
       {client.approvalStatus === 'Pending' && (
         <Card className="border-warning/30 bg-warning/5">
           <div className="flex items-center gap-3">
-            <Badge variant="warning">Pending approval</Badge>
-            <p className="text-sm text-muted">Not usable for deployments or quotations yet.</p>
+            <Badge variant="warning">{t('staffClients.form.pendingBadge')}</Badge>
+            <p className="text-sm text-muted">{t('staffClients.form.pendingHint')}</p>
           </div>
         </Card>
       )}
 
       <Card>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Company details</h2>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffClients.profile.companyDetails')}</h2>
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Contact person">{client.contactPerson}</Field>
-          <Field label="Phone">{client.phone}</Field>
-          <Field label="Email">{client.email}</Field>
-          <Field label="Industry">{client.industry}</Field>
-          <Field label="VAT number">{client.vatNumber}</Field>
-          <Field label="Commercial Registration">{client.crNumber}</Field>
-          <Field label="Address">{client.address}</Field>
-          <Field label="Added by">
+          <Field label={t('staffClients.profile.fields.contactPerson')}>{client.contactPerson}</Field>
+          <Field label={t('staffClients.profile.fields.phone')}>{client.phone}</Field>
+          <Field label={t('staffClients.profile.fields.email')}>{client.email}</Field>
+          <Field label={t('staffClients.profile.fields.industry')}>{client.industry}</Field>
+          <Field label={t('staffClients.profile.fields.vatNumber')}>{client.vatNumber}</Field>
+          <Field label={t('staffClients.profile.fields.crNumber')}>{client.crNumber}</Field>
+          <Field label={t('staffClients.profile.fields.address')}>{client.address}</Field>
+          <Field label={t('staffClients.profile.fields.addedBy')}>
             {client.createdBy?.name && (
               <>
                 {client.createdBy.name}
                 {client.createdBy.role === 'Coordinator' && (
                   <Badge variant="primary" className="ml-1.5">
-                    Coordinator
+                    {t('staffClients.list.coordinatorBadge')}
                   </Badge>
                 )}
               </>
@@ -100,7 +102,7 @@ function OverviewTab({ client }) {
 
       <Card>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
-          Sites {client.sites?.length ? `(${client.sites.length})` : ''}
+          {t('staffClients.profile.sitesTitle')} {client.sites?.length ? `(${client.sites.length})` : ''}
         </h2>
         {client.sites?.length ? (
           <div className="divide-y divide-border">
@@ -108,19 +110,19 @@ function OverviewTab({ client }) {
               <div key={site._id} className="py-3 first:pt-0 last:pb-0">
                 <p className="text-sm font-medium">{site.name}</p>
                 <p className="text-xs text-muted">
-                  {[site.city, site.address].filter(Boolean).join(' · ') || 'No location details'}
+                  {[site.city, site.address].filter(Boolean).join(' · ') || t('staffClients.profile.noLocationDetails')}
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted">No sites recorded for this client.</p>
+          <p className="text-sm text-muted">{t('staffClients.profile.noSitesRecorded')}</p>
         )}
       </Card>
 
       {client.notes && (
         <Card>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Notes</h2>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffClients.profile.notes')}</h2>
           <p className="whitespace-pre-wrap text-sm">{client.notes}</p>
         </Card>
       )}
@@ -130,6 +132,7 @@ function OverviewTab({ client }) {
 
 /** Workers tab — live query of employees assigned to this client. */
 function WorkersTab({ clientId }) {
+  const { t } = useTranslation();
   const { data, isPending, isError } = useQuery({
     queryKey: ['employees', { client: clientId }],
     queryFn: () => listEmployees({ client: clientId, limit: 100 }),
@@ -138,7 +141,7 @@ function WorkersTab({ clientId }) {
   const columns = [
     {
       key: 'fullName',
-      header: 'Worker',
+      header: t('staffClients.profile.workersColumns.worker'),
       render: (e) => (
         <Link to={`/employees/${e._id}`} className="font-medium text-text hover:text-primary">
           {e.fullName}
@@ -146,13 +149,13 @@ function WorkersTab({ clientId }) {
         </Link>
       ),
     },
-    { key: 'designation', header: 'Designation', render: (e) => e.designation },
-    { key: 'currentSite', header: 'Site', render: (e) => e.currentSite || '—' },
-    { key: 'status', header: 'Status', render: (e) => <Badge>{e.status}</Badge> },
+    { key: 'designation', header: t('staffClients.profile.workersColumns.designation'), render: (e) => e.designation },
+    { key: 'currentSite', header: t('staffClients.profile.workersColumns.site'), render: (e) => e.currentSite || '—' },
+    { key: 'status', header: t('staffClients.profile.workersColumns.status'), render: (e) => <Badge>{t(`common.status.${e.status}`, e.status)}</Badge> },
   ];
 
   if (isError) {
-    return <EmptyState title="Could not load workers" description="Please try again." />;
+    return <EmptyState title={t('staffClients.profile.couldNotLoadWorkers')} description={t('common.tryAgain')} />;
   }
 
   return (
@@ -163,8 +166,8 @@ function WorkersTab({ clientId }) {
       loading={isPending}
       emptyState={
         <EmptyState
-          title="No workers assigned"
-          description="Workers assigned to this client through deployments will appear here."
+          title={t('staffClients.profile.noWorkersTitle')}
+          description={t('staffClients.profile.noWorkersDescription')}
         />
       }
     />
@@ -173,6 +176,7 @@ function WorkersTab({ clientId }) {
 
 export default function ClientProfilePage() {
   const { id } = useParams();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -191,7 +195,7 @@ export default function ClientProfilePage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteClient(id),
     onSuccess: () => {
-      toast.success(`${client.companyName} deleted.`);
+      toast.success(t('staffClients.profile.deletedToast', { name: client.companyName }));
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       navigate('/clients', { replace: true });
     },
@@ -213,11 +217,11 @@ export default function ClientProfilePage() {
   if (isError) {
     return (
       <EmptyState
-        title="Client not found"
-        description="The record may have been deleted."
+        title={t('staffClients.profile.notFoundTitle')}
+        description={t('staffClients.profile.notFoundDescription')}
         action={
           <Link to="/clients">
-            <Button variant="secondary">Back to clients</Button>
+            <Button variant="secondary">{t('staffClients.profile.backToList')}</Button>
           </Link>
         }
       />
@@ -225,11 +229,11 @@ export default function ClientProfilePage() {
   }
 
   const tabs = [
-    { key: 'overview', label: 'Overview' },
-    { key: 'workers', label: 'Workers' },
-    { key: 'documents', label: 'Documents' },
-    { key: 'quotations', label: 'Quotations' },
-    { key: 'invoices', label: 'Invoices' },
+    { key: 'overview', label: t('staffClients.profile.tabs.overview') },
+    { key: 'workers', label: t('staffClients.profile.tabs.workers') },
+    { key: 'documents', label: t('staffClients.profile.tabs.documents') },
+    { key: 'quotations', label: t('staffClients.profile.tabs.quotations') },
+    { key: 'invoices', label: t('staffClients.profile.tabs.invoices') },
   ];
 
   return (
@@ -241,22 +245,22 @@ export default function ClientProfilePage() {
         actions={
           <>
             <Badge variant={STATUS_VARIANT[client.status]} className="mr-1">
-              {client.status}
+              {t(`common.status.${client.status}`, client.status)}
             </Badge>
             {client.approvalStatus !== 'Approved' && (
               <Badge variant={CLIENT_APPROVAL_VARIANT[client.approvalStatus]} className="mr-1">
-                {client.approvalStatus}
+                {t(`common.status.${client.approvalStatus}`, client.approvalStatus)}
               </Badge>
             )}
-            {canDecideClient(user, client) && <Button onClick={() => setDeciding(true)}>Review</Button>}
+            {canDecideClient(user, client) && <Button onClick={() => setDeciding(true)}>{t('staffClients.list.review')}</Button>}
             {canEditClient(user, client) && (
               <Button variant="secondary" onClick={() => navigate(`/clients/${id}/edit`)}>
-                Edit
+                {t('common.edit')}
               </Button>
             )}
             {canDelete && (
               <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
-                Delete
+                {t('common.delete')}
               </Button>
             )}
           </>
@@ -264,18 +268,18 @@ export default function ClientProfilePage() {
       />
 
       <div className="mb-6 flex gap-1 border-b border-border">
-        {tabs.map((t) => (
+        {tabs.map((tabItem) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={cn(
               '-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
-              tab === t.key
+              tab === tabItem.key
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted hover:text-text'
             )}
           >
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
@@ -290,8 +294,8 @@ export default function ClientProfilePage() {
 
       <ConfirmDialog
         open={confirmingDelete}
-        title="Delete client?"
-        message={`${client.companyName} will be permanently removed. Set status to "Inactive" instead if you just want to archive it.`}
+        title={t('staffClients.list.deleteConfirmTitle')}
+        message={t('staffClients.list.deleteConfirmMessage', { name: client.companyName })}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
         onCancel={() => setConfirmingDelete(false)}

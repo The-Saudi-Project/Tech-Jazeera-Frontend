@@ -4,6 +4,7 @@
  * Admin/Manager/HR only (see lib/constants.js EOSB_WRITE_ROLES).
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listSettlements } from '../eosb.api.js';
@@ -17,6 +18,7 @@ import Badge from '../../../components/ui/Badge.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 
 export default function SettlementListPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const canCompute = EOSB_WRITE_ROLES.includes(user.role);
@@ -33,7 +35,7 @@ export default function SettlementListPage() {
   const columns = [
     {
       key: 'employee',
-      header: 'Employee',
+      header: t('staffEosb.list.columns.employee'),
       render: (s) => (
         <span className="font-medium text-text">
           {s.employeeName}
@@ -41,28 +43,28 @@ export default function SettlementListPage() {
         </span>
       ),
     },
-    { key: 'exitDate', header: 'Exit date', render: (s) => formatDate(s.exitDate) },
+    { key: 'exitDate', header: t('staffEosb.list.columns.exitDate'), render: (s) => formatDate(s.exitDate) },
     {
       key: 'exitReason',
-      header: 'Reason',
+      header: t('staffEosb.list.columns.reason'),
       hideOnMobile: true,
-      render: (s) => <Badge variant={s.exitReason === 'Resignation' ? 'warning' : 'default'}>{EXIT_REASON_LABELS[s.exitReason]}</Badge>,
+      render: (s) => <Badge variant={s.exitReason === 'Resignation' ? 'warning' : 'default'}>{t(`staffEosb.exitReasonLabels.${s.exitReason}`, EXIT_REASON_LABELS[s.exitReason])}</Badge>,
     },
-    { key: 'serviceYears', header: 'Service', hideOnMobile: true, render: (s) => `${s.serviceYears} yrs` },
-    { key: 'total', header: 'Total settlement', className: 'text-right', render: (s) => <span className="font-semibold tabular-nums">{formatMoney(s.totalSettlement)}</span> },
+    { key: 'serviceYears', header: t('staffEosb.list.columns.service'), hideOnMobile: true, render: (s) => t('staffEosb.list.serviceYearsSuffix', { years: s.serviceYears }) },
+    { key: 'total', header: t('staffEosb.list.columns.total'), className: 'text-right', render: (s) => <span className="font-semibold tabular-nums">{formatMoney(s.totalSettlement)}</span> },
   ];
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
-        title="End of service settlements"
-        description="Article 84/85 EOSB and vacation-pay calculations for exiting employees."
+        title={t('staffEosb.list.pageTitle')}
+        description={t('staffEosb.list.pageDescription')}
         onBack={() => navigate(-1)}
-        actions={canCompute && <Button onClick={() => navigate('/eosb/new')}>New settlement</Button>}
+        actions={canCompute && <Button onClick={() => navigate('/eosb/new')}>{t('staffEosb.list.newSettlement')}</Button>}
       />
 
       {isError ? (
-        <EmptyState title="Could not load settlements" description="Please try again." />
+        <EmptyState title={t('staffEosb.list.couldNotLoad')} description={t('staffEosb.list.couldNotLoadDescription')} />
       ) : (
         <>
           <Table
@@ -73,9 +75,9 @@ export default function SettlementListPage() {
             onRowClick={(s) => navigate(`/eosb/${s._id}`)}
             emptyState={
               <EmptyState
-                title="No settlements yet"
-                description="Compute one when an employee resigns, is terminated, or their contract ends."
-                action={canCompute && <Button onClick={() => navigate('/eosb/new')}>New settlement</Button>}
+                title={t('staffEosb.list.emptyTitle')}
+                description={t('staffEosb.list.emptyDescription')}
+                action={canCompute && <Button onClick={() => navigate('/eosb/new')}>{t('staffEosb.list.newSettlement')}</Button>}
               />
             }
           />
@@ -83,17 +85,17 @@ export default function SettlementListPage() {
           {data && data.total > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                Showing {(data.page - 1) * limit + 1}–{Math.min(data.page * limit, data.total)} of {data.total}
+                {t('common.showingRange', { from: (data.page - 1) * limit + 1, to: Math.min(data.page * limit, data.total), total: data.total })}
               </span>
               <span className="flex items-center gap-2">
                 <Button size="sm" variant="secondary" disabled={data.page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
                 <span className="tabular-nums">
-                  {data.page} / {data.pages}
+                  {t('common.pageOf', { page: data.page, pages: data.pages })}
                 </span>
                 <Button size="sm" variant="secondary" disabled={data.page >= data.pages} onClick={() => setPage((p) => p + 1)}>
-                  Next
+                  {t('common.next')}
                 </Button>
               </span>
             </div>
