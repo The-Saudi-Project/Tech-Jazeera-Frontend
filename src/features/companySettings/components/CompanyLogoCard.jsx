@@ -105,8 +105,7 @@ export default function CompanyLogoCard() {
             {data?.logoUrl && (
               <Button
                 type="button"
-                variant="ghost"
-                className="hover:text-danger"
+                variant="danger-ghost"
                 isLoading={removeMutation.isPending}
                 onClick={() => removeMutation.mutate()}
               >

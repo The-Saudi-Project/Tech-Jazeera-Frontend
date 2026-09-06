@@ -132,8 +132,7 @@ export default function QuotationForm({ defaultValues, onSubmit, submitLabel, su
               <div className="flex items-center justify-end lg:col-span-1">
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="hover:text-danger"
+                  variant="danger-ghost"
                   disabled={fields.length === 1}
                   onClick={() => remove(i)}
                   aria-label={t('staffQuotations.form.removeLineAriaLabel', { index: i + 1 })}

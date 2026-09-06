@@ -168,7 +168,7 @@ export default function ClientListPage() {
             </Button>
           )}
           {canDelete && (
-            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(c)}>
+            <Button size="sm" variant="danger-ghost" onClick={() => setToDelete(c)}>
               {t('common.delete')}
             </Button>
           )}
@@ -193,7 +193,7 @@ export default function ClientListPage() {
         actions={canCreate && <Button onClick={() => navigate('/clients/new')}>{t('staffClients.list.addClient')}</Button>}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
           placeholder={t('staffClients.list.searchPlaceholder')}
           value={search}

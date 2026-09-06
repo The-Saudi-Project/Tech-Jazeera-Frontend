@@ -205,12 +205,12 @@ export default function AssetListPage() {
             </Button>
           )}
           {canWrite && a.status !== 'Assigned' && a.status !== 'Retired' && (
-            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => statusMutation.mutate({ id: a._id, status: 'Retired' })}>
+            <Button size="sm" variant="danger-ghost" onClick={() => statusMutation.mutate({ id: a._id, status: 'Retired' })}>
               Retire
             </Button>
           )}
           {canDelete && a.status !== 'Assigned' && (
-            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(a)}>
+            <Button size="sm" variant="danger-ghost" onClick={() => setToDelete(a)}>
               Delete
             </Button>
           )}
@@ -228,7 +228,7 @@ export default function AssetListPage() {
         actions={canWrite && <Button onClick={openNew}>Add asset</Button>}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Select value={category} onChange={(e) => setCategory(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by category">
           <option value="">All categories</option>
           {ASSET_CATEGORIES.map((c) => (

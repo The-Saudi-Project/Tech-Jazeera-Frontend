@@ -13,7 +13,7 @@
  * which had no scroll of its own (items past the fold were unreachable, not
  * just visually cluttered — a real bug, independent of the regrouping).
  */
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext.jsx';
@@ -56,12 +56,8 @@ function Sidebar({ onNavigate }) {
   }
 
   return (
-    <div className="flex h-full flex-col border-r border-border bg-surface">
-      {/* Same bg-surface/70 + backdrop-blur-xl treatment as the topbar
-          (below) — both are h-16 with a border-b, but leaving one solid and
-          one blurred/translucent made the two independent border lines read
-          as misaligned at the seam even though they're pixel-identical. */}
-      <div className="flex h-16 items-center gap-2.5 border-b border-border bg-surface/70 px-5 backdrop-blur-xl">
+    <div className="flex h-full flex-col border-r border-border/50 bg-surface/60 backdrop-blur-2xl">
+      <div className="flex h-16 items-center gap-2.5 border-b border-border/50 bg-transparent px-5">
         <img src="/logo.png" alt="Al Jazeera" className="h-9 w-9 rounded-xl shadow-glow" />
         <span className="font-semibold tracking-tight">{t('common.appName')}</span>
       </div>
@@ -104,6 +100,19 @@ export default function DashboardLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!avatarMenuOpen) return undefined;
+    function onClickOutside(e) {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target)) {
+        setAvatarMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [avatarMenuOpen]);
 
   async function handleLogout() {
     await logout();
@@ -121,18 +130,18 @@ export default function DashboardLayout() {
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/40 animate-overlay-in"
             onClick={() => setDrawerOpen(false)}
             aria-hidden="true"
           />
-          <aside className="absolute inset-y-0 left-0 w-64 shadow-xl">
+          <aside className="absolute inset-y-0 left-0 w-64 shadow-xl animate-slide-in-left">
             <Sidebar onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </div>
       )}
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-surface/70 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/50 bg-surface/60 px-4 backdrop-blur-2xl sm:px-6">
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label={t('header.openMenu')}
@@ -151,52 +160,59 @@ export default function DashboardLayout() {
             <LanguageSwitcher className="hidden w-auto sm:flex" languages={STAFF_SUPPORTED_LANGUAGES} />
             <ThemeToggle />
             <NotificationBell />
-            <button
-              onClick={() => setAvatarModalOpen(true)}
-              title={t('header.updateProfilePhoto')}
-              aria-label={t('header.updateProfilePhoto')}
-              className="rounded-full"
-            >
-              {user.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt=""
-                  className="h-9 w-9 rounded-full object-cover ring-1 ring-inset ring-primary/20"
-                />
-              ) : (
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-inset ring-primary/20">
-                  {user.name.charAt(0).toUpperCase()}
+            <div className="relative" ref={avatarMenuRef}>
+              <button
+                onClick={() => setAvatarMenuOpen(!avatarMenuOpen)}
+                title={t('header.openUserMenu')}
+                aria-label={t('header.openUserMenu')}
+                className="rounded-full outline-none ring-offset-2 ring-offset-surface focus:ring-2 focus:ring-primary/20"
+              >
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt=""
+                    className="h-9 w-9 rounded-full object-cover ring-1 ring-inset ring-primary/20"
+                  />
+                ) : (
+                  <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-inset ring-primary/20">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </button>
+
+              {avatarMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-xl border border-border bg-surface py-1 shadow-lg animate-rise-in">
+                  <button
+                    onClick={() => {
+                      setAvatarMenuOpen(false);
+                      setAvatarModalOpen(true);
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-text hover:bg-border/40"
+                  >
+                    {t('header.updateProfilePhoto')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAvatarMenuOpen(false);
+                      setChangePasswordOpen(true);
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-text hover:bg-border/40"
+                  >
+                    {t('header.changePassword')}
+                  </button>
+                  <div className="my-1 border-t border-border" />
+                  <button
+                    onClick={() => {
+                      setAvatarMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-danger hover:bg-danger/10"
+                  >
+                    {t('header.logOut')}
+                  </button>
                 </div>
               )}
-            </button>
-            <button
-              onClick={() => setChangePasswordOpen(true)}
-              title={t('header.changePassword')}
-              aria-label={t('header.changePassword')}
-              className="rounded-lg p-2 text-muted hover:bg-border/40 hover:text-text"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={handleLogout}
-              title={t('header.logOut')}
-              aria-label={t('header.logOut')}
-              className="rounded-lg p-2 text-muted hover:bg-border/40 hover:text-danger"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-                />
-              </svg>
-            </button>
+            </div>
           </div>
         </header>
 

@@ -139,7 +139,7 @@ export default function PayrollRunPage() {
               <Button onClick={() => setConfirmingFinalize(true)}>{t('staffPayroll.run.finalize')}</Button>
             )}
             {isDraft && (
-              <Button variant="ghost" className="hover:text-danger" onClick={() => setConfirmingDelete(true)}>
+              <Button variant="danger-ghost" onClick={() => setConfirmingDelete(true)}>
                 {t('common.delete')}
               </Button>
             )}
@@ -247,7 +247,7 @@ export default function PayrollRunPage() {
                     error={errors.otherDeductions?.[i]?.amount?.message}
                     {...register(`otherDeductions.${i}.amount`)}
                   />
-                  <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => remove(i)} aria-label={t('staffPayroll.run.removeDeductionAriaLabel')}>
+                  <Button type="button" size="sm" variant="danger-ghost" onClick={() => remove(i)} aria-label={t('staffPayroll.run.removeDeductionAriaLabel')}>
                     ✕
                   </Button>
                 </div>

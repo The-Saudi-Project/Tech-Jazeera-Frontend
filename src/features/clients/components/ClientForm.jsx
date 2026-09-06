@@ -115,8 +115,7 @@ export default function ClientForm({ defaultValues, onSubmit, submitLabel, submi
                 <Input placeholder={t('staffClients.form.addressPlaceholder')} {...register(`sites.${index}.address`)} />
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="hover:text-danger"
+                  variant="danger-ghost"
                   onClick={() => remove(index)}
                   aria-label={t('staffClients.form.removeSiteAriaLabel', { index: index + 1 })}
                 >

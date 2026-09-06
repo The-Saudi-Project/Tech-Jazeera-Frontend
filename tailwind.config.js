@@ -63,11 +63,16 @@ export default {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'slide-in-left': {
+          from: { transform: 'translateX(-100%)' },
+          to: { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'overlay-in': 'overlay-in 0.2s ease-out',
         'dialog-in': 'dialog-in 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
         'rise-in': 'rise-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'slide-in-left': 'slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

@@ -128,7 +128,7 @@ export default function SubcontractorListPage() {
             </Button>
           )}
           {canDelete && (
-            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(s)}>
+            <Button size="sm" variant="danger-ghost" onClick={() => setToDelete(s)}>
               {t('common.delete')}
             </Button>
           )}

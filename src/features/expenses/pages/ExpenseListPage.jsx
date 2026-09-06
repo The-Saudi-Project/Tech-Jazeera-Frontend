@@ -229,7 +229,7 @@ export default function ExpenseListPage() {
           <Button size="sm" variant="ghost" onClick={() => openEdit(e)}>
             Edit
           </Button>
-          <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(e)}>
+          <Button size="sm" variant="danger-ghost" onClick={() => setToDelete(e)}>
             Delete
           </Button>
         </span>

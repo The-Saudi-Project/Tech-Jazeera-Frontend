@@ -118,11 +118,14 @@ export default function Tabs({ tabs, value, onChange }) {
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(tab.key)}
               className={cn(
-                'shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors duration-200 ease-out-expo',
-                selected ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-text'
+                'relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors duration-200 ease-out-expo',
+                selected ? 'text-primary' : 'text-muted hover:text-text'
               )}
             >
               {tab.label}
+              {selected && (
+                <span className="absolute bottom-0 left-0 h-0.5 w-full bg-primary animate-in fade-in zoom-in-75 duration-200" />
+              )}
             </button>
           );
         })}

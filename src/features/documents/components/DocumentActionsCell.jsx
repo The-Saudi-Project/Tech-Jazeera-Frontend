@@ -96,7 +96,7 @@ export default function DocumentActionsCell({ doc }) {
         </>
       )}
       {canDelete && (
-        <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirmingDelete(true)}>
+        <Button size="sm" variant="danger-ghost" onClick={() => setConfirmingDelete(true)}>
           {t('common.delete')}
         </Button>
       )}

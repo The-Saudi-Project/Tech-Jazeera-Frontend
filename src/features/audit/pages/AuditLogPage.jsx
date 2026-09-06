@@ -110,7 +110,7 @@ export default function AuditLogPage() {
         onBack={() => navigate(-1)}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
           placeholder="Search actions (e.g. auth, nfc, delete)…"
           value={actionSearch}

@@ -33,7 +33,7 @@ const Select = forwardRef(function Select({ label, error, className, children, .
         {children}
       </select>
       {error && (
-        <p id={errorId} className="text-sm text-danger">
+        <p id={errorId} className="text-sm text-danger animate-in fade-in slide-in-from-top-1 duration-200">
           {error}
         </p>
       )}

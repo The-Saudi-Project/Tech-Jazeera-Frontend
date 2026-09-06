@@ -102,7 +102,7 @@ export default function SettlementViewPage() {
             </Badge>
             <SettlementPdfButton id={s._id} employeeCode={s.employeeCode} />
             {canDelete && (
-              <Button variant="ghost" className="hover:text-danger" onClick={() => setConfirmingDelete(true)}>
+              <Button variant="danger-ghost" onClick={() => setConfirmingDelete(true)}>
                 {t('common.delete')}
               </Button>
             )}

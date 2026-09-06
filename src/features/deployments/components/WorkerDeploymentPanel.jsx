@@ -106,7 +106,7 @@ export default function WorkerDeploymentPanel({ employee }) {
               <Button size="sm" variant="secondary" onClick={() => setTransferring(true)}>
                 {t('staffDeployments.panel.transfer')}
               </Button>
-              <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setEnding(true)}>
+              <Button size="sm" variant="danger-ghost" onClick={() => setEnding(true)}>
                 {t('staffDeployments.panel.end')}
               </Button>
             </div>

@@ -17,7 +17,7 @@ export function TogglePill({ selected, onClick, children }) {
         'rounded-full px-3 py-1 text-xs font-medium transition-colors',
         selected
           ? 'bg-primary text-white'
-          : 'border border-border text-muted hover:border-muted/50 hover:text-text'
+          : 'border border-border dark:border-muted/40 text-muted hover:border-muted/50 dark:hover:border-muted/60 hover:text-text'
       )}
     >
       {children}

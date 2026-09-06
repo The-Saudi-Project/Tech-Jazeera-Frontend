@@ -198,7 +198,7 @@ export default function EmployeeListPage() {
             </Button>
           )}
           {canDelete && (
-            <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToDelete(e)}>
+            <Button size="sm" variant="danger-ghost" onClick={() => setToDelete(e)}>
               {t('common.delete')}
             </Button>
           )}
@@ -218,7 +218,7 @@ export default function EmployeeListPage() {
         actions={canCreate && <Button onClick={() => navigate('/employees/new')}>{t('staffEmployees.list.addEmployee')}</Button>}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
           placeholder={t('staffEmployees.list.searchPlaceholder')}
           value={search}

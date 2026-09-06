@@ -209,11 +209,11 @@ export default function MyAttendancePage() {
               )}
 
               {signedInNotOut ? (
-                <Button onClick={handleSignOutClick} isLoading={busy} size="lg" variant="secondary">
+                <Button onClick={handleSignOutClick} isLoading={busy} size="lg" variant="secondary" className="w-full sm:w-auto">
                   {t('attendance.signOut')}
                 </Button>
               ) : (
-                <Button onClick={doPunch} isLoading={busy} size="lg">
+                <Button onClick={doPunch} isLoading={busy} size="lg" className="w-full sm:w-auto">
                   {hasPunchedToday ? t('attendance.signInAgain') : t('attendance.signIn')}
                 </Button>
               )}

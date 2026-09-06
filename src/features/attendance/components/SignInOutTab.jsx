@@ -91,11 +91,11 @@ function PunchCard() {
         )}
 
         {signedInNotOut ? (
-          <Button onClick={punchWithLocation} isLoading={busy} size="lg" variant="secondary">
+          <Button onClick={punchWithLocation} isLoading={busy} size="lg" variant="secondary" className="w-full sm:w-auto">
             {t('staffAttendance.signInOut.signOut')}
           </Button>
         ) : (
-          <Button onClick={punchWithLocation} isLoading={busy} size="lg">
+          <Button onClick={punchWithLocation} isLoading={busy} size="lg" className="w-full sm:w-auto">
             {hasPunchedToday ? t('staffAttendance.signInOut.signInAgain') : t('staffAttendance.signInOut.signIn')}
           </Button>
         )}

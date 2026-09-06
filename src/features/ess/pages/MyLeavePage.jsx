@@ -147,7 +147,7 @@ export default function MyLeavePage() {
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{t(`common.status.${req.status}`, req.status)}</Badge>
                     {cancellable && (
-                      <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToCancel(req)}>
+                      <Button size="sm" variant="danger-ghost" onClick={() => setToCancel(req)}>
                         {t('leave.cancelButton')}
                       </Button>
                     )}

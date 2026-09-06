@@ -118,8 +118,8 @@ export default function Table({
                   key={rowKey(row)}
                   onClick={rowClickHandler(onRowClick, row)}
                   className={cn(
-                    'rounded-2xl border border-border bg-surface p-4 shadow-sm',
-                    onRowClick && 'cursor-pointer transition-colors hover:border-primary/40'
+                    'rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-200',
+                    onRowClick && 'cursor-pointer hover:border-primary/40 hover:shadow-md hover:-translate-y-[1px]'
                   )}
                 >
                   <div className="mb-3">{titleCol.render(row)}</div>

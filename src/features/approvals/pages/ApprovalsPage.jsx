@@ -227,8 +227,7 @@ function SortableStepCard({ id, index, register, roleError, roles, stepRoles, on
         <Button
           type="button"
           size="sm"
-          variant="ghost"
-          className="hover:text-danger"
+          variant="danger-ghost"
           onClick={onRemove}
           disabled={!canRemove}
           aria-label="Remove step"

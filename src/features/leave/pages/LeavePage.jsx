@@ -215,7 +215,7 @@ function LeaveTypesPanel() {
                       error={errors.sickPayTiers?.[i]?.payPercent?.message}
                       {...register(`sickPayTiers.${i}.payPercent`)}
                     />
-                    <Button type="button" size="sm" variant="ghost" className="hover:text-danger" onClick={() => removeTier(i)} aria-label={t('staffLeave.types.form.removeTierAriaLabel')}>
+                    <Button type="button" size="sm" variant="danger-ghost" onClick={() => removeTier(i)} aria-label={t('staffLeave.types.form.removeTierAriaLabel')}>
                       ✕
                     </Button>
                   </div>
@@ -375,7 +375,7 @@ function ReviewQueue() {
 
   return (
     <Card>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffLeave.queue.title')}</h2>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[200px]" aria-label={t('staffLeave.queue.filterAriaLabel')}>
           <option value="">{t('common.allStatuses')}</option>
@@ -422,7 +422,7 @@ function ReviewQueue() {
                       <Button size="sm" variant="secondary" onClick={() => setConfirming({ req, decision: 'Approved' })}>
                         {t('staffLeave.queue.approve')}
                       </Button>
-                      <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ req, decision: 'Rejected' })}>
+                      <Button size="sm" variant="danger-ghost" onClick={() => setConfirming({ req, decision: 'Rejected' })}>
                         {t('staffLeave.queue.reject')}
                       </Button>
                     </div>

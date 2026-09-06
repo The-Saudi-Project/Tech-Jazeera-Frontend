@@ -75,7 +75,7 @@ export default function ExitReentryReviewPanel() {
 
   return (
     <Card>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Exit re-entry visas</h2>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:max-w-[180px]" aria-label="Filter by status">
           <option value="">All statuses</option>
@@ -115,7 +115,7 @@ export default function ExitReentryReviewPanel() {
                     <Button size="sm" variant="secondary" onClick={() => setConfirming({ req: r, decision: 'Approved' })}>
                       Approve
                     </Button>
-                    <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ req: r, decision: 'Rejected' })}>
+                    <Button size="sm" variant="danger-ghost" onClick={() => setConfirming({ req: r, decision: 'Rejected' })}>
                       Reject
                     </Button>
                   </div>

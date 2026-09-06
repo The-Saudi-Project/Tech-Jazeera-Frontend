@@ -18,12 +18,16 @@ const ToastContext = createContext(null);
 let nextId = 0;
 
 const styles = {
-  success: 'border-success/30 text-success',
-  error: 'border-danger/30 text-danger',
+  success: 'border-success/30 text-success bg-success/5',
+  error: 'border-danger/30 text-danger bg-danger/5',
   info: 'border-border text-text',
 };
 
-const icons = { success: '✓', error: '✕', info: 'ℹ' };
+const icons = {
+  success: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>,
+  error: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
+  info: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>,
+};
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
@@ -63,17 +67,18 @@ export function ToastProvider({ children }) {
             key={t.id}
             className={cn(
               'pointer-events-auto flex items-start gap-3 rounded-lg border bg-surface p-4 shadow-lg',
+              'animate-in slide-in-from-right-8 fade-in duration-300',
               styles[t.type]
             )}
           >
-            <span className="font-bold">{icons[t.type]}</span>
-            <p className="flex-1 text-sm text-text">{t.message}</p>
+            <span className="font-bold mt-0.5">{icons[t.type]}</span>
+            <p className="flex-1 text-sm text-text pt-0.5">{t.message}</p>
             <button
               onClick={() => dismiss(t.id)}
               aria-label="Dismiss"
-              className="text-muted hover:text-text"
+              className="text-muted hover:text-text pt-0.5"
             >
-              ✕
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         ))}

@@ -103,8 +103,7 @@ export default function AvatarUploadModal({ open, onClose }) {
           {user?.avatarUrl && !pendingFile && (
             <Button
               type="button"
-              variant="ghost"
-              className="hover:text-danger"
+              variant="danger-ghost"
               onClick={() => removeMutation.mutate()}
               isLoading={removeMutation.isPending}
               disabled={busy}

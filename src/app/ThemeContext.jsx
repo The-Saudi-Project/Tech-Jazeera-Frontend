@@ -27,19 +27,11 @@ function getStoredTheme() {
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => getStoredTheme() ?? getSystemTheme());
+  const [theme, setTheme] = useState(() => getStoredTheme() ?? 'light');
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
-
-  useEffect(() => {
-    if (getStoredTheme()) return undefined; // user has an explicit choice — stop following the OS
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e) => setTheme(e.matches ? 'dark' : 'light');
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {

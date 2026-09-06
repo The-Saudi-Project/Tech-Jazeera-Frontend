@@ -231,7 +231,7 @@ function ReviewQueue() {
 
   return (
     <Card>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffTimesheets.queue.title')}</h2>
         <div className="flex items-center gap-2">
           {selected.size > 0 && (
@@ -309,7 +309,7 @@ function ReviewQueue() {
                         <Button size="sm" variant="secondary" onClick={() => setConfirming({ timesheet: ts, decision: 'Approved' })}>
                           {t('staffTimesheets.queue.approve')}
                         </Button>
-                        <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setConfirming({ timesheet: ts, decision: 'Rejected' })}>
+                        <Button size="sm" variant="danger-ghost" onClick={() => setConfirming({ timesheet: ts, decision: 'Rejected' })}>
                           {t('staffTimesheets.queue.reject')}
                         </Button>
                       </div>

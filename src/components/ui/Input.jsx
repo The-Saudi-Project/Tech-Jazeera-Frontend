@@ -80,15 +80,15 @@ const Input = forwardRef(function Input(
         aria-describedby={error ? errorId : undefined}
         className={cn(
           'h-10 w-full rounded-lg border bg-surface px-3 text-sm text-text shadow-xs',
-          'placeholder:text-muted/70 transition-colors',
+          'placeholder:text-muted/70 transition-all outline-none',
           error
-            ? 'border-danger'
-            : 'border-border hover:border-muted/50 focus:border-primary'
+            ? 'border-danger focus:ring-2 focus:ring-danger/20 focus:ring-offset-2 focus:ring-offset-surface'
+            : 'border-border hover:border-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-surface'
         )}
         {...props}
       />
       {error && (
-        <p id={errorId} className="text-sm text-danger">
+        <p id={errorId} className="text-sm text-danger animate-in fade-in slide-in-from-top-1 duration-200">
           {error}
         </p>
       )}

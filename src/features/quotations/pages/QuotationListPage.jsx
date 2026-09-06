@@ -57,7 +57,7 @@ export default function QuotationListPage() {
         actions={canWrite && <Button onClick={() => navigate('/quotations/new')}>{t('staffQuotations.list.newQuotation')}</Button>}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
           placeholder={t('staffQuotations.list.searchPlaceholder')}
           value={search}

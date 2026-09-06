@@ -51,7 +51,7 @@ export default function Modal({ open, onClose, title, size = 'md', children }) {
         aria-label={title}
         className={cn(
           'relative my-auto flex max-h-[90vh] w-full flex-col overflow-hidden',
-          'rounded-2xl border border-border bg-surface shadow-xl animate-dialog-in',
+          'rounded-2xl border border-border bg-surface shadow-xl animate-in fade-in zoom-in-95 duration-200 ease-out',
           sizeClasses[size] || sizeClasses.md
         )}
       >

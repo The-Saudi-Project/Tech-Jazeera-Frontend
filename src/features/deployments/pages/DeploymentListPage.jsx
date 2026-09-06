@@ -109,7 +109,7 @@ export default function DeploymentListPage() {
         actions={canWrite && <Button onClick={() => navigate('/deployments/new')}>{t('staffDeployments.list.assignWorker')}</Button>}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Select
           value={params.status}
           onChange={(e) => setParams((p) => ({ ...p, status: e.target.value, page: 1 }))}

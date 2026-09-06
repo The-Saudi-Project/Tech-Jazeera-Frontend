@@ -52,7 +52,7 @@ export default function InvoiceListPage() {
         onBack={() => navigate(-1)}
       />
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
           placeholder={t('staffInvoices.list.searchPlaceholder')}
           value={search}

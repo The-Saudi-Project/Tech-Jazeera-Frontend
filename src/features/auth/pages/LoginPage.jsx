@@ -72,7 +72,7 @@ export default function LoginPage() {
         </p>
       )}
 
-      <Button type="submit" isLoading={isSubmitting} className="mt-2 w-full">
+      <Button type="submit" size="lg" isLoading={isSubmitting} className="mt-2 w-full">
         {t('auth.signIn')}
       </Button>
     </form>

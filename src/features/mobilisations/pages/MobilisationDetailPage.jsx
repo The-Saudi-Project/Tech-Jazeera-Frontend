@@ -96,7 +96,7 @@ function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReje
             <Button type="submit" variant="secondary" isLoading={saving}>
               {t('staffMobilisations.detail.saveDetails')}
             </Button>
-            <Button type="button" className="hover:text-danger" variant="ghost" onClick={onReject}>
+            <Button type="button" variant="danger-ghost" onClick={onReject}>
               {t('common.reject')}
             </Button>
             <Button type="button" onClick={onApprove}>
@@ -309,7 +309,7 @@ export default function MobilisationDetailPage() {
               <span className="flex items-center gap-2">
                 <Badge variant={c.confirmed ? 'success' : 'warning'}>{c.confirmed ? t('staffMobilisations.detail.confirmed') : t('staffMobilisations.detail.pending')}</Badge>
                 {canManage && !c.isPrimary && !c.confirmed && (
-                  <Button size="sm" variant="ghost" className="hover:text-danger" onClick={() => setToRemove(c)}>
+                  <Button size="sm" variant="danger-ghost" onClick={() => setToRemove(c)}>
                     {t('staffMobilisations.detail.remove')}
                   </Button>
                 )}
@@ -397,7 +397,7 @@ export default function MobilisationDetailPage() {
                     {t('common.download')}
                   </Button>
                   {canTouchDocuments && (
-                    <Button size="sm" variant="ghost" className="hover:text-danger" isLoading={deleteDocMutation.isPending} onClick={() => deleteDocMutation.mutate(d._id)}>
+                    <Button size="sm" variant="danger-ghost" isLoading={deleteDocMutation.isPending} onClick={() => deleteDocMutation.mutate(d._id)}>
                       {t('common.delete')}
                     </Button>
                   )}
