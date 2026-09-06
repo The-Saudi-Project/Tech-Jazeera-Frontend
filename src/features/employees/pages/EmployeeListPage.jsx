@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listEmployees, deleteEmployee } from '../employees.api.js';
-import { getMySectionAccess } from '../../sectionAccess/sectionAccess.api.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import {
@@ -61,12 +60,8 @@ export default function EmployeeListPage() {
   const canWrite = EMPLOYEE_WRITE_ROLES.includes(user.role);
   const canDelete = EMPLOYEE_DELETE_ROLES.includes(user.role);
   // Who may create is admin-configurable (Section Access, 'employeeCreate')
-  // rather than a static role list — Admin only by default. Defaults to
-  // hidden while the check itself is loading, never a flash-then-hide.
-  const { data: canCreate = false } = useQuery({
-    queryKey: ['section-access', 'employeeCreate', 'mine'],
-    queryFn: () => getMySectionAccess('employeeCreate'),
-  });
+  // rather than a static role list — Admin only by default.
+  const canCreate = Boolean(user.sectionAccess?.includes('employeeCreate'));
 
   // `search` is what the user types; `params.search` is what we query with —
   // debounced 300ms so we don't fire a request per keystroke.

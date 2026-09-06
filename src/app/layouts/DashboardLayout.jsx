@@ -43,14 +43,21 @@ function Sidebar({ onNavigate }) {
   // them, would otherwise show up for free).
   let items;
   if (user.role === 'Executive') {
-    items = [DASHBOARD_ITEM, ...EXECUTIVE_NAV_ITEMS];
+    items = [
+      DASHBOARD_ITEM,
+      ...EXECUTIVE_NAV_ITEMS.filter((item) => !item.sectionKey || user.sectionAccess?.includes(item.sectionKey)),
+    ];
   } else {
     // A group is shown if the user can reach at least one item inside it —
     // otherwise it'd be a link to an empty hub page. Individual role-gating
     // (e.g. the Admin-only Timesheet Processor) still applies on the hub page
     // itself, same check as before, just applied at two levels now.
     const groups = NAV_GROUPS.filter((group) =>
-      group.items.some((item) => !item.roles || item.roles.includes(user.role))
+      group.items.some((item) => {
+        if (item.roles && !item.roles.includes(user.role)) return false;
+        if (item.sectionKey && !user.sectionAccess?.includes(item.sectionKey)) return false;
+        return true;
+      })
     );
     items = [DASHBOARD_ITEM, ...groups];
   }

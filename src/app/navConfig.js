@@ -87,8 +87,8 @@ export const EXECUTIVE_NAV_ITEMS = [
   // grouped nav below) purely so a COO/Financial-Manager-titled Executive an
   // Admin DID grant Section Access to has somewhere to click through to; an
   // ungranted Executive just gets that page's own explained 403.
-  { to: '/payroll', label: 'Payroll', icon: ICON.banknotes, description: 'Monthly runs and payslips — if you\'ve been granted access.', labelKey: 'staffNav.executive.payroll.label', descriptionKey: 'staffNav.executive.payroll.description' },
-  { to: '/expenses', label: 'Expenses', icon: ICON.expense, description: 'Company spending — if you\'ve been granted access.', labelKey: 'staffNav.executive.expenses.label', descriptionKey: 'staffNav.executive.expenses.description' },
+  { to: '/payroll', sectionKey: 'payroll', label: 'Payroll', icon: ICON.banknotes, description: 'Monthly runs and payslips — if you\'ve been granted access.', labelKey: 'staffNav.executive.payroll.label', descriptionKey: 'staffNav.executive.payroll.description' },
+  { to: '/expenses', sectionKey: 'expenses', label: 'Expenses', icon: ICON.expense, description: 'Company spending — if you\'ve been granted access.', labelKey: 'staffNav.executive.expenses.label', descriptionKey: 'staffNav.executive.expenses.description' },
 ];
 
 export const NAV_GROUPS = [
@@ -143,8 +143,8 @@ export const NAV_GROUPS = [
       // Access mechanism (see docs/SECTION-ACCESS-notes.md); visible to
       // every staff role that reaches this hub, page 403s if not granted —
       // same dynamic-eligibility pattern as Company Settings/Approval Log.
-      { to: '/payroll', label: 'Payroll', icon: ICON.banknotes, description: 'Monthly runs and payslips.', labelKey: 'staffNav.financial.payroll.label', descriptionKey: 'staffNav.financial.payroll.description' },
-      { to: '/expenses', label: 'Expenses', icon: ICON.expense, description: 'Company spending, internal only.', labelKey: 'staffNav.financial.expenses.label', descriptionKey: 'staffNav.financial.expenses.description' },
+      { to: '/payroll', sectionKey: 'payroll', label: 'Payroll', icon: ICON.banknotes, description: 'Monthly runs and payslips.', labelKey: 'staffNav.financial.payroll.label', descriptionKey: 'staffNav.financial.payroll.description' },
+      { to: '/expenses', sectionKey: 'expenses', label: 'Expenses', icon: ICON.expense, description: 'Company spending, internal only.', labelKey: 'staffNav.financial.expenses.label', descriptionKey: 'staffNav.financial.expenses.description' },
       { to: '/financial-requests', label: 'Financial Requests', icon: ICON.financialRequest, roles: FINANCIAL_REQUEST_VIEW_ROLES, description: 'Salary advances and reimbursements.', labelKey: 'staffNav.financial.financialRequests.label', descriptionKey: 'staffNav.financial.financialRequests.description' },
     ],
   },

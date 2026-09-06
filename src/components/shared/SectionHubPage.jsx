@@ -25,7 +25,11 @@ function ItemIcon({ d }) {
 export default function SectionHubPage({ title, titleKey, description, descriptionKey, items }) {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const visible = items.filter((item) => !item.roles || item.roles.includes(user.role));
+  const visible = items.filter((item) => {
+    if (item.roles && !item.roles.includes(user.role)) return false;
+    if (item.sectionKey && !user.sectionAccess?.includes(item.sectionKey)) return false;
+    return true;
+  });
 
   return (
     <div className="mx-auto max-w-4xl">
