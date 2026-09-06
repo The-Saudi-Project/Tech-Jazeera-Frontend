@@ -7,21 +7,24 @@
  * belongs next to the page's name, not lost among unrelated action buttons
  * on the right (Edit/Delete/etc., passed via `actions`).
  */
+import Button from '../ui/Button.jsx';
+
 export default function PageHeader({ title, description, onBack, actions }) {
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
         {onBack && (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-9 px-0"
             onClick={onBack}
             aria-label="Back"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted transition-colors hover:border-muted/50 hover:text-text"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-5 w-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-          </button>
+          </Button>
         )}
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
