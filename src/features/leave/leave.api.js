@@ -27,7 +27,8 @@ export async function listLeaveRequests(params) {
 
 /** A STAFF member submitting their OWN leave request (Coordinator/HR/
  *  Manager/Accounts). Workers use ess.api.js's submitMyLeave (/api/me/leave)
- *  instead. */
+ *  instead. `payload` is a FormData (see SubmitLeavePanel's FormData-building
+ *  pattern) — the attachment field is optional, unlike a reimbursement receipt. */
 export async function submitLeaveRequest(payload) {
   const { data } = await api.post('/leave', payload);
   return data.data;
@@ -41,4 +42,17 @@ export async function decideLeaveRequest(id, payload) {
 export async function acknowledgeLeaveRequest(id) {
   const { data } = await api.patch(`/leave/${id}/acknowledge`);
   return data.data;
+}
+
+/** Download a leave request's attachment as an authenticated Blob, named by its original filename. */
+export async function downloadLeaveAttachment(id, filename) {
+  const res = await api.get(`/leave/${id}/attachment`, { responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

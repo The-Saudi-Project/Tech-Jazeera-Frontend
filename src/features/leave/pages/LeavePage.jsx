@@ -4,7 +4,7 @@
  * Manager/HR/Coordinator decide — Coordinator scoped to their own team by
  * the server). Workers use MyLeavePage (/me/leave) instead.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -18,6 +18,7 @@ import {
   submitLeaveRequest,
   decideLeaveRequest,
   acknowledgeLeaveRequest,
+  downloadLeaveAttachment,
 } from '../leave.api.js';
 import {
   leaveTypeFormSchema,
@@ -37,6 +38,8 @@ import {
   LEAVE_STATUS_VARIANT,
   LEAVE_TYPE_MANAGE_ROLES,
   LEAVE_DECIDE_ROLES,
+  RECEIPT_ACCEPT,
+  RECEIPT_MAX_MB,
 } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import UpcomingHolidays from '../../holidays/components/UpcomingHolidays.jsx';
@@ -279,6 +282,8 @@ function SubmitLeavePanel() {
   const { t } = useTranslation();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef(null);
+  const [pendingFile, setPendingFile] = useState(null);
 
   const { data: types } = useQuery({
     queryKey: ['leave-types', { activeOnly: true }],
@@ -292,11 +297,33 @@ function SubmitLeavePanel() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(submitLeaveFormSchema), defaultValues: emptySubmitLeaveForm });
 
+  function resetFile() {
+    setPendingFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > RECEIPT_MAX_MB * 1024 * 1024) {
+      toast.error(t('staffLeave.submit.fileTooLarge', { maxMb: RECEIPT_MAX_MB }));
+      e.target.value = '';
+      return;
+    }
+    setPendingFile(file);
+  }
+
   const submitMutation = useMutation({
-    mutationFn: submitLeaveRequest,
+    mutationFn: (values) => {
+      const fd = new FormData();
+      for (const [key, value] of Object.entries(values)) fd.append(key, value);
+      if (pendingFile) fd.append('file', pendingFile);
+      return submitLeaveRequest(fd);
+    },
     onSuccess: (request) => {
       toast.success(request.status === 'AutoApproved' ? t('staffLeave.submit.approvedToast') : t('staffLeave.submit.submittedToast'));
       reset(emptySubmitLeaveForm);
+      resetFile();
       queryClient.invalidateQueries({ queryKey: ['leave'] });
     },
     onError: (error) => toast.error(apiMessage(error)),
@@ -319,6 +346,17 @@ function SubmitLeavePanel() {
           <Input label={t('staffLeave.submit.endDate')} type="date" error={errors.endDate?.message} {...register('endDate')} />
         </div>
         <Textarea label={t('staffLeave.submit.reason')} placeholder={t('common.optional')} error={errors.reason?.message} {...register('reason')} />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium">{t('staffLeave.submit.attachment')}</label>
+          <input ref={fileInputRef} type="file" accept={RECEIPT_ACCEPT} className="hidden" onChange={handleFileChange} />
+          <div className="flex items-center gap-3">
+            <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
+              {pendingFile ? t('staffLeave.submit.changeFile') : t('staffLeave.submit.chooseFile')}
+            </Button>
+            {pendingFile && <span className="truncate text-sm text-muted">{pendingFile.name}</span>}
+          </div>
+          <p className="mt-1 text-xs text-muted">{t('staffLeave.submit.fileHint', { maxMb: RECEIPT_MAX_MB })}</p>
+        </div>
         <div className="flex justify-end">
           <Button type="submit" isLoading={submitMutation.isPending}>
             {t('common.submitRequest')}
@@ -373,6 +411,18 @@ function ReviewQueue() {
     onError: (error) => toast.error(apiMessage(error)),
   });
 
+  const [downloadingId, setDownloadingId] = useState(null);
+  async function handleDownload(req) {
+    setDownloadingId(req._id);
+    try {
+      await downloadLeaveAttachment(req._id, req.attachment.originalName);
+    } catch (error) {
+      toast.error(apiMessage(error, t('staffLeave.queue.attachmentDownloadError')));
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
   return (
     <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -417,6 +467,11 @@ function ReviewQueue() {
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{t(`staffLeave.statusLabels.${req.status}`, LEAVE_REQUEST_STATUS_LABELS[req.status])}</Badge>
+                  {req.attachment && (
+                    <Button size="sm" variant="ghost" isLoading={downloadingId === req._id} onClick={() => handleDownload(req)}>
+                      {t('staffLeave.queue.viewAttachment')}
+                    </Button>
+                  )}
                   {req.canDecideCurrentStep && req.status === 'PendingReview' && (
                     <div className="flex gap-2">
                       <Button size="sm" variant="secondary" onClick={() => setConfirming({ req, decision: 'Approved' })}>

@@ -72,7 +72,7 @@
     },
     "employeeType": {
       "Own": "Own",
-      "Client": "Client",
+      "Outsourced": "Outsourced",
       "Subcontracted": "Subcontracted"
     },
     "months": {
@@ -88,6 +88,10 @@
     "password": "Password",
     "couldNotLogIn": "Could not log in. Is the server running?",
     "footerNotice": "Internal system, authorized staff only"
+  },
+  "noPortalAccess": {
+    "title": "No portal access",
+    "description": "This self-service portal is only available to internal staff. If you believe this is a mistake, contact HR."
   },
   "nav": {
     "myProfile": "My Profile",
@@ -141,6 +145,9 @@
   "profile": {
     "title": "My profile",
     "loadError": "Could not load your profile",
+    "edit": "Edit",
+    "save": "Save changes",
+    "updateSuccess": "Your profile has been updated.",
     "personalDetails": "Personal details",
     "nationality": "Nationality",
     "mobile": "Mobile",
@@ -236,6 +243,13 @@
     "startDate": "Start date *",
     "endDate": "End date *",
     "reason": "Reason",
+    "attachment": "Attachment (optional)",
+    "chooseFile": "Choose file",
+    "changeFile": "Change file",
+    "fileHint": "PDF, JPG, PNG, or WEBP — up to {{maxMb}} MB.",
+    "fileTooLarge": "File is too large (maximum {{maxMb}} MB).",
+    "viewAttachment": "View attachment",
+    "attachmentDownloadError": "Could not download the attachment.",
     "yourRequests": "Your requests",
     "loadError": "Could not load your leave requests",
     "empty": "No leave requests yet",
@@ -560,7 +574,7 @@
       },
       "type": "Type",
       "typeHintOwn": "Internal staff (Manager/HR/Coordinator/IT/Office). Nationality, mobile, joining date and salary are optional.",
-      "typeHintClient": "This company's own workforce, supplied to clients — visa/iqama tracking and payroll both apply.",
+      "typeHintOutsourced": "This company's own workforce, supplied to clients — visa/iqama tracking and payroll both apply.",
       "typeHintSubcontracted": "Sourced from an outside subcontractor, placed with a client — visa/iqama tracking applies, but payroll does not: the subcontractor pays them, not this company.",
       "subcontractor": "Subcontractor",
       "selectSubcontractor": "Select a subcontractor…",
@@ -895,6 +909,11 @@
       "startDate": "Start date",
       "endDate": "End date",
       "reason": "Reason",
+      "attachment": "Attachment (optional)",
+      "chooseFile": "Choose file",
+      "changeFile": "Change file",
+      "fileHint": "PDF, JPG, PNG, or WEBP — up to {{maxMb}} MB.",
+      "fileTooLarge": "File is too large (maximum {{maxMb}} MB).",
       "approvedToast": "Leave request approved.",
       "submittedToast": "Leave request submitted for review."
     },
@@ -908,6 +927,8 @@
       "dayCount_other": "{{count}} days",
       "markSeen": "Mark as seen",
       "seenToast": "Marked as seen.",
+      "viewAttachment": "View attachment",
+      "attachmentDownloadError": "Could not download the attachment.",
       "approve": "Approve",
       "reject": "Reject",
       "approveTitle": "Approve leave request?",

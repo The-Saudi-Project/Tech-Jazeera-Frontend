@@ -10,6 +10,13 @@ export async function getMyProfile() {
   return data.data;
 }
 
+/** Self-edit (Milestone 4) — contact-info fields only. `payload` matches
+ *  profile.schema.js's updateMyProfileFormSchema shape. */
+export async function updateMyProfile(payload) {
+  const { data } = await api.patch('/me', payload);
+  return data.data;
+}
+
 export async function listMyDocuments(params) {
   const { data } = await api.get('/me/documents', { params });
   return data.data; // { items, total, page, pages }
@@ -42,6 +49,8 @@ export async function listMyLeave(params) {
   return data.data;
 }
 
+/** `payload` is a FormData (see MyLeavePage's FormData-building pattern) —
+ *  the attachment field is optional, unlike a reimbursement receipt. */
 export async function submitMyLeave(payload) {
   const { data } = await api.post('/me/leave', payload);
   return data.data;
@@ -50,6 +59,19 @@ export async function submitMyLeave(payload) {
 export async function cancelMyLeave(id) {
   const { data } = await api.patch(`/me/leave/${id}/cancel`);
   return data.data;
+}
+
+/** Download own leave attachment as an authenticated Blob, named by its original filename. */
+export async function downloadMyLeaveAttachment(id, filename) {
+  const res = await api.get(`/me/leave/${id}/attachment`, { responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 /** POST /me/attendance/punch { lat?, lng?, accuracy? } — geofence/office-IP verified server-side. First

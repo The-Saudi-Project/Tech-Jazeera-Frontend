@@ -4,16 +4,16 @@
  * submission time from the real joining date and leave history, and returns
  * the result (AutoApproved / PendingReview + why) — this page only displays it.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { listMyLeave, submitMyLeave, cancelMyLeave } from '../ess.api.js';
+import { listMyLeave, submitMyLeave, cancelMyLeave, downloadMyLeaveAttachment } from '../ess.api.js';
 import { listLeaveTypes } from '../../leave/leave.api.js';
 import { submitLeaveFormSchema, emptySubmitLeaveForm } from '../../leave/leave.schema.js';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
-import { LEAVE_STATUS_VARIANT } from '../../../lib/constants.js';
+import { LEAVE_STATUS_VARIANT, RECEIPT_ACCEPT, RECEIPT_MAX_MB } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import UpcomingHolidays from '../../holidays/components/UpcomingHolidays.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
@@ -32,6 +32,9 @@ export default function MyLeavePage() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [toCancel, setToCancel] = useState(null);
+  const fileInputRef = useRef(null);
+  const [pendingFile, setPendingFile] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const { data: types } = useQuery({
     queryKey: ['leave-types', { activeOnly: true }],
@@ -50,17 +53,50 @@ export default function MyLeavePage() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(submitLeaveFormSchema), defaultValues: emptySubmitLeaveForm });
 
+  function resetFile() {
+    setPendingFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > RECEIPT_MAX_MB * 1024 * 1024) {
+      toast.error(t('leave.fileTooLarge', { maxMb: RECEIPT_MAX_MB }));
+      e.target.value = '';
+      return;
+    }
+    setPendingFile(file);
+  }
+
   const submitMutation = useMutation({
-    mutationFn: submitMyLeave,
+    mutationFn: (values) => {
+      const fd = new FormData();
+      for (const [key, value] of Object.entries(values)) fd.append(key, value);
+      if (pendingFile) fd.append('file', pendingFile);
+      return submitMyLeave(fd);
+    },
     onSuccess: (request) => {
       toast[request.status === 'AutoApproved' ? 'success' : 'info'](
         request.status === 'AutoApproved' ? t('leave.autoApprovedToast') : t('leave.submittedToast')
       );
       reset(emptySubmitLeaveForm);
+      resetFile();
       queryClient.invalidateQueries({ queryKey: ['me', 'leave'] });
     },
     onError: (error) => toast.error(apiMessage(error)),
   });
+
+  async function handleDownload(req) {
+    setDownloadingId(req._id);
+    try {
+      await downloadMyLeaveAttachment(req._id, req.attachment.originalName);
+    } catch (error) {
+      toast.error(apiMessage(error, t('leave.attachmentDownloadError')));
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   const cancelMutation = useMutation({
     mutationFn: (id) => cancelMyLeave(id),
@@ -101,6 +137,19 @@ export default function MyLeavePage() {
             <Input label={t('leave.endDate')} type="date" error={errors.endDate?.message} {...register('endDate')} />
           </div>
           <Textarea label={t('leave.reason')} placeholder={t('common.optional')} error={errors.reason?.message} {...register('reason')} />
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">{t('leave.attachment')}</label>
+            <input ref={fileInputRef} type="file" accept={RECEIPT_ACCEPT} className="hidden" onChange={handleFileChange} />
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="secondary" onClick={() => fileInputRef.current?.click()}>
+                {pendingFile ? t('leave.changeFile') : t('leave.chooseFile')}
+              </Button>
+              {pendingFile && <span className="truncate text-sm text-muted">{pendingFile.name}</span>}
+            </div>
+            <p className="mt-1 text-xs text-muted">{t('leave.fileHint', { maxMb: RECEIPT_MAX_MB })}</p>
+          </div>
+
           <div className="flex justify-end">
             <Button type="submit" isLoading={submitMutation.isPending}>
               {t('common.submitRequest')}
@@ -146,6 +195,11 @@ export default function MyLeavePage() {
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     <Badge variant={LEAVE_STATUS_VARIANT[req.status]}>{t(`common.status.${req.status}`, req.status)}</Badge>
+                    {req.attachment && (
+                      <Button size="sm" variant="ghost" isLoading={downloadingId === req._id} onClick={() => handleDownload(req)}>
+                        {t('leave.viewAttachment')}
+                      </Button>
+                    )}
                     {cancellable && (
                       <Button size="sm" variant="danger-ghost" onClick={() => setToCancel(req)}>
                         {t('leave.cancelButton')}

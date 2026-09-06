@@ -72,6 +72,7 @@ import MyRequestsPage from '../features/ess/pages/MyRequestsPage.jsx';
 import MyPayslipsPage from '../features/ess/pages/MyPayslipsPage.jsx';
 import MyExitDocumentsPage from '../features/ess/pages/MyExitDocumentsPage.jsx';
 import MyAttendancePage from '../features/ess/pages/MyAttendancePage.jsx';
+import NoPortalAccessPage from '../features/ess/pages/NoPortalAccessPage.jsx';
 import WorkforceHubPage from './pages/WorkforceHubPage.jsx';
 import SalesHubPage from './pages/SalesHubPage.jsx';
 import FinancialHubPage from './pages/FinancialHubPage.jsx';
@@ -109,9 +110,18 @@ function RoleRouter() {
   return SELF_SERVICE_ROLES.includes(user.role) ? <Navigate to="/me" replace /> : <Outlet />;
 }
 
+/**
+ * Milestone 4: only an 'Own'-type Worker/Staff login gets the ESS portal at
+ * all — an ineligible one (Outsourced/Subcontracted, old or new) sees a
+ * small dead-end page instead of a shell full of routes that all 403. The
+ * server's own gate (me.routes.js) is the real enforcement; `essEligible`
+ * (set at login/refresh — auth.service.js) is purely this redirect's hint.
+ */
 function WorkerRouter() {
   const { user } = useAuth();
-  return SELF_SERVICE_ROLES.includes(user.role) ? <Outlet /> : <Navigate to="/" replace />;
+  if (!SELF_SERVICE_ROLES.includes(user.role)) return <Navigate to="/" replace />;
+  if (!user.essEligible) return <NoPortalAccessPage />;
+  return <Outlet />;
 }
 
 export const router = createBrowserRouter([

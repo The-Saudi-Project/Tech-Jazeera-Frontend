@@ -10,19 +10,19 @@ export const EXPIRY_WARNING_DAYS = 30;
 
 /** Mirrors the Employee model's status enum. */
 export const EMPLOYEE_STATUSES = ['Active', 'On Leave', 'Exited'];
-/** 'Own' = internal staff (reports to a Manager). 'Client' = this company's
- *  own workforce supplied to clients (mapped to a Coordinator and/or a
- *  Manager). 'Subcontracted' = a worker sourced from an outside
+/** 'Own' = internal staff (reports to a Manager). 'Outsourced' = this
+ *  company's own workforce supplied to clients (mapped to a Coordinator
+ *  and/or a Manager). 'Subcontracted' = a worker sourced from an outside
  *  Subcontractor (their employer of record) and placed with a client — full
  *  compliance/attendance record, but never this company's own Payroll. */
-export const EMPLOYEE_TYPES = ['Own', 'Client', 'Subcontracted'];
+export const EMPLOYEE_TYPES = ['Own', 'Outsourced', 'Subcontracted'];
 export const EMPLOYEE_TYPE_LABELS = {
   Own: 'Own — internal staff',
-  Client: 'Client — supplied workforce',
+  Outsourced: 'Outsourced — supplied workforce',
   Subcontracted: 'Subcontracted — sourced from a subcontractor',
 };
 /** The "not internal staff" set — mirrors employee.model.js's WORKFORCE_TYPES. */
-export const WORKFORCE_TYPES = ['Client', 'Subcontracted'];
+export const WORKFORCE_TYPES = ['Outsourced', 'Subcontracted'];
 
 /** Mirror of the server's route guards — used only to hide UI the API would
  *  reject anyway. The server is the real enforcement. */

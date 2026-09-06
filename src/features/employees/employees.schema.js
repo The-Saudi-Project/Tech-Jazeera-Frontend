@@ -43,9 +43,9 @@ export const employeeFormSchema = z
       .max(20)
       .regex(/^[A-Za-z0-9-]+$/, 'Only letters, numbers and dashes.'),
     fullName: z.string().trim().min(2, 'Full name is required.').max(100),
-    // 'Own' = internal staff (reports to a Manager); 'Client'/'Subcontracted'
+    // 'Own' = internal staff (reports to a Manager); 'Outsourced'/'Subcontracted'
     // = workforce. Both workforce types require the compliance fields
-    // below; only 'Client' additionally requires salary, and only
+    // below; only 'Outsourced' additionally requires salary, and only
     // 'Subcontracted' requires `subcontractor` — see the superRefine below.
     type: z.enum(EMPLOYEE_TYPES),
     nationality: optional,
@@ -85,8 +85,8 @@ export const employeeFormSchema = z
     // P2-M2: '' means "no coordinator assigned" — sent to the API as null.
     coordinator: z.string().optional().or(z.literal('')),
     // '' means "no manager assigned" — sent to the API as null. Universal
-    // across both types (every 'Own' employee has one; a 'Client' employee
-    // may have one alongside or instead of a coordinator).
+    // across both types (every 'Own' employee has one; an 'Outsourced'
+    // employee may have one alongside or instead of a coordinator).
     manager: z.string().optional().or(z.literal('')),
     // Configurable Approval Hierarchy: overrides the company-wide default
     // ApprovalWorkflow for this employee. '' means "no override" — sent to
@@ -101,7 +101,7 @@ export const employeeFormSchema = z
     if (!data.nationality) ctx.addIssue({ code: 'custom', path: ['nationality'], message: 'Nationality is required.' });
     if (!data.mobile) ctx.addIssue({ code: 'custom', path: ['mobile'], message: 'Enter a valid mobile number.' });
     if (!data.joiningDate) ctx.addIssue({ code: 'custom', path: ['joiningDate'], message: 'Joining date is required.' });
-    if (data.type === 'Client' && !data.salary) {
+    if (data.type === 'Outsourced' && !data.salary) {
       ctx.addIssue({ code: 'custom', path: ['salary'], message: 'Salary is required.' });
     }
     if (data.type === 'Subcontracted' && !data.subcontractor) {
@@ -115,7 +115,7 @@ const emptyDocument = { number: '', expiry: '' };
 export const emptyEmployeeForm = {
   employeeId: '',
   fullName: '',
-  type: 'Client',
+  type: 'Outsourced',
   nationality: '',
   mobile: '',
   email: '',
@@ -149,7 +149,7 @@ export function employeeToForm(employee) {
   return {
     employeeId: employee.employeeId,
     fullName: employee.fullName,
-    type: employee.type ?? 'Client',
+    type: employee.type ?? 'Outsourced',
     nationality: employee.nationality ?? '',
     mobile: employee.mobile ?? '',
     email: employee.email ?? '',

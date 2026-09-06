@@ -52,7 +52,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   // (see employee.service.js), so showing an editable picker here would just
   // be confusing. Everyone else keeps the normal picker.
   const isCoordinator = user.role === 'Coordinator';
-  // The server always overrides 'Own' to 'Client' for a Coordinator's own
+  // The server always overrides 'Own' to 'Outsourced' for a Coordinator's own
   // submission (a Coordinator can never create an internal-staff record —
   // see employee.service.js's createEmployee) AND, since that override runs
   // after Zod validation, requires nationality/mobile/joiningDate that the
@@ -71,7 +71,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
 
   // Drives which fields below render as required — nationality/mobile/
   // joining date are compliance fields both workforce types need; salary is
-  // narrower still (only 'Client', since a Subcontracted worker's pay is
+  // narrower still (only 'Outsourced', since a Subcontracted worker's pay is
   // the subcontractor's business); an 'Own' (internal staff) record needs
   // none of it.
   const type = watch('type');
@@ -95,8 +95,8 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
     enabled: !isCoordinator,
   });
 
-  // Every 'Own' employee reports to a Manager; a 'Client' employee may too,
-  // alongside or instead of a coordinator — so this stays fetched regardless
+  // Every 'Own' employee reports to a Manager; an 'Outsourced' employee may
+  // too, alongside or instead of a coordinator — so this stays fetched regardless
   // of type. MANAGER_ELIGIBLE_ROLES (Admin or Manager) filtered client-side,
   // since listStaffUsers only takes one exact role per call.
   const { data: staffUsers } = useQuery({
@@ -159,7 +159,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
           </Select>
           <p className="mt-1 text-xs text-muted">
             {type === 'Own' && t('staffEmployees.form.typeHintOwn')}
-            {type === 'Client' && t('staffEmployees.form.typeHintClient')}
+            {type === 'Outsourced' && t('staffEmployees.form.typeHintOutsourced')}
             {type === 'Subcontracted' && t('staffEmployees.form.typeHintSubcontracted')}
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
         <Input label={`${t('staffEmployees.form.designation')} *`} placeholder="Electrician" error={errors.designation?.message} {...register('designation')} />
         <Input label={t('staffEmployees.form.department')} placeholder="Maintenance" error={errors.department?.message} {...register('department')} />
         <Input
-          label={`${t('staffEmployees.form.salaryPerMonth')}${type === 'Client' ? ' *' : ''}`}
+          label={`${t('staffEmployees.form.salaryPerMonth')}${type === 'Outsourced' ? ' *' : ''}`}
           type="number"
           min="0"
           step="50"
