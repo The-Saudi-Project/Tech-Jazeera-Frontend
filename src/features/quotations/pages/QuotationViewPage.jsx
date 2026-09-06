@@ -16,6 +16,7 @@ import { useToast } from '../../../components/ui/Toast.jsx';
 import { QUOTATION_WRITE_ROLES, QUOTATION_DELETE_ROLES, INVOICE_WRITE_ROLES } from '../../../lib/constants.js';
 import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -103,11 +104,7 @@ export default function QuotationViewPage() {
       <EmptyState
         title={t('staffQuotations.view.notFoundTitle')}
         description={t('staffQuotations.view.notFoundDescription')}
-        action={
-          <Link to="/quotations">
-            <Button variant="secondary">{t('staffQuotations.view.backToList')}</Button>
-          </Link>
-        }
+        action={<BackButton onClick={() => navigate('/quotations')} />}
       />
     );
   }

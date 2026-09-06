@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSettlement, deleteSettlement } from '../eosb.api.js';
 import SettlementPdfButton from '../components/SettlementPdfButton.jsx';
@@ -14,6 +14,7 @@ import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
 import { EOSB_WRITE_ROLES, EXIT_REASON_LABELS } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -80,11 +81,7 @@ export default function SettlementViewPage() {
       <EmptyState
         title={t('staffEosb.view.notFoundTitle')}
         description={t('staffEosb.view.notFoundDescription')}
-        action={
-          <Link to="/eosb">
-            <Button variant="secondary">{t('staffEosb.view.backToList')}</Button>
-          </Link>
-        }
+        action={<BackButton onClick={() => navigate('/eosb')} />}
       />
     );
   }

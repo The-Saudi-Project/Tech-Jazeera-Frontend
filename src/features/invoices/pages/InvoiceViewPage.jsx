@@ -17,6 +17,7 @@ import { apiMessage, formatDate, formatMoney } from '../../../lib/utils.js';
 import { INVOICE_STATUS_VARIANT, INVOICE_WRITE_ROLES, INVOICE_DELETE_ROLES } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -101,7 +102,7 @@ export default function InvoiceViewPage() {
       <EmptyState
         title={t('staffInvoices.view.notFoundTitle')}
         description={t('staffInvoices.view.notFoundDescription')}
-        action={<Link to="/invoices"><Button variant="secondary">{t('staffInvoices.view.backToList')}</Button></Link>}
+        action={<BackButton onClick={() => navigate('/invoices')} />}
       />
     );
   }

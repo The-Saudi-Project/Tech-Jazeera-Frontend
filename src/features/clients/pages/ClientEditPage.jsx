@@ -9,6 +9,7 @@ import { clientToForm, formToPayload } from '../clients.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ClientForm from '../components/ClientForm.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
@@ -46,7 +47,13 @@ export default function ClientEditPage() {
     );
   }
   if (isError) {
-    return <EmptyState title={t('staffClients.edit.notFoundTitle')} description={t('staffClients.edit.notFoundDescription')} />;
+    return (
+      <EmptyState
+        title={t('staffClients.edit.notFoundTitle')}
+        description={t('staffClients.edit.notFoundDescription')}
+        action={<BackButton onClick={() => navigate('/clients')} />}
+      />
+    );
   }
 
   return (

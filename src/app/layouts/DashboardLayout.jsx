@@ -22,7 +22,6 @@ import AvatarUploadModal from '../../features/auth/components/AvatarUploadModal.
 import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
 import NotificationBell from '../../components/shared/NotificationBell.jsx';
 import LanguageSwitcher from '../../components/shared/LanguageSwitcher.jsx';
-import { STAFF_SUPPORTED_LANGUAGES } from '../../i18n/index.js';
 import { cn } from '../../lib/utils.js';
 import { DASHBOARD_ITEM, NAV_GROUPS, EXECUTIVE_NAV_ITEMS } from '../navConfig.js';
 
@@ -164,7 +163,7 @@ export default function DashboardLayout() {
               <p className="text-sm font-medium leading-tight">{user.name}</p>
               <p className="text-xs text-muted">{user.role}</p>
             </div>
-            <LanguageSwitcher className="hidden w-auto sm:flex" languages={STAFF_SUPPORTED_LANGUAGES} />
+            <LanguageSwitcher className="hidden w-auto sm:flex" />
             <ThemeToggle />
             <NotificationBell />
             <div className="relative" ref={avatarMenuRef}>

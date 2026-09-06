@@ -19,6 +19,7 @@ import {
 } from '../../../lib/constants.js';
 import { apiMessage, formatDate } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import ExpiryBadge from '../../../components/shared/ExpiryBadge.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -130,11 +131,7 @@ export default function EmployeeProfilePage() {
       <EmptyState
         title={t('staffEmployees.editPage.notFound')}
         description={t('staffEmployees.editPage.notFoundDescription')}
-        action={
-          <Link to="/employees">
-            <Button variant="secondary">{t('staffEmployees.profile.backToEmployees')}</Button>
-          </Link>
-        }
+        action={<BackButton onClick={() => navigate('/employees')} />}
       />
     );
   }

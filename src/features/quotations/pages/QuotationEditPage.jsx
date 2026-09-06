@@ -10,6 +10,7 @@ import { quotationToForm } from '../quotations.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import QuotationForm from '../components/QuotationForm.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
@@ -46,7 +47,13 @@ export default function QuotationEditPage() {
     );
   }
   if (isError) {
-    return <EmptyState title={t('staffQuotations.edit.notFoundTitle')} description={t('staffQuotations.edit.notFoundDescription')} />;
+    return (
+      <EmptyState
+        title={t('staffQuotations.edit.notFoundTitle')}
+        description={t('staffQuotations.edit.notFoundDescription')}
+        action={<BackButton onClick={() => navigate('/quotations')} />}
+      />
+    );
   }
 
   return (

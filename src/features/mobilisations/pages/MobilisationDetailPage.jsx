@@ -37,6 +37,7 @@ import { MOBILISATION_STATUS_VARIANT, MOBILISATION_DOCUMENT_CATEGORIES, MOBILISA
 import { useToast } from '../../../components/ui/Toast.jsx';
 import ApprovalTrailView from '../../../components/shared/ApprovalTrailView.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -223,7 +224,7 @@ export default function MobilisationDetailPage() {
       <EmptyState
         title={t('staffMobilisations.detail.notFoundTitle')}
         description={t('staffMobilisations.detail.notFoundDescription')}
-        action={<Button variant="secondary" onClick={() => navigate('/mobilisations')}>{t('staffMobilisations.detail.backToList')}</Button>}
+        action={<BackButton onClick={() => navigate('/mobilisations')} />}
       />
     );
   }

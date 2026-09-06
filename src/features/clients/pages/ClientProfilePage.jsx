@@ -22,6 +22,7 @@ import { CLIENT_DELETE_ROLES, CLIENT_APPROVAL_VARIANT } from '../../../lib/const
 import { canDecideClient, canEditClient } from '../clients.permissions.js';
 import { apiMessage, cn, formatDate } from '../../../lib/utils.js';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import DecideClientModal from '../components/DecideClientModal.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -219,11 +220,7 @@ export default function ClientProfilePage() {
       <EmptyState
         title={t('staffClients.profile.notFoundTitle')}
         description={t('staffClients.profile.notFoundDescription')}
-        action={
-          <Link to="/clients">
-            <Button variant="secondary">{t('staffClients.profile.backToList')}</Button>
-          </Link>
-        }
+        action={<BackButton onClick={() => navigate('/clients')} />}
       />
     );
   }

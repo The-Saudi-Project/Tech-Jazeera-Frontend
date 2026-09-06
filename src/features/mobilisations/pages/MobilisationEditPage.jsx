@@ -15,10 +15,10 @@ import { listJobTitles } from '../../jobTitles/jobTitles.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
-import Button from '../../../components/ui/Button.jsx';
 import MobilisationForm from '../components/MobilisationForm.jsx';
 
 export default function MobilisationEditPage() {
@@ -76,7 +76,7 @@ export default function MobilisationEditPage() {
       <EmptyState
         title={t('staffMobilisations.edit.notFoundTitle')}
         description={t('staffMobilisations.edit.notFoundDescription')}
-        action={<Button variant="secondary" onClick={() => navigate('/mobilisations')}>{t('staffMobilisations.edit.backToList')}</Button>}
+        action={<BackButton onClick={() => navigate('/mobilisations')} />}
       />
     );
   }
@@ -86,7 +86,7 @@ export default function MobilisationEditPage() {
       <EmptyState
         title={t('staffMobilisations.edit.cannotEditTitle')}
         description={t('staffMobilisations.edit.cannotEditDescription', { status: t(`common.status.${mobilisation.status}`, mobilisation.status) })}
-        action={<Button variant="secondary" onClick={() => navigate(`/mobilisations/${id}`)}>{t('staffMobilisations.edit.backToMobilisation')}</Button>}
+        action={<BackButton onClick={() => navigate(`/mobilisations/${id}`)} />}
       />
     );
   }

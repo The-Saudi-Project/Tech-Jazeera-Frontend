@@ -11,6 +11,7 @@ import { getNfcCompany, deleteNfcCompany, deleteNfcEmployee, getNfcCompanyAnalyt
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -99,11 +100,7 @@ export default function NfcCompanyProfilePage() {
       <EmptyState
         title="Company not found"
         description="It may have been deleted."
-        action={
-          <Link to="/nfc">
-            <Button variant="secondary">Back to NFC Customers</Button>
-          </Link>
-        }
+        action={<BackButton onClick={() => navigate('/nfc')} />}
       />
     );
   }

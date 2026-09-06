@@ -9,6 +9,7 @@ import { employeeToForm, formToEmployeePayload } from '../employees.schema.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import EmployeeForm from '../components/EmployeeForm.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
@@ -51,6 +52,7 @@ export default function EmployeeEditPage() {
       <EmptyState
         title={t('staffEmployees.editPage.notFound')}
         description={t('staffEmployees.editPage.notFoundDescription')}
+        action={<BackButton onClick={() => navigate('/employees')} />}
       />
     );
   }

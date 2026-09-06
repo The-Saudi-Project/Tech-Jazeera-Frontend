@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import { apiMessage, formatMoney } from '../../../lib/utils.js';
 import { PAYROLL_STATUS_VARIANT, MONTH_NAMES } from '../../../lib/constants.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
+import BackButton from '../../../components/shared/BackButton.jsx';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -117,7 +118,7 @@ export default function PayrollRunPage() {
       <EmptyState
         title={t('staffPayroll.run.couldNotOpenTitle')}
         description={apiMessage(error) || t('staffPayroll.run.couldNotOpenDefaultDescription')}
-        action={<Link to="/payroll"><Button variant="secondary">{t('staffPayroll.run.backToPayroll')}</Button></Link>}
+        action={<BackButton onClick={() => navigate('/payroll')} />}
       />
     );
   }
