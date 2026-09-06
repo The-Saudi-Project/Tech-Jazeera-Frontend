@@ -14,16 +14,15 @@ export default function PageHeader({ title, description, onBack, actions }) {
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
         {onBack && (
-          <Button
-            variant="secondary"
-            className="h-10 w-10 px-0 rounded-full bg-gradient-to-br from-surface to-border/50 shadow-sm transition-all duration-200 hover:from-border/50 hover:to-border hover:shadow-md"
+          <button
             onClick={onBack}
             aria-label="Back"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/50 bg-gradient-to-br from-surface to-border/50 text-text shadow-sm transition-all duration-200 hover:from-border/50 hover:to-border hover:shadow-md active:scale-95"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-6 w-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-          </Button>
+          </button>
         )}
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
