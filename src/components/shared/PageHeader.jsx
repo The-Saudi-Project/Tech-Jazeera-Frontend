@@ -15,7 +15,7 @@ export default function PageHeader({ title, description, onBack, actions }) {
       <div className="flex items-center gap-3">
         {onBack && (
           <Button
-            variant="secondary"
+            variant="ghost"
             size="sm"
             className="w-9 px-0"
             onClick={onBack}
