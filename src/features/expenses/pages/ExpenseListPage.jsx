@@ -45,7 +45,7 @@ function SummaryBar() {
     queryFn: () => getExpenseSummary({}),
   });
 
-  if (isPending) return <Skeleton className="h-24 w-full" />;
+  if (isPending) return <Skeleton className="h-24 w-full" />;\n  if (!data) return null;
 
   const monthLabel = new Date(data.from).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
