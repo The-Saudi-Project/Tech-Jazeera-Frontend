@@ -17,6 +17,7 @@ import { useToast } from '../../../components/ui/Toast.jsx';
 import PageHeader from '../../../components/shared/PageHeader.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
+import Input from '../../../components/ui/Input.jsx';
 import Skeleton from '../../../components/ui/Skeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import { PillChecklist } from '../../../components/ui/TogglePill.jsx';
@@ -37,15 +38,18 @@ export default function MobilisationSettingsPage() {
 
   const [viewerRoles, setViewerRoles] = useState([]);
   const [selfMobiliseRoles, setSelfMobiliseRoles] = useState([]);
+  const [staleDays, setStaleDays] = useState('180');
 
   useEffect(() => {
     if (!settings) return;
     setViewerRoles((settings.viewerRoles ?? []).map((r) => r._id));
     setSelfMobiliseRoles((settings.selfMobiliseRoles ?? []).map((r) => r._id));
+    setStaleDays(String(settings.officeSecretaryStaleDays ?? 180));
   }, [settings]);
 
   const saveMutation = useMutation({
-    mutationFn: () => updateMobilisationSettings({ viewerRoles, selfMobiliseRoles }),
+    mutationFn: () =>
+      updateMobilisationSettings({ viewerRoles, selfMobiliseRoles, officeSecretaryStaleDays: staleDays }),
     onSuccess: () => {
       toast.success('Mobilisation settings saved.');
       queryClient.invalidateQueries({ queryKey: ['mobilisation-settings'] });
@@ -101,6 +105,22 @@ export default function MobilisationSettingsPage() {
               selected={selfMobiliseRoles}
               onToggle={(id) => toggle(setSelfMobiliseRoles, selfMobiliseRoles, id)}
               emptyMessage="No approval roles configured yet — add one on the Approval Hierarchy page first."
+            />
+          </div>
+
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Stale mobilisation warning</h2>
+            <p className="mt-1 mb-2 text-xs text-muted">
+              If a mobilisation sits pending review with no decision for this many days, every Manager login gets
+              notified — a nudge for one that's been waiting on a client's paperwork too long.
+            </p>
+            <Input
+              type="number"
+              min="1"
+              max="3650"
+              className="max-w-[160px]"
+              value={staleDays}
+              onChange={(e) => setStaleDays(e.target.value)}
             />
           </div>
 

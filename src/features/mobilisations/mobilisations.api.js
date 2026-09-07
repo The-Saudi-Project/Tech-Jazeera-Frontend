@@ -16,6 +16,13 @@ export async function listCoordinatorCandidates() {
   return data.data;
 }
 
+/** Live autocomplete for a free-typed worker-identity field (SupplierEmployee/
+ *  Freelancer only — see MobilisationForm) — string[] of past values. */
+export async function getMobilisationSuggestions(field) {
+  const { data } = await api.get('/mobilisations/suggestions', { params: { field } });
+  return data.data;
+}
+
 export async function getMobilisation(id) {
   const { data } = await api.get(`/mobilisations/${id}`);
   return data.data;

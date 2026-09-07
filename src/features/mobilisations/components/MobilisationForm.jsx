@@ -1,20 +1,27 @@
 /**
- * MobilisationForm — Section 1 fields (worker/job/client billing/subcontractor/
- * overtime/dates), used by both the New and Edit pages. Section 2 (Marketing
- * Manager's quotation/PO fields) and the submit/decide actions land in later
- * milestones, on a detail page this form doesn't yet know about.
+ * MobilisationForm — Section 1 fields (worker type/job/client billing/
+ * subcontractor/dates), used by both the New and Edit pages. Section 2
+ * (the current-step reviewer's quotation/PO/overtime fields) and the submit/
+ * decide actions live on the detail page this form doesn't know about.
  *
- * The subcontractor block only appears once "Routed through a subcontractor"
- * is checked — same reveal-on-toggle pattern as DeploymentForm's
- * client-dependent site dropdown.
+ * `workerType` drives worker identity: 'Employee' keeps the original Employee
+ * picker; 'SupplierEmployee'/'Freelancer' have no Employee record at all, so
+ * name/Iqama/nationality/trade/phone are typed directly, each backed by a
+ * live autocomplete of previously-entered values (not a managed picklist
+ * like Job title — just a suggestion aid, same spirit as the Nationality
+ * field's static `<datalist>` on the Employee form, but sourced live). The
+ * subcontractor block only appears for 'SupplierEmployee' — same
+ * reveal-on-condition pattern as DeploymentForm's client-dependent site
+ * dropdown.
  */
-import { forwardRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { mobilisationFormSchema } from '../mobilisations.schema.js';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { mobilisationFormSchema, WORKER_TYPES } from '../mobilisations.schema.js';
 import { createJobTitle } from '../../jobTitles/jobTitles.api.js';
+import { getMobilisationSuggestions } from '../mobilisations.api.js';
 import { apiMessage } from '../../../lib/utils.js';
 import { useToast } from '../../../components/ui/Toast.jsx';
 import Input from '../../../components/ui/Input.jsx';
@@ -23,18 +30,26 @@ import Textarea from '../../../components/ui/Textarea.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 
-// forwardRef is required here — react-hook-form's register() spreads a ref
-// callback onto this element to manage it as an uncontrolled input; a plain
-// function component drops that ref silently (React warns, and the field
-// stops being registered correctly).
-const Checkbox = forwardRef(function Checkbox({ label, ...props }, ref) {
+/** Free-typed field + a live `<datalist>` of previously-entered values —
+ *  the datalist id must stay unique per field since every instance of this
+ *  form shares the DOM with itself only once, but a stable id is simplest. */
+function SuggestedInput({ field, label, error, register, ...props }) {
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ['mobilisation-suggestions', field],
+    queryFn: () => getMobilisationSuggestions(field),
+  });
+  const listId = `mobilisation-${field}-suggestions`;
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <input ref={ref} type="checkbox" className="h-4 w-4 rounded border-border" {...props} />
-      {label}
-    </label>
+    <>
+      <Input label={label} list={listId} error={error} {...register(field)} {...props} />
+      <datalist id={listId}>
+        {suggestions.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
+    </>
   );
-});
+}
 
 export default function MobilisationForm({
   workers,
@@ -58,7 +73,7 @@ export default function MobilisationForm({
     formState: { errors },
   } = useForm({ resolver: zodResolver(mobilisationFormSchema), defaultValues });
 
-  const hasSubcontractor = useWatch({ control, name: 'hasSubcontractor' });
+  const workerType = useWatch({ control, name: 'workerType' });
 
   const [addingJobTitle, setAddingJobTitle] = useState(false);
   const [newJobTitle, setNewJobTitle] = useState('');
@@ -91,15 +106,52 @@ export default function MobilisationForm({
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.form.sectionWorkerJob')}</h3>
+        <Select label={t('staffMobilisations.form.workerTypeLabel')} error={errors.workerType?.message} {...register('workerType')}>
+          {WORKER_TYPES.map((wt) => (
+            <option key={wt} value={wt}>
+              {t(`staffMobilisations.form.workerType.${wt}`)}
+            </option>
+          ))}
+        </Select>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Select label={t('staffMobilisations.form.workerLabel')} error={errors.worker?.message} {...register('worker')}>
-            <option value="">{t('staffMobilisations.form.selectWorker')}</option>
-            {workers.map((w) => (
-              <option key={w._id} value={w._id}>
-                {w.fullName} ({w.employeeId})
-              </option>
-            ))}
-          </Select>
+          {workerType === 'Employee' ? (
+            <Select label={t('staffMobilisations.form.workerLabel')} error={errors.worker?.message} {...register('worker')}>
+              <option value="">{t('staffMobilisations.form.selectWorker')}</option>
+              {workers.map((w) => (
+                <option key={w._id} value={w._id}>
+                  {w.fullName} ({w.employeeId})
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <>
+              <SuggestedInput
+                field="workerName"
+                label={t('staffMobilisations.form.workerNameLabel')}
+                error={errors.workerName?.message}
+                register={register}
+              />
+              <SuggestedInput
+                field="iqamaNumber"
+                label={t('staffMobilisations.form.iqamaNumberLabel')}
+                error={errors.iqamaNumber?.message}
+                register={register}
+              />
+              <SuggestedInput
+                field="nationality"
+                label={t('staffMobilisations.form.nationalityLabel')}
+                error={errors.nationality?.message}
+                register={register}
+              />
+              <SuggestedInput
+                field="trade"
+                label={t('staffMobilisations.form.tradeLabel')}
+                error={errors.trade?.message}
+                register={register}
+              />
+              <Input label={t('staffMobilisations.form.phoneLabel')} error={errors.phone?.message} {...register('phone')} />
+            </>
+          )}
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <label className="text-sm font-medium text-text">{t('staffMobilisations.form.jobTitleLabel')}</label>
@@ -136,14 +188,22 @@ export default function MobilisationForm({
           </Select>
           <Input label={t('staffMobilisations.form.clientRate')} type="number" step="0.01" min="0" error={errors.clientRate?.message} {...register('clientRate')} />
           <Input label={t('staffMobilisations.form.clientCommission')} type="number" step="0.01" min="0" error={errors.clientCommission?.message} {...register('clientCommission')} />
-          <Input label={t('staffMobilisations.form.ftaAllowance')} type="number" step="0.01" min="0" error={errors.ftaAllowance?.message} {...register('ftaAllowance')} />
+          <Input label={t('staffMobilisations.form.fta')} type="number" step="0.01" min="0" error={errors.fta?.message} {...register('fta')} />
+          <Input label={t('staffMobilisations.form.allowance')} type="number" step="0.01" min="0" error={errors.allowance?.message} {...register('allowance')} />
+          <Input
+            label={t('staffMobilisations.form.requiredTimesheetHours')}
+            type="number"
+            step="0.01"
+            min="0"
+            error={errors.requiredTimesheetHours?.message}
+            {...register('requiredTimesheetHours')}
+          />
         </div>
-        <Checkbox label={t('staffMobilisations.form.clientTimesheetRequired')} {...register('clientTimesheetRequired')} />
       </section>
 
-      <section className="space-y-4">
-        <Checkbox label={t('staffMobilisations.form.routedThroughSubcontractor')} {...register('hasSubcontractor')} />
-        {hasSubcontractor && (
+      {workerType === 'SupplierEmployee' && (
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.form.sectionSubcontractor')}</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Select label={t('staffMobilisations.form.subcontractorLabel')} error={errors.subcontractor?.message} {...register('subcontractor')}>
               <option value="">{t('staffMobilisations.form.selectSubcontractor')}</option>
@@ -154,6 +214,14 @@ export default function MobilisationForm({
               ))}
             </Select>
             <Input
+              label={t('staffMobilisations.form.subcontractorRate')}
+              type="number"
+              step="0.01"
+              min="0"
+              error={errors.subcontractorRate?.message}
+              {...register('subcontractorRate')}
+            />
+            <Input
               label={t('staffMobilisations.form.subcontractorCommission')}
               type="number"
               step="0.01"
@@ -161,31 +229,15 @@ export default function MobilisationForm({
               error={errors.subcontractorCommission?.message}
               {...register('subcontractorCommission')}
             />
-            <Checkbox label={t('staffMobilisations.form.subcontractorTimesheetRequired')} {...register('subcontractorTimesheetRequired')} />
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.form.sectionEconomicsDates')}</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <Input label={t('staffMobilisations.form.profit')} type="number" step="0.01" error={errors.profit?.message} {...register('profit')} />
-            <p className="mt-1 text-xs text-muted">{t('staffMobilisations.form.profitHint')}</p>
-          </div>
           <Input label={t('staffMobilisations.form.mobilisationDate')} type="date" error={errors.mobilisationDate?.message} {...register('mobilisationDate')} />
           <Input label={t('staffMobilisations.form.checkoutDate')} type="date" error={errors.checkoutDate?.message} {...register('checkoutDate')} />
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.form.sectionOvertime')}</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label={t('staffMobilisations.form.overtimeRate')} type="number" step="0.01" min="0" error={errors.overtimeRate?.message} {...register('overtimeRate')} />
-          <Input label={t('staffMobilisations.form.overtimeHours')} type="number" step="0.01" min="0" error={errors.overtimeHours?.message} {...register('overtimeHours')} />
-          <Input label={t('staffMobilisations.form.otAmount')} type="number" step="0.01" error={errors.otAmount?.message} {...register('otAmount')} />
-          <Input label={t('staffMobilisations.form.otCommissionIn')} type="number" step="0.01" error={errors.otCommissionIn?.message} {...register('otCommissionIn')} />
-          <Input label={t('staffMobilisations.form.otCommissionOut')} type="number" step="0.01" error={errors.otCommissionOut?.message} {...register('otCommissionOut')} />
         </div>
       </section>
 

@@ -80,9 +80,15 @@ function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReje
     formState: { errors },
   } = useForm({ resolver: zodResolver(commercialDetailsFormSchema), defaultValues: commercialDetailsToForm(m) });
 
+  // No longer Marketing-Manager-specific — an earlier Office Secretary step
+  // uses this exact same form, so the heading reflects whichever step's
+  // turn it actually is (steps[].label, set by whoever configured the
+  // ApprovalWorkflow) rather than a hardcoded role name.
+  const stepLabel = m.steps?.[m.currentStep]?.label || t('staffMobilisations.detail.reviewGeneric');
+
   return (
     <Card>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.marketingManagerReview')}</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{stepLabel}</h2>
       <form onSubmit={handleSubmit(onSave)} noValidate className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input label={t('staffMobilisations.detail.clientQuotation')} disabled={!canDecide} error={errors.clientQuotation?.message} {...register('clientQuotation')} />
@@ -92,7 +98,72 @@ function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReje
           <Input label={t('staffMobilisations.detail.subQuotation')} disabled={!canDecide} error={errors.subQuotation?.message} {...register('subQuotation')} />
           <Input label={t('staffMobilisations.detail.subQuotationDate')} type="date" disabled={!canDecide} error={errors.subQuotationDate?.message} {...register('subQuotationDate')} />
           <Input label={t('staffMobilisations.detail.subPO')} disabled={!canDecide} error={errors.subPO?.message} {...register('subPO')} />
+          <Input label={t('staffMobilisations.detail.subPODate')} type="date" disabled={!canDecide} error={errors.subPODate?.message} {...register('subPODate')} />
         </div>
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.sectionOvertimeTimesheet')}</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label={t('staffMobilisations.detail.clientTimesheetHours')}
+              type="number"
+              step="0.01"
+              min="0"
+              disabled={!canDecide}
+              error={errors.clientTimesheetHours?.message}
+              {...register('clientTimesheetHours')}
+            />
+            <Input
+              label={t('staffMobilisations.detail.otHours')}
+              type="number"
+              step="0.01"
+              min="0"
+              disabled={!canDecide}
+              error={errors.otHours?.message}
+              {...register('otHours')}
+            />
+            <Input
+              label={t('staffMobilisations.detail.otClientRate')}
+              type="number"
+              step="0.01"
+              min="0"
+              disabled={!canDecide}
+              error={errors.otClientRate?.message}
+              {...register('otClientRate')}
+            />
+            <Input
+              label={t('staffMobilisations.detail.otClientCommission')}
+              type="number"
+              step="0.01"
+              min="0"
+              disabled={!canDecide}
+              error={errors.otClientCommission?.message}
+              {...register('otClientCommission')}
+            />
+            {m.workerType === 'SupplierEmployee' && (
+              <>
+                <Input
+                  label={t('staffMobilisations.detail.otSubcontractorRate')}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  disabled={!canDecide}
+                  error={errors.otSubcontractorRate?.message}
+                  {...register('otSubcontractorRate')}
+                />
+                <Input
+                  label={t('staffMobilisations.detail.otSubcontractorCommission')}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  disabled={!canDecide}
+                  error={errors.otSubcontractorCommission?.message}
+                  {...register('otSubcontractorCommission')}
+                />
+              </>
+            )}
+          </div>
+        </div>
+        <Textarea label={t('staffMobilisations.form.remark')} disabled={!canDecide} error={errors.remark?.message} {...register('remark')} />
         {canDecide && (
           <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button type="submit" variant="secondary" isLoading={saving}>
@@ -253,13 +324,18 @@ export default function MobilisationDetailPage() {
   const canSubmit = canManage && unconfirmed.length === 0;
   const canDecide = m.canDecideCurrentStep && m.status === 'PendingReview';
   const hasCommercialFields = 'clientRate' in m;
-  const canTouchDocuments = (user.role === 'Admin' || myEntry) && !['Approved', 'Completed'].includes(m.status);
+  const documentsEditable = !['Approved', 'Completed'].includes(m.status);
+  // Deleting stays Admin/coordinator only. Adding is wider — the current
+  // step's reviewer (e.g. Office Secretary) can attach a file too, mirroring
+  // the server's assertCanAddDocuments/assertCanDeleteDocuments split.
+  const canDeleteDocuments = (user.role === 'Admin' || myEntry) && documentsEditable;
+  const canAddDocuments = (user.role === 'Admin' || myEntry || canDecide) && documentsEditable;
   const availableCandidates = (candidates ?? []).filter((c) => !m.coordinators.some((mc) => userId(mc) === c._id));
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
-        title={`${m.workerName} — ${m.clientName}`}
+        title={`#${m.serialNumber} — ${m.workerName} — ${m.clientName}`}
         description={m.jobTitle}
         onBack={() => navigate(-1)}
         actions={
@@ -282,6 +358,7 @@ export default function MobilisationDetailPage() {
       <Card>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{t('staffMobilisations.detail.detailsTitle')}</h2>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <Field label={t('staffMobilisations.detail.fields.workerType')} value={t(`staffMobilisations.form.workerType.${m.workerType}`, m.workerType)} />
           <Field label={t('staffMobilisations.detail.fields.iqamaNumber')} value={m.iqamaNumber} />
           <Field label={t('staffMobilisations.detail.fields.nationality')} value={m.nationality} />
           <Field label={t('staffMobilisations.detail.fields.trade')} value={m.trade} />
@@ -292,23 +369,29 @@ export default function MobilisationDetailPage() {
             <>
               <Field label={t('staffMobilisations.detail.fields.clientRate')} value={formatMoney(m.clientRate)} />
               <Field label={t('staffMobilisations.detail.fields.clientCommission')} value={formatMoney(m.clientCommission)} />
-              <Field label={t('staffMobilisations.detail.fields.ftaAllowance')} value={formatMoney(m.ftaAllowance)} />
+              <Field label={t('staffMobilisations.detail.fields.fta')} value={formatMoney(m.fta)} />
+              <Field label={t('staffMobilisations.detail.fields.allowance')} value={formatMoney(m.allowance)} />
+              <Field label={t('staffMobilisations.detail.fields.requiredTimesheetHours')} value={m.requiredTimesheetHours ?? null} />
+              <Field label={t('staffMobilisations.detail.fields.clientTimesheetHours')} value={m.clientTimesheetHours ?? null} />
               {m.hasSubcontractor && (
                 <>
                   <Field label={t('staffMobilisations.detail.fields.subcontractor')} value={m.subcontractorName} />
+                  <Field label={t('staffMobilisations.detail.fields.subcontractorRate')} value={formatMoney(m.subcontractorRate)} />
                   <Field label={t('staffMobilisations.detail.fields.subcontractorCommission')} value={formatMoney(m.subcontractorCommission)} />
                 </>
               )}
-              <Field label={t('staffMobilisations.detail.fields.profit')} value={formatMoney(m.profit)} />
-            </>
-          )}
-          <Field label={t('staffMobilisations.detail.fields.overtimeRate')} value={m.overtimeRate ? formatMoney(m.overtimeRate) : null} />
-          <Field label={t('staffMobilisations.detail.fields.overtimeHours')} value={m.overtimeHours || null} />
-          {hasCommercialFields && (
-            <>
-              <Field label={t('staffMobilisations.detail.fields.otAmount')} value={m.otAmount ? formatMoney(m.otAmount) : null} />
-              <Field label={t('staffMobilisations.detail.fields.otCommissionIn')} value={m.otCommissionIn ? formatMoney(m.otCommissionIn) : null} />
-              <Field label={t('staffMobilisations.detail.fields.otCommissionOut')} value={m.otCommissionOut ? formatMoney(m.otCommissionOut) : null} />
+              <Field label={t('staffMobilisations.detail.fields.profitPerHour')} value={formatMoney(m.profitPerHour)} />
+              <Field label={t('staffMobilisations.detail.fields.profitPerMonth')} value={m.profitPerMonth != null ? formatMoney(m.profitPerMonth) : null} />
+              <Field label={t('staffMobilisations.detail.fields.otHours')} value={m.otHours ?? null} />
+              <Field label={t('staffMobilisations.detail.fields.otClientRate')} value={m.otClientRate != null ? formatMoney(m.otClientRate) : null} />
+              <Field label={t('staffMobilisations.detail.fields.otClientCommission')} value={m.otClientCommission != null ? formatMoney(m.otClientCommission) : null} />
+              {m.hasSubcontractor && (
+                <>
+                  <Field label={t('staffMobilisations.detail.fields.otSubcontractorRate')} value={m.otSubcontractorRate != null ? formatMoney(m.otSubcontractorRate) : null} />
+                  <Field label={t('staffMobilisations.detail.fields.otSubcontractorCommission')} value={m.otSubcontractorCommission != null ? formatMoney(m.otSubcontractorCommission) : null} />
+                </>
+              )}
+              <Field label={t('staffMobilisations.detail.fields.otProfitTotal')} value={m.otProfitTotal ? formatMoney(m.otProfitTotal) : null} />
             </>
           )}
         </dl>
@@ -418,7 +501,7 @@ export default function MobilisationDetailPage() {
                   <Button size="sm" variant="ghost" onClick={() => downloadMobilisationDocument(id, d._id, d.originalName)}>
                     {t('common.download')}
                   </Button>
-                  {canTouchDocuments && (
+                  {canDeleteDocuments && (
                     <Button size="sm" variant="danger-ghost" isLoading={deleteDocMutation.isPending} onClick={() => deleteDocMutation.mutate(d._id)}>
                       {t('common.delete')}
                     </Button>
@@ -429,7 +512,7 @@ export default function MobilisationDetailPage() {
           </ul>
         )}
 
-        {canTouchDocuments && (
+        {canAddDocuments && (
           <div className="flex flex-wrap items-end gap-2">
             <Select label={t('staffMobilisations.detail.category')} value={category} onChange={(e) => setCategory(e.target.value)} className="min-w-[140px]">
               {MOBILISATION_DOCUMENT_CATEGORIES.map((c) => (

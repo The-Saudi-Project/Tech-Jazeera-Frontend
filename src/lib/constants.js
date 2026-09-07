@@ -39,7 +39,7 @@ export const ACCOUNT_PROVISION_ROLES = ['Admin', 'HR'];
  *  any role except Admin, which has no Employee. Server-side this list is
  *  derived from ROLES automatically; kept as an explicit array here since
  *  this file isn't shared with the server. */
-export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Executive', 'Staff', 'Worker'];
+export const EMPLOYEE_LOGIN_ROLES = ['Manager', 'HR', 'Accounts', 'Coordinator', 'Executive', 'Office Secretary', 'Staff', 'Worker'];
 
 /** P2-M2: roles this app assigns to a Coordinator's team-scoped queries. */
 export const COORDINATOR_ROLE = 'Coordinator';

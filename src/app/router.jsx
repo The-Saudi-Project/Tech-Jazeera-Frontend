@@ -8,7 +8,7 @@
  * for a half second on every reload is the classic mistake), then either
  * renders the app or redirects to /login.
  */
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
@@ -103,11 +103,28 @@ const SELF_SERVICE_ROLES = ['Worker', 'Staff'];
  * P2-M2: a Worker's (and, since the Subcontracted/Staff work, a Staff
  * login's) whole world is the ESS portal; every other role keeps the full
  * admin shell. Split here (not per-route guards) so a self-service login
- * never even mounts the admin sidebar before being redirected.
+ * never even mounts the admin sidebar before being redirected. Worker/Staff
+ * redirect OUT of this branch entirely (to `/me`, under the sibling
+ * WorkerRouter branch below) so RoleRouter never runs again for them.
+ *
+ * Office Secretary is a narrower case: it stays in the admin shell (not the
+ * ESS portal), but is deny-by-default like Executive — unlike Executive, it
+ * was never allow-listed into the Dashboard endpoint (its only legitimate
+ * destination is Mobilisations), so `/` — where every login lands after
+ * sign-in — would just 403 on GET /api/dashboard. Unlike Worker/Staff's
+ * redirect target, `/mobilisations` is still INSIDE this same RoleRouter-
+ * guarded branch, so the location check is required — without it, RoleRouter
+ * would re-run on the redirected-to URL and redirect again, never once
+ * reaching <Outlet/> and leaving the whole page blank.
  */
 function RoleRouter() {
   const { user } = useAuth();
-  return SELF_SERVICE_ROLES.includes(user.role) ? <Navigate to="/me" replace /> : <Outlet />;
+  const location = useLocation();
+  if (SELF_SERVICE_ROLES.includes(user.role)) return <Navigate to="/me" replace />;
+  if (user.role === 'Office Secretary' && !location.pathname.startsWith('/mobilisations')) {
+    return <Navigate to="/mobilisations" replace />;
+  }
+  return <Outlet />;
 }
 
 /**

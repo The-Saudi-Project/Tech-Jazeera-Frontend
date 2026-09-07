@@ -23,7 +23,7 @@ import ThemeToggle from '../../components/shared/ThemeToggle.jsx';
 import NotificationBell from '../../components/shared/NotificationBell.jsx';
 import LanguageSwitcher from '../../components/shared/LanguageSwitcher.jsx';
 import { cn } from '../../lib/utils.js';
-import { DASHBOARD_ITEM, NAV_GROUPS, EXECUTIVE_NAV_ITEMS } from '../navConfig.js';
+import { DASHBOARD_ITEM, NAV_GROUPS, EXECUTIVE_NAV_ITEMS, OFFICE_SECRETARY_NAV_ITEMS } from '../navConfig.js';
 
 function NavIcon({ d }) {
   return (
@@ -36,16 +36,22 @@ function NavIcon({ d }) {
 function Sidebar({ onNavigate }) {
   const { user } = useAuth();
   const { t } = useTranslation();
-  // Executive gets its own short, explicit nav — see EXECUTIVE_NAV_ITEMS's
-  // doc comment for why this can't just be another `roles`-filtered slice
-  // of the grouped nav below (every unguarded group item, which is most of
-  // them, would otherwise show up for free).
+  // Executive and Office Secretary each get their own short, explicit nav —
+  // see EXECUTIVE_NAV_ITEMS's doc comment for why this can't just be
+  // another `roles`-filtered slice of the grouped nav below (every
+  // unguarded group item, which is most of them, would otherwise show up
+  // for free).
   let items;
   if (user.role === 'Executive') {
     items = [
       DASHBOARD_ITEM,
       ...EXECUTIVE_NAV_ITEMS.filter((item) => !item.sectionKey || user.sectionAccess?.includes(item.sectionKey)),
     ];
+  } else if (user.role === 'Office Secretary') {
+    // No DASHBOARD_ITEM here — router.jsx's RoleRouter redirects this role
+    // away from `/` entirely (it 403s on GET /api/dashboard), so a link to
+    // it would just bounce.
+    items = OFFICE_SECRETARY_NAV_ITEMS;
   } else {
     // A group is shown if the user can reach at least one item inside it —
     // otherwise it'd be a link to an empty hub page. Individual role-gating

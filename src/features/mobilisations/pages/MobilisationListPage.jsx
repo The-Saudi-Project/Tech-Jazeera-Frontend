@@ -50,6 +50,7 @@ export default function MobilisationListPage() {
   });
 
   const columns = [
+    { key: 'serialNumber', header: t('staffMobilisations.list.columns.serialNumber'), render: (m) => m.serialNumber },
     { key: 'workerName', header: t('staffMobilisations.list.columns.worker'), render: (m) => m.workerName },
     { key: 'jobTitle', header: t('staffMobilisations.list.columns.jobTitle'), hideOnMobile: true, render: (m) => m.jobTitle },
     { key: 'clientName', header: t('staffMobilisations.list.columns.client'), render: (m) => m.clientName },
@@ -90,7 +91,7 @@ export default function MobilisationListPage() {
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
         <Input
-          placeholder={t('staffMobilisations.list.searchPlaceholder')}
+          placeholder={t('staffMobilisations.list.searchPlaceholderWithSerial')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="sm:max-w-xs"
