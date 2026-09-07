@@ -24,6 +24,7 @@ export const TARGET_LABELS = {
   call: 'Call',
   whatsapp: 'WhatsApp',
   email: 'Email',
+  altEmail: 'Alternate Email',
   website: 'Website',
   linkedin: 'LinkedIn',
   location: 'Location',

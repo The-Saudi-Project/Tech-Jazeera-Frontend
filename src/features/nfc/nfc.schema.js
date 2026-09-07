@@ -36,6 +36,9 @@ export const employeeFormSchema = z.object({
   phone: z.string().trim().max(30).optional(),
   whatsapp: z.string().trim().max(30).optional(),
   email: email.optional(),
+  // A second, optional email (e.g. a work/company address) shown as its
+  // own row on the public page with a distinct icon.
+  altEmail: email.optional(),
   linkedin: z.string().trim().max(200).optional(),
   bio: z.string().trim().max(600).optional(),
   bioAr: z.string().trim().max(600).optional(),
@@ -44,7 +47,7 @@ export const employeeFormSchema = z.object({
 });
 
 export const emptyEmployeeForm = {
-  name: '', nameAr: '', jobTitle: '', jobTitleAr: '', phone: '', whatsapp: '', email: '',
+  name: '', nameAr: '', jobTitle: '', jobTitleAr: '', phone: '', whatsapp: '', email: '', altEmail: '',
   linkedin: '', bio: '', bioAr: '', idNumber: '', notes: '',
 };
 
