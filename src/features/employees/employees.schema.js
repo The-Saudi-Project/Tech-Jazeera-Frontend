@@ -82,8 +82,8 @@ export const employeeFormSchema = z
 
     emergencyContact: z.object({ name: optional, phone: optionalPhone, relation: optional }),
     notes: z.string().trim().max(2000).optional().or(z.literal('')),
-    // P2-M2: '' means "no coordinator assigned" — sent to the API as null.
-    coordinator: z.string().optional().or(z.literal('')),
+    // NOTE: `coordinator` is deliberately absent (Milestone 5) — fully
+    // derived from Mobilisation state now, no longer a form field at all.
     // '' means "no manager assigned" — sent to the API as null. Universal
     // across both types (every 'Own' employee has one; an 'Outsourced'
     // employee may have one alongside or instead of a coordinator).
@@ -137,7 +137,6 @@ export const emptyEmployeeForm = {
   status: 'Active',
   emergencyContact: { name: '', phone: '', relation: '' },
   notes: '',
-  coordinator: '',
   manager: '',
   approvalWorkflow: '',
   subcontractor: '',
@@ -175,7 +174,6 @@ export function employeeToForm(employee) {
       relation: employee.emergencyContact?.relation ?? '',
     },
     notes: employee.notes ?? '',
-    coordinator: employee.coordinator?._id ?? employee.coordinator ?? '',
     manager: employee.manager?._id ?? employee.manager ?? '',
     approvalWorkflow: employee.approvalWorkflow?._id ?? employee.approvalWorkflow ?? '',
     subcontractor: employee.subcontractor?._id ?? employee.subcontractor ?? '',
@@ -186,7 +184,6 @@ export function employeeToForm(employee) {
 export function formToEmployeePayload(values) {
   return {
     ...values,
-    coordinator: values.coordinator || null,
     manager: values.manager || null,
     approvalWorkflow: values.approvalWorkflow || null,
     subcontractor: values.subcontractor || null,

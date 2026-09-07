@@ -82,13 +82,14 @@ function Stat({ label, value, hint }) {
  * with 30 saves and 400 views with 30 saves are very different outcomes.
  */
 export function StatTiles({ totals, lastEventAt }) {
-  const { views = 0, uniqueVisitors = 0, saves = 0, clicks = 0 } = totals ?? {};
+  const { views = 0, uniqueVisitors = 0, saves = 0, clicks = 0, images = 0 } = totals ?? {};
   const rate = views > 0 ? Math.round((saves / views) * 100) : 0;
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       <Stat label="Taps" value={views} hint={`${nf.format(uniqueVisitors)} unique`} />
       <Stat label="Contacts saved" value={saves} hint={views > 0 ? `${rate}% of taps` : undefined} />
       <Stat label="Link taps" value={clicks} />
+      <Stat label="Card downloaded" value={images} />
       <div className="rounded-xl border border-border bg-bg px-3 py-2.5">
         <p className="text-xs uppercase tracking-wide text-muted">Last tapped</p>
         <p className="mt-0.5 truncate text-sm font-medium">{lastEventAt ? timeAgo(lastEventAt) : 'Never'}</p>

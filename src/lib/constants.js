@@ -209,12 +209,15 @@ export const SUBCONTRACTOR_WRITE_ROLES = ['Admin', 'Manager'];
 export const SUBCONTRACTOR_DELETE_ROLES = ['Admin', 'Manager'];
 
 /** Mirrors mobilisation.model.js's status enum. */
-export const MOBILISATION_STATUSES = ['Draft', 'PendingReview', 'Approved', 'Rejected'];
+export const MOBILISATION_STATUSES = ['Draft', 'PendingReview', 'Approved', 'Rejected', 'Completed'];
 export const MOBILISATION_STATUS_VARIANT = {
   Draft: 'default',
   PendingReview: 'warning',
   Approved: 'success',
   Rejected: 'danger',
+  // Same muted/archived reading as Employee's own 'Exited' status — the
+  // placement is over, not a fresh outcome.
+  Completed: 'default',
 };
 export const MOBILISATION_DOCUMENT_CATEGORIES = ['Contract', 'IDCopy', 'Other'];
 export const MOBILISATION_DOCUMENT_CATEGORY_LABELS = { Contract: 'Contract', IDCopy: 'ID Copy', Other: 'Other' };

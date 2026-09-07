@@ -133,7 +133,7 @@ export default function NfcCompanyProfilePage() {
         const t = tapsByPerson.get(p._id);
         if (!t) return <span className="text-muted">—</span>;
         return (
-          <span className="tabular-nums" title={`${t.views} taps · ${t.saves} saved · ${t.clicks} link taps`}>
+          <span className="tabular-nums" title={`${t.views} taps · ${t.saves} saved · ${t.clicks} link taps · ${t.images ?? 0} card downloads`}>
             {t.views}
             <span className="text-muted"> · {t.saves} saved</span>
           </span>

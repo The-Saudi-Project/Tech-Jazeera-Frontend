@@ -68,7 +68,8 @@
       "Ended": "منتهٍ",
       "On Leave": "في إجازة",
       "Exited": "خارج الخدمة",
-      "Draft": "مسودة"
+      "Draft": "مسودة",
+      "Completed": "مكتمل"
     },
     "employeeType": {
       "Own": "داخلي",
@@ -599,9 +600,6 @@
       "noFixedDayOff": "لا يوجد يوم إجازة ثابت",
       "weeklyOffDayHint": "يظهر كيوم \"عطلة\" مستنتج في شبكة سجلات الحضور عند عدم تسجيل أي شيء — أي تسجيل فعلي لذلك اليوم يلغي هذا الاستنتاج دائمًا.",
       "status": "الحالة",
-      "coordinator": "المنسّق",
-      "coordinatorYou": "{{name}} (أنت)",
-      "coordinatorSelfHint": "الموظفون الذين تضيفهم يُسندون تلقائيًا إلى فريقك.",
       "manager": "المدير",
       "managerHintOwn": "الشخص الذي يرفع له هذا الموظف تقاريره.",
       "managerHintOther": "اختياري — إلى جانب المنسّق أو بدلاً منه، إذا كان يرفع تقاريره مباشرة لمدير.",
@@ -1611,7 +1609,11 @@
       "commercialSavedToast": "تم حفظ التفاصيل التجارية.",
       "documentUploadedToast": "تم رفع المستند(ات).",
       "documentRemovedToast": "تمت إزالة المستند.",
-      "defaultRejectError": "اشرح ما الذي يحتاج إلى تصحيح قبل الرفض."
+      "defaultRejectError": "اشرح ما الذي يحتاج إلى تصحيح قبل الرفض.",
+      "markComplete": "تمييز كمكتمل",
+      "completeConfirmTitle": "تمييز كمكتمل؟",
+      "completeConfirmMessage": "سيُعاد {{name}} إلى وضع الاستعداد، ويصبح مرئيًا لكل منسّق ليلتقطه لتعبئة جديدة. لا يمكن التراجع عن هذا.",
+      "completedToast": "تم تمييز التعبئة كمكتملة."
     }
   },
   "staffSubcontractors": {

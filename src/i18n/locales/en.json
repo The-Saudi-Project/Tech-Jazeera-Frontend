@@ -68,7 +68,8 @@
       "Ended": "Ended",
       "On Leave": "On Leave",
       "Exited": "Exited",
-      "Draft": "Draft"
+      "Draft": "Draft",
+      "Completed": "Completed"
     },
     "employeeType": {
       "Own": "Own",
@@ -599,9 +600,6 @@
       "noFixedDayOff": "No fixed day off",
       "weeklyOffDayHint": "Shown as an inferred \"Off\" day on the Attendance Records grid when nothing was recorded — a real record for that day always overrides it.",
       "status": "Status",
-      "coordinator": "Coordinator",
-      "coordinatorYou": "{{name}} (you)",
-      "coordinatorSelfHint": "Employees you add are automatically assigned to your team.",
       "manager": "Manager",
       "managerHintOwn": "Who this employee reports to.",
       "managerHintOther": "Optional — alongside or instead of a coordinator, if they report to a manager directly.",
@@ -1611,7 +1609,11 @@
       "commercialSavedToast": "Commercial details saved.",
       "documentUploadedToast": "Document(s) uploaded.",
       "documentRemovedToast": "Document removed.",
-      "defaultRejectError": "Explain what needs fixing before rejecting."
+      "defaultRejectError": "Explain what needs fixing before rejecting.",
+      "markComplete": "Mark complete",
+      "completeConfirmTitle": "Mark complete?",
+      "completeConfirmMessage": "{{name}} will be released back to standby, visible to every Coordinator to pick up for a new mobilisation. This can't be undone.",
+      "completedToast": "Mobilisation marked complete."
     }
   },
   "staffSubcontractors": {

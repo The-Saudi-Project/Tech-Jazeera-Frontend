@@ -47,10 +47,10 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user } = useAuth();
-  // A Coordinator adding their own worker never picks a coordinator — the
-  // server always assigns it to themselves regardless of what's submitted
-  // (see employee.service.js), so showing an editable picker here would just
-  // be confusing. Everyone else keeps the normal picker.
+  // Drives which employee types a Coordinator may pick (below) — unrelated
+  // to coordinator ASSIGNMENT itself, which this form no longer sets at all
+  // (Milestone 5): coordinator is fully derived from Mobilisation state, so
+  // there's nothing left here to show or pick, for anyone.
   const isCoordinator = user.role === 'Coordinator';
   // The server always overrides 'Own' to 'Outsourced' for a Coordinator's own
   // submission (a Coordinator can never create an internal-staff record —
@@ -85,16 +85,6 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   });
   const subcontractors = subcontractorData?.items ?? [];
 
-  // P2-M2: who this employee's day-to-day (leave, expiry follow-up) reports
-  // to. The list call itself is the access check — Accounts can't reach it
-  // and never renders this field meaningfully, but it also never renders
-  // EmployeeForm (write-gated by the pages that use it).
-  const { data: coordinators } = useQuery({
-    queryKey: ['users', { role: 'Coordinator' }],
-    queryFn: () => listStaffUsers({ role: 'Coordinator' }),
-    enabled: !isCoordinator,
-  });
-
   // Every 'Own' employee reports to a Manager; an 'Outsourced' employee may
   // too, alongside or instead of a coordinator — so this stays fetched regardless
   // of type. MANAGER_ELIGIBLE_ROLES (Admin or Manager) filtered client-side,
@@ -117,12 +107,6 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
   // resolve, so setting their value to an id with no matching <option> yet
   // silently fails — a native select doesn't retroactively select an option
   // added later. Re-apply the defaults once the real options exist.
-  useEffect(() => {
-    if (coordinators && defaultValues.coordinator) {
-      setValue('coordinator', defaultValues.coordinator);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coordinators]);
   useEffect(() => {
     if (staffUsers && defaultValues.manager) {
       setValue('manager', defaultValues.manager);
@@ -254,22 +238,6 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel, sub
             </option>
           ))}
         </Select>
-        {isCoordinator ? (
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted">{t('staffEmployees.form.coordinator')}</p>
-            <p className="mt-0.5 text-sm font-medium">{t('staffEmployees.form.coordinatorYou', { name: user.name })}</p>
-            <p className="mt-1 text-xs text-muted">{t('staffEmployees.form.coordinatorSelfHint')}</p>
-          </div>
-        ) : (
-          <Select label={t('staffEmployees.form.coordinator')} error={errors.coordinator?.message} {...register('coordinator')}>
-            <option value="">{t('common.notAssigned')}</option>
-            {(coordinators ?? []).map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        )}
         <div>
           <Select label={t('staffEmployees.form.manager')} error={errors.manager?.message} {...register('manager')}>
             <option value="">{t('common.notAssigned')}</option>

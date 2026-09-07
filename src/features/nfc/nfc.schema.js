@@ -28,19 +28,24 @@ export const emptyCompanyForm = {
 
 export const employeeFormSchema = z.object({
   name: z.string().trim().min(1, 'Name is required.').max(120),
+  // Manually-entered Arabic counterparts for the public page's EN/AR toggle
+  // — never auto-translated, same optional pattern as companyNameAr above.
+  nameAr: z.string().trim().max(120).optional(),
   jobTitle: z.string().trim().max(100).optional(),
+  jobTitleAr: z.string().trim().max(100).optional(),
   phone: z.string().trim().max(30).optional(),
   whatsapp: z.string().trim().max(30).optional(),
   email: email.optional(),
   linkedin: z.string().trim().max(200).optional(),
   bio: z.string().trim().max(600).optional(),
+  bioAr: z.string().trim().max(600).optional(),
   idNumber: z.string().trim().max(40).optional(),
   notes: z.string().trim().max(2000).optional(),
 });
 
 export const emptyEmployeeForm = {
-  name: '', jobTitle: '', phone: '', whatsapp: '', email: '',
-  linkedin: '', bio: '', idNumber: '', notes: '',
+  name: '', nameAr: '', jobTitle: '', jobTitleAr: '', phone: '', whatsapp: '', email: '',
+  linkedin: '', bio: '', bioAr: '', idNumber: '', notes: '',
 };
 
 export const batchFormSchema = z.object({
