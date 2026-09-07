@@ -80,15 +80,11 @@ function CommercialDetailsCard({ m, canDecide, onSave, saving, onApprove, onReje
     formState: { errors },
   } = useForm({ resolver: zodResolver(commercialDetailsFormSchema), defaultValues: commercialDetailsToForm(m) });
 
-  // No longer Marketing-Manager-specific — an earlier Office Secretary step
-  // uses this exact same form, so the heading reflects whichever step's
-  // turn it actually is (steps[].label, set by whoever configured the
-  // ApprovalWorkflow) rather than a hardcoded role name.
-  const stepLabel = m.steps?.[m.currentStep]?.label || t('staffMobilisations.detail.reviewGeneric');
-
   return (
     <Card>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{stepLabel}</h2>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+        {t('staffMobilisations.detail.detailsSharedByClient')}
+      </h2>
       <form onSubmit={handleSubmit(onSave)} noValidate className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input label={t('staffMobilisations.detail.clientQuotation')} disabled={!canDecide} error={errors.clientQuotation?.message} {...register('clientQuotation')} />
@@ -324,6 +320,12 @@ export default function MobilisationDetailPage() {
   const canSubmit = canManage && unconfirmed.length === 0;
   const canDecide = m.canDecideCurrentStep && m.status === 'PendingReview';
   const hasCommercialFields = 'clientRate' in m;
+  // Section 2 (quotation/PO/OT/timesheet/remark) is simply absent from the
+  // API response for a plain coordinator — the server strips it
+  // unconditionally now (see mobilisation.service.js's REVIEW_FIELDS), so
+  // its presence at all is the signal this viewer is entitled to see it
+  // (Admin, a viewerRoles member, or the current-step reviewer).
+  const hasReviewFields = 'clientQuotation' in m;
   const documentsEditable = !['Approved', 'Completed'].includes(m.status);
   // Deleting stays Admin/coordinator only. Adding is wider — the current
   // step's reviewer (e.g. Office Secretary) can attach a file too, mirroring
@@ -361,7 +363,6 @@ export default function MobilisationDetailPage() {
           <Field label={t('staffMobilisations.detail.fields.workerType')} value={t(`staffMobilisations.form.workerType.${m.workerType}`, m.workerType)} />
           <Field label={t('staffMobilisations.detail.fields.iqamaNumber')} value={m.iqamaNumber} />
           <Field label={t('staffMobilisations.detail.fields.nationality')} value={m.nationality} />
-          <Field label={t('staffMobilisations.detail.fields.trade')} value={m.trade} />
           <Field label={t('staffMobilisations.detail.fields.phone')} value={m.phone} />
           <Field label={t('staffMobilisations.detail.fields.mobilisationDate')} value={formatDate(m.mobilisationDate)} />
           <Field label={t('staffMobilisations.detail.fields.checkoutDate')} value={m.checkoutDate && formatDate(m.checkoutDate)} />
@@ -475,7 +476,7 @@ export default function MobilisationDetailPage() {
 
       <ApprovalTrailView request={m} />
 
-      {(canDecide || (hasCommercialFields && m.status !== 'Draft')) && (
+      {(canDecide || hasReviewFields) && (
         <CommercialDetailsCard
           m={m}
           canDecide={canDecide}

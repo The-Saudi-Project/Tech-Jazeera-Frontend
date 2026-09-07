@@ -197,11 +197,11 @@ export const INVOICE_DELETE_ROLES = ['Admin', 'Manager'];
 export const EXPENSE_CATEGORIES = ['Rent', 'Fuel', 'Salaries-external', 'Purchases', 'Utilities', 'Other'];
 
 /** Mirrors sectionAccess.model.js's GRANTABLE_ROLES — every User.role except
- *  the ESS self-service personas (Worker/Staff), which Section Access can
- *  never grant into a staff module regardless of admin configuration. */
+ *  the ESS self-service personas (Worker/Staff) and Office Secretary, none
+ *  of which Section Access can ever grant into a staff module regardless of
+ *  admin configuration (Office Secretary reaches things only via
+ *  ApprovalRole membership on a workflow step, never a blanket grant). */
 export const SECTION_ACCESS_GRANTABLE_ROLES = ['Admin', 'Manager', 'HR', 'Accounts', 'Coordinator', 'Executive'];
-/** Mirrors sectionAccess.model.js's SECTION_KEYS + labels — the sections
- *  currently governed by the admin-configurable Section Access screen. */
 /** Mirrors subcontractor.model.js's status enum. */
 export const SUBCONTRACTOR_STATUSES = ['Active', 'Inactive'];
 /** Mirror of subcontractor.routes.js guards — same circle as Client. */

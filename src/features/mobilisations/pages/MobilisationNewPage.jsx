@@ -27,7 +27,7 @@ export default function MobilisationNewPage() {
 
   const { data: workerData, isPending: workersLoading } = useQuery({
     queryKey: ['employees', { forMobilisation: true }],
-    queryFn: () => listEmployees({ limit: 100 }),
+    queryFn: () => listEmployees({ limit: 100, type: 'Own' }),
   });
   const { data: clientData, isPending: clientsLoading } = useQuery({
     queryKey: ['clients', { active: true }],
@@ -65,7 +65,11 @@ export default function MobilisationNewPage() {
     );
   }
 
-  const workers = (workerData?.items ?? []).filter((w) => w.status !== 'Exited');
+  // Own-type only — the "Own Employee" worker type is specifically for the
+  // company's own internal staff; an Outsourced/Subcontracted worker is
+  // placed via the Supplier Employee/Freelancer types instead (see
+  // MobilisationForm's workerType selector).
+  const workers = (workerData?.items ?? []).filter((w) => w.status !== 'Exited' && w.type === 'Own');
   const clients = clientData?.items ?? [];
   const subcontractors = subcontractorData?.items ?? [];
   const jobTitles = jobTitleData ?? [];

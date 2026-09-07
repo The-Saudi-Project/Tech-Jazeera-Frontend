@@ -1494,7 +1494,7 @@
       "sectionWorkerJob": "Worker & job",
       "workerTypeLabel": "Worker type",
       "workerType": {
-        "Employee": "Employee",
+        "Employee": "Own Employee",
         "SupplierEmployee": "Supplier employee",
         "Freelancer": "Freelancer"
       },
@@ -1503,7 +1503,6 @@
       "workerNameLabel": "Worker name *",
       "iqamaNumberLabel": "Iqama / ID number",
       "nationalityLabel": "Nationality",
-      "tradeLabel": "Trade",
       "phoneLabel": "Phone",
       "jobTitleLabel": "Job title *",
       "addNew": "+ Add new",
@@ -1557,7 +1556,6 @@
         "workerType": "Worker type",
         "iqamaNumber": "Iqama number",
         "nationality": "Nationality",
-        "trade": "Trade",
         "phone": "Phone",
         "mobilisationDate": "Mobilisation date",
         "checkoutDate": "Checkout date",
@@ -1592,7 +1590,7 @@
       "invite": "Invite",
       "waitingOnConfirmation": "Waiting on confirmation from: {{names}}",
       "submitForReview": "Submit for review",
-      "reviewGeneric": "Review",
+      "detailsSharedByClient": "Details shared by client company",
       "clientQuotation": "Client quotation",
       "clientQuotationDate": "Client quotation date",
       "clientPO": "Client PO",

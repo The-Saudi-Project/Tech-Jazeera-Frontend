@@ -32,6 +32,10 @@ export default function MobilisationEditPage() {
     queryKey: ['mobilisation', id],
     queryFn: () => getMobilisation(id),
   });
+  // Unfiltered by type here (unlike the New page) — an existing mobilisation
+  // may already reference a non-Own employee from before this restriction
+  // existed; the client-side filter below keeps that one selectable so
+  // editing an old record never shows a blank worker field.
   const { data: workerData, isPending: workersLoading } = useQuery({
     queryKey: ['employees', { forMobilisation: true }],
     queryFn: () => listEmployees({ limit: 100 }),
@@ -91,7 +95,9 @@ export default function MobilisationEditPage() {
     );
   }
 
-  const workers = (workerData?.items ?? []).filter((w) => w.status !== 'Exited' || w._id === mobilisation.worker);
+  const workers = (workerData?.items ?? []).filter(
+    (w) => w._id === mobilisation.worker || (w.status !== 'Exited' && w.type === 'Own')
+  );
   const clients = clientData?.items ?? [];
   const subcontractors = subcontractorData?.items ?? [];
   const jobTitles = jobTitleData ?? [];

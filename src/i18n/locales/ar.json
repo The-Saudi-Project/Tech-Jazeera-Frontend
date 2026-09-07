@@ -1494,7 +1494,7 @@
       "sectionWorkerJob": "العامل والوظيفة",
       "workerTypeLabel": "نوع العامل",
       "workerType": {
-        "Employee": "موظف",
+        "Employee": "موظف داخلي",
         "SupplierEmployee": "موظف مقاول من الباطن",
         "Freelancer": "عامل حر"
       },
@@ -1503,7 +1503,6 @@
       "workerNameLabel": "اسم العامل *",
       "iqamaNumberLabel": "رقم الإقامة / الهوية",
       "nationalityLabel": "الجنسية",
-      "tradeLabel": "المهنة",
       "phoneLabel": "الهاتف",
       "jobTitleLabel": "المسمى الوظيفي *",
       "addNew": "+ إضافة جديد",
@@ -1557,7 +1556,6 @@
         "workerType": "نوع العامل",
         "iqamaNumber": "رقم الإقامة",
         "nationality": "الجنسية",
-        "trade": "المهنة",
         "phone": "الهاتف",
         "mobilisationDate": "تاريخ التعبئة",
         "checkoutDate": "تاريخ الخروج",
@@ -1592,7 +1590,7 @@
       "invite": "دعوة",
       "waitingOnConfirmation": "بانتظار تأكيد من: {{names}}",
       "submitForReview": "تقديم للمراجعة",
-      "reviewGeneric": "مراجعة",
+      "detailsSharedByClient": "تفاصيل مشتركة من شركة العميل",
       "clientQuotation": "عرض سعر العميل",
       "clientQuotationDate": "تاريخ عرض سعر العميل",
       "clientPO": "أمر شراء العميل",

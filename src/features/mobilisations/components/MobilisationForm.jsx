@@ -5,10 +5,12 @@
  * decide actions live on the detail page this form doesn't know about.
  *
  * `workerType` drives worker identity: 'Employee' keeps the original Employee
- * picker; 'SupplierEmployee'/'Freelancer' have no Employee record at all, so
- * name/Iqama/nationality/trade/phone are typed directly, each backed by a
- * live autocomplete of previously-entered values (not a managed picklist
- * like Job title — just a suggestion aid, same spirit as the Nationality
+ * picker (Own-type only — Outsourced/Subcontracted employees go through
+ * Supplier Employee/Freelancer instead); 'SupplierEmployee'/'Freelancer'
+ * have no Employee record at all, so name/Iqama/nationality/phone are typed
+ * directly, each backed by a live autocomplete of previously-entered values
+ * (not a managed picklist like Job title — just a suggestion aid, same
+ * spirit as the Nationality
  * field's static `<datalist>` on the Employee form, but sourced live). The
  * subcontractor block only appears for 'SupplierEmployee' — same
  * reveal-on-condition pattern as DeploymentForm's client-dependent site
@@ -141,12 +143,6 @@ export default function MobilisationForm({
                 field="nationality"
                 label={t('staffMobilisations.form.nationalityLabel')}
                 error={errors.nationality?.message}
-                register={register}
-              />
-              <SuggestedInput
-                field="trade"
-                label={t('staffMobilisations.form.tradeLabel')}
-                error={errors.trade?.message}
                 register={register}
               />
               <Input label={t('staffMobilisations.form.phoneLabel')} error={errors.phone?.message} {...register('phone')} />

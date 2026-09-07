@@ -20,7 +20,6 @@ const mobilisationFields = {
   workerName: optionalStr(150),
   iqamaNumber: optionalStr(50),
   nationality: optionalStr(80),
-  trade: optionalStr(100),
   phone: optionalStr(30),
   jobTitle: z.string().trim().min(1, 'Job title is required.').max(150),
 
@@ -60,7 +59,6 @@ export const emptyMobilisationForm = {
   workerName: '',
   iqamaNumber: '',
   nationality: '',
-  trade: '',
   phone: '',
   jobTitle: '',
   client: '',
@@ -157,7 +155,6 @@ export function mobilisationToForm(m) {
     workerName: m.workerName ?? '',
     iqamaNumber: m.iqamaNumber ?? '',
     nationality: m.nationality ?? '',
-    trade: m.trade ?? '',
     phone: m.phone ?? '',
     jobTitle: m.jobTitle,
     client: m.client,
