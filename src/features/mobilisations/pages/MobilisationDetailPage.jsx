@@ -324,7 +324,8 @@ export default function MobilisationDetailPage() {
   // API response for a plain coordinator — the server strips it
   // unconditionally now (see mobilisation.service.js's REVIEW_FIELDS), so
   // its presence at all is the signal this viewer is entitled to see it
-  // (Admin, a viewerRoles member, or the current-step reviewer).
+  // (Admin, a 'mobilisationsViewer' Section Access member, or the
+  // current-step reviewer).
   const hasReviewFields = 'clientQuotation' in m;
   const documentsEditable = !['Approved', 'Completed'].includes(m.status);
   // Deleting stays Admin/coordinator only. Adding is wider — the current

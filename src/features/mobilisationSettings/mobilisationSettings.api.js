@@ -1,8 +1,8 @@
 /**
- * MobilisationSettings API layer — Admin-only configuration of which
- * ApprovalRoles get read-only visibility (viewerRoles) or may self-mobilise
- * (selfMobiliseRoles). Deciding a mobilisation happens on its own review
- * screen instead — this is configuration only.
+ * MobilisationSettings API layer — Admin-only configuration of the stale
+ * mobilisation warning threshold (officeSecretaryStaleDays). The viewer/
+ * self-mobilise role grants that used to live here moved to Section
+ * Access's 'mobilisationsViewer'/'mobilisationsSelfMobilise' keys.
  */
 import { api } from '../../lib/axios.js';
 

@@ -448,7 +448,7 @@
       "assets": { "label": "Assets", "description": "Equipment issued to employees." },
       "team": { "label": "Team", "description": "Staff logins and roles." },
       "approvals": { "label": "Approval Hierarchy", "description": "Approval roles and multi-step workflow chains." },
-      "mobilisationSettings": { "label": "Mobilisation Settings", "description": "Which roles can view every mobilisation or self-mobilise." },
+      "mobilisationSettings": { "label": "Mobilisation Settings", "description": "The stale mobilisation warning threshold — viewer/self-mobilise access is on Section Access now." },
       "approvalsLog": { "label": "Approval Log", "description": "Every request decided through a workflow, in order. Visible if you sit in the hierarchy." },
       "timesheetProcessor": { "label": "Timesheet Processor", "description": "Bulk-import device attendance exports." },
       "nfc": { "label": "NFC Customers", "description": "NFC business-card program." },
